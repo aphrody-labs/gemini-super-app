@@ -18,6 +18,10 @@ import {
 } from "@gemini-live/audiocraft-bridge";
 import { analyzePcm16AudioTimeline } from "@gemini-live/bun-media";
 import {
+  DurableGeminiCookieManager,
+  type GeminiCookieEntry,
+} from "@gemini-live/google-ai-suite";
+import {
   DEFAULT_GEMINI_JAN_AGENT,
   formatJanAdkJsonl,
   parseJanAdkJsonlStream,
@@ -84,6 +88,10 @@ export function startGeminiSuperAppServer(
 ) {
   const db = createSuperAppDatabase(dbPath);
   const ytm = new YtmCompanionClient();
+  const cookieManager = new DurableGeminiCookieManager();
+  void cookieManager.importAndPersist().then(() => {
+    cookieManager.startAutoRefreshDaemon(540_000);
+  });
   const studioProject = createStudioProject("Gemini Super App Master Session");
   const indexHtmlPath = `${import.meta.dir}/index.html`;
 
@@ -339,6 +347,46 @@ export function startGeminiSuperAppServer(
           });
         },
       },
+      "/api/gemini/cookies/status": {
+        GET: async () => {
+          await cookieManager.loadFromVault();
+          return Response.json(cookieManager.getRedactedStatus());
+        },
+      },
+      "/api/gemini/cookies/refresh": {
+        POST: async () => {
+          const result = await cookieManager.refreshSessionCookies();
+          return Response.json({
+            ok: result.ok,
+            rotateHttpStatus: result.rotateHttpStatus,
+            appHttpStatus: result.appHttpStatus,
+            updatedCookies: result.updatedCookies,
+            status: cookieManager.getRedactedStatus(),
+          });
+        },
+      },
+      "/api/gemini/cookies/sync": {
+        POST: async (req: Request) => {
+          const body = (await req.json()) as {
+            cookies?: Record<string, GeminiCookieEntry>;
+          };
+          const current =
+            (await cookieManager.loadFromVault()) ??
+            (await cookieManager.importAndPersist());
+          const merged = {
+            ...current.cookies,
+            ...body.cookies,
+          };
+          await cookieManager.saveToAllTiers({
+            ...current,
+            lastRefreshedAtIso: new Date().toISOString(),
+            hasValid1Psid: Boolean(merged["__Secure-1PSID"]?.value),
+            hasValid1PsidTs: Boolean(merged["__Secure-1PSIDTS"]?.value),
+            cookies: merged,
+          });
+          return Response.json(cookieManager.getRedactedStatus());
+        },
+      },
     },
     fetch(req, srv) {
       const url = new URL(req.url);
@@ -397,7 +445,7 @@ export function startGeminiSuperAppServer(
     },
   });
 
-  return { server, db, ytm };
+  return { server, db, ytm, cookieManager };
 }
 
 if (import.meta.main) {

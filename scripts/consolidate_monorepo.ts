@@ -310,8 +310,13 @@ async function writeRootPackageJson(): Promise<void> {
         "bun run apps/gemini_windows_patcher/src/patch_gemini_desktop.ts",
       "voice:server": "uv run python backend/voice_bridge_server.py",
       "voice:hub": "uv run python backend/super_app_hub.py",
+      "cookies:import": "bun run scripts/gemini_cookie_daemon.ts import",
+      "cookies:refresh": "bun run scripts/gemini_cookie_daemon.ts refresh",
+      "cookies:status": "bun run scripts/gemini_cookie_daemon.ts status",
+      "cookies:daemon": "bun run scripts/gemini_cookie_daemon.ts daemon",
     },
     dependencies: {
+      "@gemini-live/google-ai-suite": "workspace:*",
       "@google/genai": "^2.32.0",
       "@tauri-apps/api": "^3.0.0-alpha.3",
       "@tauri-apps/plugin-dialog": "^3.0.0-alpha.4",

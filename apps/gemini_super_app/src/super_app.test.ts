@@ -6,6 +6,7 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     using srvObj = {
       ...startGeminiSuperAppServer(0),
       [Symbol.dispose]() {
+        this.cookieManager.stopAutoRefreshDaemon();
         this.server.stop(true);
         this.db.close();
       },
@@ -76,6 +77,18 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     };
     expect(janJson.manifest.liveModel).toBe("gemini-3.8-live");
     expect(janJson.parsedEvents.length).toBe(1);
+
+    // 7. Durable Gemini Session Cookies API
+    const cookieRes = await fetch(`${baseUrl}/api/gemini/cookies/status`);
+    expect(cookieRes.status).toBe(200);
+    const cookieJson = (await cookieRes.json()) as {
+      hasValid1Psid: boolean;
+      hasValid1PsidTs: boolean;
+      totalCookiesStored: number;
+    };
+    expect(cookieJson.hasValid1Psid).toBe(true);
+    expect(cookieJson.hasValid1PsidTs).toBe(true);
+    expect(cookieJson.totalCookiesStored).toBeGreaterThanOrEqual(15);
   });
 
   test("executes real live Gemini API calls (gemini-4-argon, gemini-3.8-flash-tts, gemini-3.8-live)", async () => {
@@ -87,6 +100,7 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     using srvObj = {
       ...startGeminiSuperAppServer(0),
       [Symbol.dispose]() {
+        this.cookieManager.stopAutoRefreshDaemon();
         this.server.stop(true);
         this.db.close();
       },

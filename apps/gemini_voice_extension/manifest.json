@@ -8,12 +8,14 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["storage", "tabs", "sidePanel", "contextMenus", "alarms"],
+  "permissions": ["storage", "tabs", "sidePanel", "contextMenus", "alarms", "cookies"],
   "host_permissions": [
+    "https://*.google.com/*",
     "https://gemini.google.com/*",
     "https://aistudio.google.com/*",
     "https://antigravity.google.com/*",
-    "http://127.0.0.1:8765/*"
+    "http://127.0.0.1:8765/*",
+    "http://127.0.0.1:8787/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",

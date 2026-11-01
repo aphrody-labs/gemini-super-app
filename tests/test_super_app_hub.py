@@ -8,6 +8,7 @@ from backend.super_app_hub import (
     GEMINI_LIVE_MODEL,
     GEMINI_TTS_MODEL,
     build_super_app_manifest,
+    load_durable_cookie_vault,
     main,
     synthesize_harmonic_wav_bytes,
     verify_real_gemini_python,
@@ -48,3 +49,9 @@ def test_real_gemini_api_python_uv() -> None:
     assert "PYTHON_GEMINI_38_OK" in res["text_reply"]
     assert res["tts_model"] == GEMINI_TTS_MODEL
     assert res["tts_audio_bytes"] > 1000
+
+    cookie_vault = load_durable_cookie_vault()
+    assert cookie_vault["loaded"] is True
+    assert cookie_vault["has_valid_1psid"] is True
+    assert cookie_vault["has_valid_1psidts"] is True
+    assert cookie_vault["cookie_count"] >= 15

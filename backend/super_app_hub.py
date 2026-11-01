@@ -175,6 +175,24 @@ def verify_real_gemini_python(api_key: str | None = None) -> dict[str, Any]:
     }
 
 
+def load_durable_cookie_vault(repo_root: Path | None = None) -> dict[str, Any]:
+    """Load the durable Gemini session cookie vault written by DurableGeminiCookieManager."""
+    root = repo_root or Path(__file__).resolve().parent.parent
+    vault_path = root / "config" / "secrets" / "gemini_session_cookies.json"
+    if not vault_path.exists():
+        return {"loaded": False, "cookie_count": 0}
+    data = json.loads(vault_path.read_text(encoding="utf-8"))
+    cookies = data.get("cookies", {})
+    return {
+        "loaded": True,
+        "cookie_count": len(cookies),
+        "has_valid_1psid": bool(data.get("hasValid1Psid")),
+        "has_valid_1psidts": bool(data.get("hasValid1PsidTs")),
+        "refresh_count": int(data.get("refreshCount", 0)),
+        "cfb2h_build_label": data.get("cfb2hBuildLabel"),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Gemini Super App Python uv Hub")
     parser.add_argument("--mode", choices=["status", "audiocraft", "music"], default="status")

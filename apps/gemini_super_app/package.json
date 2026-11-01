@@ -12,6 +12,7 @@
   "dependencies": {
     "@gemini-live/audiocraft-bridge": "workspace:*",
     "@gemini-live/bun-media": "workspace:*",
+    "@gemini-live/google-ai-suite": "workspace:*",
     "@gemini-live/jan-adk": "workspace:*",
     "@gemini-live/mediabunny": "workspace:*",
     "@gemini-live/voice-core": "workspace:*",

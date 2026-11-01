@@ -48,6 +48,44 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   } catch {
     await chrome.action.setBadgeText({ text: "" });
   }
+
+  // Auto-sync live Google/Gemini session cookies to the Super App durable vault
+  try {
+    if (chrome.cookies && chrome.cookies.getAll) {
+      const allCookies = await chrome.cookies.getAll({ domain: "google.com" });
+      const cookieMap = {};
+      const now = Date.now();
+      for (const c of allCookies) {
+        if (
+          c.name.startsWith("__Secure-") ||
+          c.name === "SAPISID" ||
+          c.name === "APISID" ||
+          c.name === "HSID" ||
+          c.name === "SSID" ||
+          c.name === "SID" ||
+          c.name === "SIDCC" ||
+          c.name === "NID" ||
+          c.name === "COMPASS"
+        ) {
+          cookieMap[c.name] = {
+            name: c.name,
+            value: c.value,
+            domain: c.domain,
+            path: c.path || "/",
+            expiresUtc: Math.round((c.expirationDate || 0) * 1000),
+            updatedAtMs: now,
+          };
+        }
+      }
+      if (Object.keys(cookieMap).length > 0) {
+        await fetch("http://127.0.0.1:8787/api/gemini/cookies/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cookies: cookieMap }),
+        });
+      }
+    }
+  } catch {}
 });
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
