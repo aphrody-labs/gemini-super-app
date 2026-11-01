@@ -257,7 +257,7 @@ export class AphrodyGoogleAIClient {
       process.env.GEMINI_API_KEY ||
       process.env.GOOGLE_API_KEY ||
       "MOCK_KEY_FOR_TESTS";
-    this.ai = new GoogleGenAI({ apiKey: resolvedKey });
+    this.ai = new GoogleGenAI({ apiKey: resolvedKey, vertexai: false });
     this.auth = new AphrodyAuthManager();
     this.youtubeApiKey =
       process.env.YOUTUBE_API_KEY ||

@@ -39,3 +39,15 @@ Sources officielles de référence :
 - **SQL & SQLite** : Utiliser `Bun.SQL` (`import { sql, SQL } from "bun"`, `query.cancel()`, `COPY` streams) et `bun:sqlite` (`import { Database } from "bun:sqlite"`, UDFs, update hooks) au lieu de `better-sqlite3`, `pg` ou `postgres.js`.
 - **Redis** : Utiliser `Bun.redis` au lieu de `ioredis`.
 - **Fichiers, Glob & Shell** : Utiliser `Bun.file()`, `Bun.write()`, `Bun.Glob` (avec `extglob` & `brace ranges`), et `Bun.$` (`import { $ } from "bun"`) au lieu de `node:fs`, `glob` et `execa`.
+
+
+---
+
+## PROJET GCP `aphrody`, SUITE GOOGLE AI 2026, UI/UX PRO MAX & EXÉCUTION PROACTIVE
+
+- **Projet GCP Actif** : `aphrody` (`468000409790`, `us-central1`) avec impersonation `aphrody-bot@aphrody.iam.gserviceaccount.com` & `bun-google-automation@aphrody.iam.gserviceaccount.com`.
+- **OAuth 2.0 Clients (`aphrody`)** : `468000409790-f66ui5vphebsj9mgu38b146s519pu11d.apps.googleusercontent.com` (principal) et `468000409790-qf5cjq6vdj2v0rsdgnj5deb5kt6l9k9t.apps.googleusercontent.com` (automation).
+- **CLI Unifié Google AI** : `bun run aphrody <status|token|oauth-url|search|research|tts|stt|ml|embed|youtube|lyria|flow>` (`scripts/aphrody_cli.ts` & `packages/google_ai_suite/src/index.ts`).
+- **Data Agent Kit (DAK)** : Configuré sur `aphrody` (`us-central1`) avec les 11 services GCP Data/Analytics activés.
+- **UI/UX Pro Max (`uipro`)** : Installé globalement (`ui-ux-pro-max-cli@2.15.0`) et initialisé pour Antigravity dans `.agents/skills/` (`ui-ux-pro-max`, `design-system`, `ui-styling`, `design`, `brand`, `banner-design`, `slides`).
+- **Accord d'Exécution Proactive** : Exécution autonome de bout en bout enregistrée pour les workflows de développement, d'IA et de déploiement sur `aphrody` (dans le respect des garde-fous de sécurité contre la perte de données irréversible).

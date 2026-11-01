@@ -82,7 +82,10 @@ class AphrodyAIHub:
         if self._client is None:
             from google import genai
 
-            self._client = genai.Client(api_key=self.gemini_api_key or "MOCK_KEY")
+            self._client = genai.Client(
+                api_key=self.gemini_api_key or "MOCK_KEY",
+                vertexai=False,
+            )
         return self._client
 
     def get_status(self) -> dict[str, Any]:
