@@ -2,7 +2,7 @@
 
 Dépôt officiel GitHub (`aphrody-labs`) : **`https://github.com/aphrody-labs/gemini-super-app`**
 
-Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `3.0.0-alpha.5` + Python `uv` + Flutter**) consolidant les **10 sous-modules Git (`vendor/*`)** en une **Grande Super Application Gemini (`apps/gemini_super_app`)** dédiée à la voix temps réel (`gemini-3.8-live`, `gemini-3.8-live-extended-thinking`), au compagnon de bureau interactif **Gemini Pet** (OpenPets Full Bun v1.4.5), au raisonnement profond (`gemini-4-argon`), au clonage vocal (`gemini-3.8-flash-tts`, Voicebox), à la génération musicale (AudioCraft, Lyria, ACE-Step 1.5), au streaming lossless (Polaris, YouTube Music) et au traitement audio-vidéo natif (Bun-Video / Mediabunny).
+Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `3.0.0-alpha.5` + Python `uv` + Flutter**) consolidant les **11 sous-modules Git (`vendor/*`)** en une **Grande Super Application Gemini (`apps/gemini_super_app`)** dédiée à la voix temps réel (`gemini-3.8-live`, `gemini-3.8-live-extended-thinking`), aux compagnons de bureau interactifs **Gemini Pet & Mochi 🌱 Cross-Platform Deskling** (OpenPets Full Bun v1.4.5 + Mochi Desktop migré Windows/macOS/Linux), au raisonnement profond (`gemini-4-argon`), au clonage vocal (`gemini-3.8-flash-tts`, Voicebox), à la génération musicale (AudioCraft, Lyria, ACE-Step 1.5), au streaming lossless (Polaris, YouTube Music) et au traitement audio-vidéo natif (Bun-Video / Mediabunny).
 
 ---
 
@@ -43,7 +43,7 @@ Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `
 │   ├── voicebox_sdk/             # SDK Studio multi-pistes, clonage vocal & Tauri v3 Alpha (@tauri-apps/api)
 │   ├── audiocraft_bridge/        # Pont AudioCraft (MusicGen, AudioGen, EnCodec) via uv run + synthèse WAV
 │   └── openpets_gemini/          # Moteur Gemini Pet & OpenPets (Atlas SVG V2 1536x2288, regard 16 secteurs, Tamagotchi, IPC v1)
-├── vendor/                       # 10 Sous-Modules Git Clonés (.gitmodules)
+├── vendor/                       # 11 Sous-Modules Git Clonés (.gitmodules)
 │   ├── voicebox/                 # https://github.com/aphrody-dev/voicebox
 │   ├── locally-uncensored/       # https://github.com/aphrody-dev/locally-uncensored
 │   ├── jan/                      # https://github.com/aphrody-dev/jan
@@ -53,7 +53,8 @@ Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `
 │   ├── polaris/                  # https://github.com/aphrody-labs/polaris
 │   ├── audiocraft/               # https://github.com/aphrody-dev/audiocraft
 │   ├── bun-video/                # https://github.com/aphrody-labs/bun-video/tree/main
-│   └── openpets/                 # https://github.com/aphrody-labs/openpets (Fork Full Bun v1.4.5)
+│   ├── openpets/                 # https://github.com/aphrody-labs/openpets (Fork Full Bun v1.4.5)
+│   └── mochi-desktop/            # https://github.com/aphrody-dev/mochi-desktop (Migré Cross-Platform Win/macOS/Linux)
 ├── backend/                      # Serveurs Python gérés par uv (voice_bridge_server.py, super_app_hub.py)
 ├── scripts/                      # Script de consolidation (consolidate_monorepo.ts) & CLI aphrody
 ├── CONSOLIDATION_PLAN.md         # Plan d'architecture et matrices de migration Novembre 2026

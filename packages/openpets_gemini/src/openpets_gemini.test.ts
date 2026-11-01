@@ -1,10 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import {
+  GEMINI_PET_CHARACTERS,
   GeminiPetStateManager,
   LeaseManager,
+  MOCHI_EMOTE_CATALOGUE,
+  awardMochiBondXp,
   createVelocityTracker,
   generateGeminiPetSvgSpritesheet,
   getCodexV2GazeSpritePosition,
+  mochiBondXpRequired,
   quantizeCodexV2GazeDirection,
   resolveReactionSpriteState,
   stepThrow,
@@ -71,5 +75,37 @@ describe("@gemini-live/openpets-gemini", () => {
     expect(lease.petId).toBe("gemini-sparkle");
     expect(leases.list().length).toBe(1);
     expect(leases.release("s1")).toBe(true);
+  });
+
+  test("supports Mochi cross-platform deskling bond XP, 12 emotes, focus, and pocket", () => {
+    expect(GEMINI_PET_CHARACTERS.some((p) => p.id === "mochi")).toBe(true);
+    expect(MOCHI_EMOTE_CATALOGUE.length).toBe(12);
+    expect(mochiBondXpRequired(1)).toBe(480);
+    expect(mochiBondXpRequired(2)).toBe(570);
+    expect(mochiBondXpRequired(5)).toBe(660);
+
+    const awarded = awardMochiBondXp({ level: 1, xp: 0 }, 480);
+    expect(awarded.levelsGained).toBe(1);
+    expect(awarded.state.level).toBe(2);
+    expect(awarded.state.xp).toBe(0);
+
+    const mgr = new GeminiPetStateManager();
+    const switched = mgr.switchPet("mochi");
+    expect(switched.activePetId).toBe("mochi");
+
+    const emoted = mgr.triggerMochiEmote("mochi-exe");
+    expect(emoted.mochiAnimation).toBe("emote_mochi_exe");
+
+    const focused = mgr.startMochiFocus(25, 5, 1);
+    expect(focused.mochiFocus.phase).toBe("focusing");
+    expect(focused.mochiAnimation).toBe("focus");
+
+    const pocketed = mgr.addMochiPocketItem(
+      "url",
+      "https://github.com/aphrody-dev/mochi-desktop",
+      "Mochi Cross-Platform Repo",
+    );
+    expect(pocketed.mochiPocket.length).toBe(1);
+    expect(pocketed.mochiPocket[0]?.title).toBe("Mochi Cross-Platform Repo");
   });
 });

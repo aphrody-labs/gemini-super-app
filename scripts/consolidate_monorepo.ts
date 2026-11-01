@@ -112,6 +112,14 @@ export const SUBMODULE_SPECS: readonly SubmoduleSpec[] = [
     targetPackages: ["packages/openpets_gemini"],
     targetApps: ["apps/gemini_super_app"],
   },
+  {
+    name: "mochi-desktop",
+    url: "https://github.com/aphrody-dev/mochi-desktop",
+    vendorPath: "vendor/mochi-desktop",
+    targetCrates: ["crates/openpets-core", "crates/gemini-super-tauri"],
+    targetPackages: ["packages/openpets_gemini"],
+    targetApps: ["apps/gemini_super_app"],
+  },
 ];
 
 async function copyDirectoryFiltered(

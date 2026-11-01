@@ -366,8 +366,10 @@ export function pickReactionMessage(
 
 // ── 4. Pet Catalog & Wardrobe Engine ─────────────────────────────────────────
 
+export type GeminiPetId = "gemini-sparkle" | "hoodie-cat" | "mochi";
+
 export interface GeminiPetCharacterSpec {
-  id: "gemini-sparkle" | "hoodie-cat";
+  id: GeminiPetId;
   name: string;
   subtitle: string;
   spriteSheetUrl: string;
@@ -431,7 +433,291 @@ export const GEMINI_PET_CHARACTERS: readonly GeminiPetCharacterSpec[] = [
       },
     ],
   },
+  {
+    id: "mochi",
+    name: "Mochi 🌱 (Cross-Platform Deskling)",
+    subtitle:
+      "Compagnon Pixel-Art 256×256 (39 Animations, 12 Emotes Bond, Focus & Pocket)",
+    spriteSheetUrl: "/assets/mochi/mochi/master/mochi_default.png",
+    outfits: [
+      {
+        id: "default",
+        label: "Mochi Vert Classique 🌱",
+        spriteSheetUrl: "/assets/mochi/mochi/master/mochi_default.png",
+      },
+      {
+        id: "coworking",
+        label: "Mochi Laptop Cowork 💻",
+        spriteSheetUrl: "/assets/mochi/mochi/coworking/frames/frame_04.png",
+      },
+      {
+        id: "agent",
+        label: "Mochi Agent Claude/Codex 🤖",
+        spriteSheetUrl: "/assets/mochi/mochi/agent_cowork/frames/frame_04.png",
+      },
+      {
+        id: "headphones",
+        label: "Mochi Casque Audio 🎧",
+        spriteSheetUrl: "/assets/mochi/mochi/headphones/frames/frame_03.png",
+      },
+      {
+        id: "focus",
+        label: "Mochi Focus Bandeau 🔥",
+        spriteSheetUrl: "/assets/mochi/mochi/focus/frames/frame_05.png",
+      },
+    ],
+  },
 ] as const;
+
+// ── 4b. Mochi 🌱 Cross-Platform Deskling Engine (Bond, Emotes, Focus, Pocket) ─
+
+export type MochiBondPhase =
+  "fresh" | "warming_up" | "halfway" | "almost_there";
+
+export interface MochiBondState {
+  level: number;
+  xp: number;
+  xpNeeded: number;
+  progressFraction: number;
+  phase: MochiBondPhase;
+}
+
+/**
+ * Mirrors `mochi.bond.xp_required_for_level(level)`: `480 + round(90 * sqrt(level - 1))`.
+ */
+export function mochiBondXpRequired(level: number): number {
+  const clamped = Math.max(1, Math.floor(level));
+  return 480 + Math.round(90 * Math.sqrt(clamped - 1));
+}
+
+export function computeMochiBondState(
+  level: number,
+  xp: number,
+): MochiBondState {
+  const safeLevel = Math.max(1, Math.floor(level));
+  const safeXp = Math.max(0, Math.floor(xp));
+  const xpNeeded = mochiBondXpRequired(safeLevel);
+  const progressFraction =
+    xpNeeded > 0 ? Math.min(1, Math.max(0, safeXp / xpNeeded)) : 1;
+  let phase: MochiBondPhase = "fresh";
+  if (progressFraction >= 0.8) phase = "almost_there";
+  else if (progressFraction >= 0.5) phase = "halfway";
+  else if (progressFraction >= 0.25) phase = "warming_up";
+  return {
+    level: safeLevel,
+    xp: safeXp,
+    xpNeeded,
+    progressFraction,
+    phase,
+  };
+}
+
+export function awardMochiBondXp(
+  current: { level: number; xp: number },
+  amount: number,
+): { state: MochiBondState; levelsGained: number } {
+  const gain = Math.max(0, Math.floor(amount));
+  let level = Math.max(1, Math.floor(current.level));
+  let xp = Math.max(0, Math.floor(current.xp)) + gain;
+  let levelsGained = 0;
+
+  while (true) {
+    const needed = mochiBondXpRequired(level);
+    if (xp < needed) break;
+    xp -= needed;
+    level += 1;
+    levelsGained += 1;
+  }
+
+  return {
+    state: computeMochiBondState(level, xp),
+    levelsGained,
+  };
+}
+
+export type MochiEmoteRarity = "common" | "uncommon" | "rare" | "epic";
+
+export interface MochiEmoteSpec {
+  id: string;
+  label: string;
+  animation: string;
+  unlockLevel: number;
+  rarity: MochiEmoteRarity;
+  description: string;
+  previewUrl: string;
+  spritesheetUrl?: string;
+  framesCount: number;
+  fps: number;
+}
+
+export const MOCHI_EMOTE_CATALOGUE: readonly MochiEmoteSpec[] = [
+  {
+    id: "heart",
+    label: "Heart 💚",
+    animation: "emote_heart",
+    unlockLevel: 1,
+    rarity: "common",
+    description: "Petit cœur chaleureux de Mochi.",
+    previewUrl: "/assets/mochi/mochi/emote_heart/frames/frame_04.png",
+    spritesheetUrl: "/assets/mochi/mochi/emote_heart/spritesheet.png",
+    framesCount: 8,
+    fps: 10,
+  },
+  {
+    id: "bounce",
+    label: "Happy Bounce 🌱",
+    animation: "bounce",
+    unlockLevel: 1,
+    rarity: "common",
+    description: "Petit bond joyeux sur le bureau.",
+    previewUrl: "/assets/mochi/mochi/bounce/frames/frame_03.png",
+    spritesheetUrl: "/assets/mochi/mochi/bounce/spritesheet.png",
+    framesCount: 8,
+    fps: 12,
+  },
+  {
+    id: "squish",
+    label: "Squish 🍡",
+    animation: "squish",
+    unlockLevel: 2,
+    rarity: "common",
+    description: "Compression moelleuse de mochi.",
+    previewUrl: "/assets/mochi/mochi/squish/frames/frame_02.png",
+    spritesheetUrl: "/assets/mochi/mochi/squish/spritesheet.png",
+    framesCount: 6,
+    fps: 10,
+  },
+  {
+    id: "wave",
+    label: "Friendly Wave 👋",
+    animation: "wave",
+    unlockLevel: 3,
+    rarity: "common",
+    description: "Coucou amical depuis le coin de l'écran.",
+    previewUrl: "/assets/mochi/mochi/wave/frames/frame_03.png",
+    spritesheetUrl: "/assets/mochi/mochi/wave/spritesheet.png",
+    framesCount: 8,
+    fps: 10,
+  },
+  {
+    id: "coffee",
+    label: "Coffee Break ☕",
+    animation: "emote_coffee",
+    unlockLevel: 4,
+    rarity: "uncommon",
+    description: "Pause café fumante pour coder.",
+    previewUrl: "/assets/mochi/mochi/emote_coffee/frames/frame_06.png",
+    spritesheetUrl: "/assets/mochi/mochi/emote_coffee/spritesheet.png",
+    framesCount: 16,
+    fps: 8,
+  },
+  {
+    id: "side-eye",
+    label: "Side Eye 👀",
+    animation: "emote_side_eye",
+    unlockLevel: 5,
+    rarity: "uncommon",
+    description: "Regard suspicieux sur ce git push --force.",
+    previewUrl: "/assets/mochi/mochi/emote_side_eye/frames/frame_04.png",
+    spritesheetUrl: "/assets/mochi/mochi/emote_side_eye/spritesheet.png",
+    framesCount: 8,
+    fps: 8,
+  },
+  {
+    id: "look",
+    label: "Curious Look 🔍",
+    animation: "look",
+    unlockLevel: 6,
+    rarity: "uncommon",
+    description: "Observe curieusement ta fenêtre active.",
+    previewUrl: "/assets/mochi/mochi/look/frames/frame_03.png",
+    spritesheetUrl: "/assets/mochi/mochi/look/spritesheet.png",
+    framesCount: 6,
+    fps: 8,
+  },
+  {
+    id: "table-flip",
+    label: "Table Flip (╯°□°)╯︵┻━┻",
+    animation: "emote_table_flip",
+    unlockLevel: 7,
+    rarity: "rare",
+    description: "Quand le build échoue à la dernière seconde.",
+    previewUrl: "/assets/mochi/mochi/emote_table_flip/frames/frame_05.png",
+    spritesheetUrl: "/assets/mochi/mochi/emote_table_flip/spritesheet.png",
+    framesCount: 8,
+    fps: 10,
+  },
+  {
+    id: "this-is-fine",
+    label: "This Is Fine 🔥",
+    animation: "emote_this_is_fine",
+    unlockLevel: 8,
+    rarity: "rare",
+    description: "Sirote calmement pendant que la prod chauffe.",
+    previewUrl: "/assets/mochi/mochi/emote_this_is_fine/frames/frame_06.png",
+    spritesheetUrl: "/assets/mochi/mochi/emote_this_is_fine/spritesheet.png",
+    framesCount: 16,
+    fps: 8,
+  },
+  {
+    id: "vs-code",
+    label: "Code Sprint 💻",
+    animation: "emote_vs_code",
+    unlockLevel: 9,
+    rarity: "rare",
+    description: "Concentration maximale sur le code.",
+    previewUrl: "/assets/mochi/mochi/emote_vs_code/frames/frame_04.png",
+    spritesheetUrl: "/assets/mochi/mochi/emote_vs_code/spritesheet.png",
+    framesCount: 8,
+    fps: 10,
+  },
+  {
+    id: "dance",
+    label: "Victory Dance 💃",
+    animation: "dance",
+    unlockLevel: 10,
+    rarity: "epic",
+    description: "Danse de la victoire après un déploiement réussi.",
+    previewUrl: "/assets/mochi/mochi/dance/frames/frame_04.png",
+    spritesheetUrl: "/assets/mochi/mochi/dance/spritesheet.png",
+    framesCount: 8,
+    fps: 12,
+  },
+  {
+    id: "mochi-exe",
+    label: "mochi.exe ⚡",
+    animation: "emote_mochi_exe",
+    unlockLevel: 12,
+    rarity: "epic",
+    description: "Mode overdrive deskling maximum.",
+    previewUrl: "/assets/mochi/mochi/emote_mochi_exe/frames/frame_05.png",
+    spritesheetUrl: "/assets/mochi/mochi/emote_mochi_exe/spritesheet.png",
+    framesCount: 11,
+    fps: 12,
+  },
+] as const;
+
+export type MochiFocusPhase =
+  "idle" | "focusing" | "thinking" | "break" | "complete";
+
+export interface MochiFocusSession {
+  phase: MochiFocusPhase;
+  focusMinutes: number;
+  breakMinutes: number;
+  cycles: number;
+  startedAt?: string;
+  endsAt?: string;
+}
+
+export type MochiPocketKind = "local_file" | "text" | "url" | "saved_image";
+
+export interface MochiPocketItem {
+  id: string;
+  kind: MochiPocketKind;
+  title: string;
+  value: string;
+  createdAt: string;
+}
 
 export function resolveScheduledOutfitId(date = new Date()): string {
   const month = date.getMonth() + 1;
@@ -612,7 +898,7 @@ export type GeminiPetMood =
   "content" | "happy" | "hungry" | "sleepy" | "bored" | "grumpy";
 
 export interface GeminiPetCareSnapshot {
-  activePetId: "gemini-sparkle" | "hoodie-cat";
+  activePetId: GeminiPetId;
   activeOutfitId: string;
   autoScheduleOutfit: boolean;
   reaction: OpenPetsReaction;
@@ -628,6 +914,10 @@ export interface GeminiPetCareSnapshot {
   mood: GeminiPetMood;
   gravityEnabled: boolean;
   position: { x: number; y: number };
+  mochiBond: MochiBondState;
+  mochiAnimation: string;
+  mochiFocus: MochiFocusSession;
+  mochiPocket: MochiPocketItem[];
   updatedAt: string;
 }
 
@@ -680,6 +970,15 @@ export class GeminiPetStateManager {
       mood: getPetMood({ hunger, energy, happiness }),
       gravityEnabled: initial?.gravityEnabled ?? true,
       position: initial?.position ?? { x: 240, y: 220 },
+      mochiBond: initial?.mochiBond ?? computeMochiBondState(12, 180),
+      mochiAnimation: initial?.mochiAnimation ?? "idle_breathe",
+      mochiFocus: initial?.mochiFocus ?? {
+        phase: "idle",
+        focusMinutes: 25,
+        breakMinutes: 5,
+        cycles: 1,
+      },
+      mochiPocket: initial?.mochiPocket ?? [],
       updatedAt: new Date().toISOString(),
     };
   }
@@ -691,7 +990,12 @@ export class GeminiPetStateManager {
     ) {
       this.state.activeOutfitId = resolveScheduledOutfitId();
     }
-    return { ...this.state };
+    return {
+      ...this.state,
+      mochiBond: { ...this.state.mochiBond },
+      mochiFocus: { ...this.state.mochiFocus },
+      mochiPocket: [...this.state.mochiPocket],
+    };
   }
 
   private addXp(amount: number): boolean {
@@ -699,16 +1003,37 @@ export class GeminiPetStateManager {
     const newLevels = Math.floor(total / 100);
     this.state.xp = total % 100;
     this.state.level += newLevels;
-    return newLevels > 0;
+    const bondAward = awardMochiBondXp(
+      this.state.mochiBond,
+      Math.max(1, amount * 12),
+    );
+    this.state.mochiBond = bondAward.state;
+    return newLevels > 0 || bondAward.levelsGained > 0;
   }
 
   private updateReactionInternal(
     reaction: OpenPetsReaction,
     customSpeech?: string,
+    mochiAnimationOverride?: string,
   ): void {
     this.state.reaction = reaction;
     this.state.spriteState = resolveReactionSpriteState(reaction);
     this.state.spriteRow = defaultPetSprite.states[this.state.spriteState].row;
+    if (mochiAnimationOverride) {
+      this.state.mochiAnimation = mochiAnimationOverride;
+    } else if (reaction === "celebrating") {
+      this.state.mochiAnimation = "dance";
+    } else if (reaction === "waving") {
+      this.state.mochiAnimation = "wave";
+    } else if (reaction === "working" || reaction === "editing") {
+      this.state.mochiAnimation = "coworking";
+    } else if (reaction === "thinking") {
+      this.state.mochiAnimation = "look";
+    } else if (reaction === "error") {
+      this.state.mochiAnimation = "emote_this_is_fine";
+    } else {
+      this.state.mochiAnimation = "idle_breathe";
+    }
     if (customSpeech !== undefined) {
       this.state.speechText = customSpeech;
     } else {
@@ -729,6 +1054,7 @@ export class GeminiPetStateManager {
       leveledUp
         ? `Niveau ${this.state.level} atteint ! Merci pour les tokens étoilés ✦🎉`
         : "Miam ! Délicieux cristaux de contexte Gemini ✦ (+28 Food)",
+      "eat",
     );
     return { snapshot: this.getSnapshot(), leveledUp };
   }
@@ -738,6 +1064,7 @@ export class GeminiPetStateManager {
       this.updateReactionInternal(
         "waiting",
         "Je suis trop fatigué pour jouer... Une petite sieste d'abord ? ☾",
+        "sleep",
       );
       return { snapshot: this.getSnapshot(), leveledUp: false };
     }
@@ -751,6 +1078,7 @@ export class GeminiPetStateManager {
       leveledUp
         ? `Niveau ${this.state.level} ! Quel saut acrobatique ✦🎉`
         : "Youpi ! Lance-moi à travers l'écran avec la souris ! (+24 Play)",
+      "bounce",
     );
     return { snapshot: this.getSnapshot(), leveledUp };
   }
@@ -764,6 +1092,7 @@ export class GeminiPetStateManager {
       leveledUp
         ? `Niveau ${this.state.level} ! Notre lien cosmique grandit ✦💛`
         : "Ronronnement quantique ✦ J'adore les caresses ! (+8 Bond)",
+      "emote_heart",
     );
     return { snapshot: this.getSnapshot(), leveledUp };
   }
@@ -775,6 +1104,7 @@ export class GeminiPetStateManager {
     this.updateReactionInternal(
       "waiting",
       "Zzz... Rêve de tenseurs et d'étoiles Gemini... (+35 Energy) ☾",
+      "sleep",
     );
     return { snapshot: this.getSnapshot(), leveledUp };
   }
@@ -790,22 +1120,117 @@ export class GeminiPetStateManager {
     return this.getSnapshot();
   }
 
-  switchPet(
-    petId: "gemini-sparkle" | "hoodie-cat",
-    outfitId?: string,
-  ): GeminiPetCareSnapshot {
+  switchPet(petId: GeminiPetId, outfitId?: string): GeminiPetCareSnapshot {
     this.state.activePetId = petId;
     if (outfitId) {
       this.state.activeOutfitId = outfitId;
     } else {
       this.state.activeOutfitId = "default";
     }
-    this.updateReactionInternal(
-      "waving",
+    const switchMsg =
       petId === "gemini-sparkle"
         ? "Transformation en Gemini Sparkle Pet officiel ✦"
-        : "Meow ! Transformation en OpenPets Hoodie Cat 🐾",
+        : petId === "mochi"
+          ? "Mochi 🌱 Cross-Platform Deskling activé ! (39 animations pixel-art 256×256 + 12 Emotes Bond)"
+          : "Meow ! Transformation en OpenPets Hoodie Cat 🐾";
+    this.updateReactionInternal("waving", switchMsg, "wave");
+    return this.getSnapshot();
+  }
+
+  triggerMochiEmote(emoteId: string): GeminiPetCareSnapshot {
+    const emote = MOCHI_EMOTE_CATALOGUE.find(
+      (item) => item.id === emoteId || item.animation === emoteId,
     );
+    if (!emote) {
+      return this.getSnapshot();
+    }
+    this.addXp(4);
+    this.updateReactionInternal(
+      emote.rarity === "epic" ? "celebrating" : "waving",
+      `Mochi Emote : ${emote.label} — ${emote.description}`,
+      emote.animation,
+    );
+    return this.getSnapshot();
+  }
+
+  startMochiFocus(
+    focusMinutes = 25,
+    breakMinutes = 5,
+    cycles = 1,
+  ): GeminiPetCareSnapshot {
+    const clampedFocus = Math.max(1, Math.min(180, Math.round(focusMinutes)));
+    const clampedBreak = Math.max(1, Math.min(60, Math.round(breakMinutes)));
+    const now = new Date();
+    this.state.mochiFocus = {
+      phase: "focusing",
+      focusMinutes: clampedFocus,
+      breakMinutes: clampedBreak,
+      cycles: Math.max(1, Math.min(8, Math.round(cycles))),
+      startedAt: now.toISOString(),
+      endsAt: new Date(now.getTime() + clampedFocus * 60 * 1000).toISOString(),
+    };
+    this.updateReactionInternal(
+      "working",
+      `Focus avec Mochi 🌱 démarré : ${clampedFocus} min de concentration profonde !`,
+      "focus",
+    );
+    return this.getSnapshot();
+  }
+
+  stopMochiFocus(completed = false): GeminiPetCareSnapshot {
+    this.state.mochiFocus = {
+      ...this.state.mochiFocus,
+      phase: completed ? "complete" : "idle",
+      endsAt: undefined,
+    };
+    if (completed) {
+      this.addXp(25);
+    }
+    this.updateReactionInternal(
+      completed ? "celebrating" : "idle",
+      completed
+        ? "Session Focus terminée ! Bravo, Mochi danse de joie 🌱🎉 (+300 Bond XP)"
+        : "Session Focus mise en pause.",
+      completed ? "focus_celebrate" : "idle_breathe",
+    );
+    return this.getSnapshot();
+  }
+
+  addMochiPocketItem(
+    kind: MochiPocketKind,
+    value: string,
+    title?: string,
+  ): GeminiPetCareSnapshot {
+    const trimmed = value.trim();
+    if (!trimmed) return this.getSnapshot();
+    const item: MochiPocketItem = {
+      id: `pocket-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      kind,
+      title: (title?.trim() || trimmed).slice(0, 80),
+      value: trimmed.slice(0, 2000),
+      createdAt: new Date().toISOString(),
+    };
+    this.state.mochiPocket = [item, ...this.state.mochiPocket].slice(0, 20);
+    this.addXp(5);
+    this.updateReactionInternal(
+      "success",
+      `Mochi a rangé « ${item.title} » dans sa poche secrète 🌱🎒`,
+      "pocket_receive",
+    );
+    return this.getSnapshot();
+  }
+
+  removeMochiPocketItem(id: string): GeminiPetCareSnapshot {
+    this.state.mochiPocket = this.state.mochiPocket.filter(
+      (item) => item.id !== id,
+    );
+    this.state.updatedAt = new Date().toISOString();
+    return this.getSnapshot();
+  }
+
+  clearMochiPocket(): GeminiPetCareSnapshot {
+    this.state.mochiPocket = [];
+    this.state.updatedAt = new Date().toISOString();
     return this.getSnapshot();
   }
 
@@ -814,9 +1239,17 @@ export class GeminiPetStateManager {
     this.state.activeOutfitId = autoSchedule
       ? resolveScheduledOutfitId()
       : outfitId;
+    const animMap: Record<string, string> = {
+      default: "idle_breathe",
+      coworking: "coworking",
+      agent: "agent_cowork",
+      headphones: "headphones",
+      focus: "focus",
+    };
     this.updateReactionInternal(
       "celebrating",
       `Nouvelle tenue équipée : ${this.state.activeOutfitId} ✦`,
+      animMap[this.state.activeOutfitId] ?? "wave",
     );
     return this.getSnapshot();
   }

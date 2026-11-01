@@ -496,9 +496,263 @@ impl GeminiPetCareState {
     }
 }
 
+// ---------------------------------------------------------------------------
+// 5. Mochi 🌱 Cross-Platform Deskling Engine (Bond, Emotes, Focus & Pocket)
+// ---------------------------------------------------------------------------
+
+/// Calculates the exact Bond XP required to advance from `level` to `level + 1`.
+/// Mirrors `mochi.bond.xp_required_for_level`: `480 + round(90 * sqrt(level - 1))`.
+pub fn mochi_bond_xp_required(level: u32) -> u32 {
+    let clamped = level.max(1);
+    let offset = (90.0 * ((clamped - 1) as f64).sqrt()).round() as u32;
+    480 + offset
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MochiBondPhase {
+    Fresh,
+    WarmingUp,
+    Halfway,
+    AlmostThere,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MochiBondState {
+    pub level: u32,
+    pub xp: u32,
+}
+
+impl Default for MochiBondState {
+    fn default() -> Self {
+        Self { level: 1, xp: 0 }
+    }
+}
+
+impl MochiBondState {
+    pub fn xp_needed(&self) -> u32 {
+        mochi_bond_xp_required(self.level)
+    }
+
+    pub fn progress_fraction(&self) -> f64 {
+        let needed = self.xp_needed();
+        if needed == 0 {
+            1.0
+        } else {
+            (self.xp as f64 / needed as f64).clamp(0.0, 1.0)
+        }
+    }
+
+    pub fn phase(&self) -> MochiBondPhase {
+        let ratio = self.progress_fraction();
+        if ratio < 0.25 {
+            MochiBondPhase::Fresh
+        } else if ratio < 0.50 {
+            MochiBondPhase::WarmingUp
+        } else if ratio < 0.80 {
+            MochiBondPhase::Halfway
+        } else {
+            MochiBondPhase::AlmostThere
+        }
+    }
+
+    /// Awards non-decaying Bond XP and returns the number of levels gained.
+    pub fn award_xp(&mut self, amount: u32) -> u32 {
+        if amount == 0 {
+            return 0;
+        }
+        let mut remaining = self.xp.saturating_add(amount);
+        let mut current_level = self.level.max(1);
+        let mut levels_gained = 0;
+
+        loop {
+            let needed = mochi_bond_xp_required(current_level);
+            if remaining < needed {
+                break;
+            }
+            remaining -= needed;
+            current_level = current_level.saturating_add(1);
+            levels_gained += 1;
+        }
+
+        self.level = current_level;
+        self.xp = remaining;
+        levels_gained
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum MochiEmoteRarity {
+    Common,
+    Uncommon,
+    Rare,
+    Epic,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MochiEmoteSpec {
+    pub id: String,
+    pub label: String,
+    pub animation: String,
+    pub unlock_level: u32,
+    pub rarity: MochiEmoteRarity,
+    pub description: String,
+}
+
+pub fn default_mochi_emote_catalogue() -> Vec<MochiEmoteSpec> {
+    vec![
+        MochiEmoteSpec {
+            id: "heart".into(),
+            label: "Heart".into(),
+            animation: "emote_heart".into(),
+            unlock_level: 1,
+            rarity: MochiEmoteRarity::Common,
+            description: "Warm little heart burst.".into(),
+        },
+        MochiEmoteSpec {
+            id: "bounce".into(),
+            label: "Happy Bounce".into(),
+            animation: "bounce".into(),
+            unlock_level: 1,
+            rarity: MochiEmoteRarity::Common,
+            description: "Springy desk hop.".into(),
+        },
+        MochiEmoteSpec {
+            id: "squish".into(),
+            label: "Squish".into(),
+            animation: "squish".into(),
+            unlock_level: 2,
+            rarity: MochiEmoteRarity::Common,
+            description: "Soft mochi compression.".into(),
+        },
+        MochiEmoteSpec {
+            id: "wave".into(),
+            label: "Friendly Wave".into(),
+            animation: "wave".into(),
+            unlock_level: 3,
+            rarity: MochiEmoteRarity::Common,
+            description: "Polite hello from the corner of your screen.".into(),
+        },
+        MochiEmoteSpec {
+            id: "coffee".into(),
+            label: "Coffee Break".into(),
+            animation: "emote_coffee".into(),
+            unlock_level: 4,
+            rarity: MochiEmoteRarity::Uncommon,
+            description: "Freshly brewed coding fuel.".into(),
+        },
+        MochiEmoteSpec {
+            id: "side-eye".into(),
+            label: "Side Eye".into(),
+            animation: "emote_side_eye".into(),
+            unlock_level: 5,
+            rarity: MochiEmoteRarity::Uncommon,
+            description: "Suspicious glance at that force-push.".into(),
+        },
+        MochiEmoteSpec {
+            id: "look".into(),
+            label: "Curious Look".into(),
+            animation: "look".into(),
+            unlock_level: 6,
+            rarity: MochiEmoteRarity::Uncommon,
+            description: "Peering closely at your active window.".into(),
+        },
+        MochiEmoteSpec {
+            id: "table-flip".into(),
+            label: "Table Flip".into(),
+            animation: "emote_table_flip".into(),
+            unlock_level: 7,
+            rarity: MochiEmoteRarity::Rare,
+            description: "For when the build fails on the last step.".into(),
+        },
+        MochiEmoteSpec {
+            id: "this-is-fine".into(),
+            label: "This Is Fine".into(),
+            animation: "emote_this_is_fine".into(),
+            unlock_level: 8,
+            rarity: MochiEmoteRarity::Rare,
+            description: "Sipping calmly while production warms up.".into(),
+        },
+        MochiEmoteSpec {
+            id: "vs-code".into(),
+            label: "Code Sprint".into(),
+            animation: "emote_vs_code".into(),
+            unlock_level: 9,
+            rarity: MochiEmoteRarity::Rare,
+            description: "Locking in on the editor.".into(),
+        },
+        MochiEmoteSpec {
+            id: "dance".into(),
+            label: "Victory Dance".into(),
+            animation: "dance".into(),
+            unlock_level: 10,
+            rarity: MochiEmoteRarity::Epic,
+            description: "Full celebratory groove.".into(),
+        },
+        MochiEmoteSpec {
+            id: "mochi-exe".into(),
+            label: "mochi.exe".into(),
+            animation: "emote_mochi_exe".into(),
+            unlock_level: 12,
+            rarity: MochiEmoteRarity::Epic,
+            description: "Maximum overdrive deskling mode.".into(),
+        },
+    ]
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MochiFocusPhase {
+    Idle,
+    Focusing,
+    Thinking,
+    Break,
+    Complete,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MochiFocusPlan {
+    pub focus_minutes: u32,
+    pub break_minutes: u32,
+    pub cycles: u32,
+}
+
+impl Default for MochiFocusPlan {
+    fn default() -> Self {
+        Self {
+            focus_minutes: 25,
+            break_minutes: 5,
+            cycles: 1,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_mochi_bond_progression_and_emotes() {
+        assert_eq!(mochi_bond_xp_required(1), 480);
+        assert_eq!(mochi_bond_xp_required(2), 570);
+        assert_eq!(mochi_bond_xp_required(5), 660);
+
+        let mut bond = MochiBondState::default();
+        assert_eq!(bond.phase(), MochiBondPhase::Fresh);
+        let gained = bond.award_xp(480);
+        assert_eq!(gained, 1);
+        assert_eq!(bond.level, 2);
+        assert_eq!(bond.xp, 0);
+
+        let emotes = default_mochi_emote_catalogue();
+        assert_eq!(emotes.len(), 12);
+        assert_eq!(emotes[0].id, "heart");
+        assert_eq!(emotes[11].id, "mochi-exe");
+    }
 
     #[test]
     fn test_framing_protocol_round_trip() {

@@ -24,7 +24,8 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     expect(health.tauriVersion).toBe("3.0.0-alpha.5");
     expect(health.models.live).toBe("gemini-3.8-live");
     expect(health.models.deepReasoning).toBe("gemini-4-argon");
-    expect(health.consolidatedSubmodules.length).toBe(10);
+    expect(health.consolidatedSubmodules.length).toBe(11);
+    expect(health.consolidatedSubmodules).toContain("vendor/mochi-desktop");
 
     // 2. HTML UI with AnimatedGeminiSvgOrb
     const htmlRes = await fetch(`${baseUrl}/`);
@@ -126,9 +127,37 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     const petState = (await petStateRes.json()) as {
       pet: { activePetId: string; hunger: number };
       characters: unknown[];
+      mochiEmotes: unknown[];
     };
     expect(petState.pet.activePetId).toBe("gemini-sparkle");
-    expect(petState.characters.length).toBe(2);
+    expect(petState.characters.length).toBe(3);
+    expect(petState.mochiEmotes.length).toBe(12);
+
+    const mochiManifestRes = await fetch(
+      `${baseUrl}/assets/mochi/mochi/manifest.json`,
+    );
+    expect(mochiManifestRes.status).toBe(200);
+    const mochiManifest = (await mochiManifestRes.json()) as {
+      format: string;
+      animations: Record<string, unknown>;
+    };
+    expect(mochiManifest.format).toBe("mochi-animation-set-v1");
+    expect(Object.keys(mochiManifest.animations).length).toBeGreaterThanOrEqual(
+      35,
+    );
+
+    const mochiEmoteRes = await fetch(`${baseUrl}/api/pet/action`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "mochi-emote", emoteId: "mochi-exe" }),
+    });
+    expect(mochiEmoteRes.status).toBe(200);
+    const mochiEmote = (await mochiEmoteRes.json()) as {
+      ok: boolean;
+      pet: { mochiAnimation: string };
+    };
+    expect(mochiEmote.ok).toBe(true);
+    expect(mochiEmote.pet.mochiAnimation).toBe("emote_mochi_exe");
 
     const petFeedRes = await fetch(`${baseUrl}/api/pet/action`, {
       method: "POST",

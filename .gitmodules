@@ -28,3 +28,6 @@
 [submodule "vendor/openpets"]
 	path = vendor/openpets
 	url = https://github.com/aphrody-labs/openpets.git
+[submodule "vendor/mochi-desktop"]
+	path = vendor/mochi-desktop
+	url = https://github.com/aphrody-dev/mochi-desktop.git

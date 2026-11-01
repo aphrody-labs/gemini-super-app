@@ -2,10 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { SUBMODULE_SPECS, runConsolidation } from "./consolidate_monorepo";
 
 describe("Monorepo Consolidation Script", () => {
-  test("verifies all 10 vendor submodules, 17 Rust crates, 10 Bun packages, and 4 apps", async () => {
-    expect(SUBMODULE_SPECS.length).toBe(10);
+  test("verifies all 11 vendor submodules, 17 Rust crates, 10 Bun packages, and 4 apps", async () => {
+    expect(SUBMODULE_SPECS.length).toBe(11);
     const report = await runConsolidation();
-    expect(report.submodules.length).toBe(10);
+    expect(report.submodules.length).toBe(11);
     for (const sub of report.submodules) {
       expect(sub.exists).toBe(true);
     }

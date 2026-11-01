@@ -30,8 +30,10 @@ import { createWavPcm16Buffer, parseWavHeader } from "@gemini-live/mediabunny";
 import {
   GEMINI_PET_CHARACTERS,
   GeminiPetStateManager,
+  MOCHI_EMOTE_CATALOGUE,
   generateGeminiPetSvgSpritesheet,
   isAllowedReaction,
+  type MochiPocketKind,
   type OpenPetsReaction,
 } from "@gemini-live/openpets-gemini";
 import { inspectAndMigrateGeminiWindowsToTauriV3 } from "../../../scripts/gemini_windows_tauri_v3";
@@ -112,6 +114,7 @@ export function startGeminiSuperAppServer(
   const windowsTauriHtmlPath = `${import.meta.dir}/windows_tauri.html`;
   const geminiPetHtmlPath = `${import.meta.dir}/gemini_pet.html`;
   const openPetsAssetsDir = `${import.meta.dir}/../../../vendor/openpets/apps/desktop/assets`;
+  const mochiAssetsDir = `${import.meta.dir}/../../../vendor/mochi-desktop/assets`;
   const petManager = new GeminiPetStateManager();
   const cachedGeminiPetSvg = generateGeminiPetSvgSpritesheet();
 
@@ -192,6 +195,7 @@ export function startGeminiSuperAppServer(
           Response.json({
             pet: persistPetSnapshot(),
             characters: GEMINI_PET_CHARACTERS,
+            mochiEmotes: MOCHI_EMOTE_CATALOGUE,
             leases: petManager.leaseManager.list(),
           }),
       },
@@ -201,11 +205,20 @@ export function startGeminiSuperAppServer(
             action?: string;
             reaction?: string;
             text?: string;
-            petId?: "gemini-sparkle" | "hoodie-cat";
+            petId?: "gemini-sparkle" | "hoodie-cat" | "mochi";
             outfitId?: string;
             autoSchedule?: boolean;
             gravityEnabled?: boolean;
             position?: { x: number; y: number };
+            emoteId?: string;
+            focusMinutes?: number;
+            breakMinutes?: number;
+            cycles?: number;
+            completed?: boolean;
+            pocketKind?: MochiPocketKind;
+            pocketValue?: string;
+            pocketTitle?: string;
+            pocketId?: string;
           };
           let leveledUp = false;
           switch (body.action) {
@@ -232,7 +245,8 @@ export function startGeminiSuperAppServer(
             case "switchPet":
               if (
                 body.petId === "gemini-sparkle" ||
-                body.petId === "hoodie-cat"
+                body.petId === "hoodie-cat" ||
+                body.petId === "mochi"
               ) {
                 petManager.switchPet(body.petId, body.outfitId);
               }
@@ -248,6 +262,38 @@ export function startGeminiSuperAppServer(
                 body.position,
               );
               break;
+            case "mochi-emote":
+              if (body.emoteId) {
+                petManager.triggerMochiEmote(body.emoteId);
+              }
+              break;
+            case "mochi-focus-start":
+              petManager.startMochiFocus(
+                body.focusMinutes ?? 25,
+                body.breakMinutes ?? 5,
+                body.cycles ?? 1,
+              );
+              break;
+            case "mochi-focus-stop":
+              petManager.stopMochiFocus(Boolean(body.completed));
+              break;
+            case "mochi-pocket-add":
+              if (body.pocketValue) {
+                petManager.addMochiPocketItem(
+                  body.pocketKind ?? "text",
+                  body.pocketValue,
+                  body.pocketTitle,
+                );
+              }
+              break;
+            case "mochi-pocket-remove":
+              if (body.pocketId) {
+                petManager.removeMochiPocketItem(body.pocketId);
+              }
+              break;
+            case "mochi-pocket-clear":
+              petManager.clearMochiPocket();
+              break;
             default:
               break;
           }
@@ -256,6 +302,7 @@ export function startGeminiSuperAppServer(
             leveledUp,
             pet: persistPetSnapshot(),
             characters: GEMINI_PET_CHARACTERS,
+            mochiEmotes: MOCHI_EMOTE_CATALOGUE,
           });
         },
       },
@@ -285,7 +332,9 @@ export function startGeminiSuperAppServer(
           const petPersona =
             snap.activePetId === "gemini-sparkle"
               ? "Tu es Gemini Sparkle Pet ✦, le compagnon virtuel officiel de la Super App Gemini Live. Réponds en français avec enthousiasme en 1 ou 2 phrases courtes."
-              : "Tu es Hoodie Cat 🐾, le chat compagnon OpenPets propulsé par Gemini 3.8 Live. Réponds en français de manière féline, chaleureuse et concise en 1 ou 2 phrases.";
+              : snap.activePetId === "mochi"
+                ? "Tu es Mochi 🌱, l'adorable petit compagnon pixel-art multiplateforme (Windows/macOS/Linux) de la Super App Gemini Live. Réponds en français avec douceur et bonne humeur en 1 ou 2 phrases courtes."
+                : "Tu es Hoodie Cat 🐾, le chat compagnon OpenPets propulsé par Gemini 3.8 Live. Réponds en français de manière féline, chaleureuse et concise en 1 ou 2 phrases.";
 
           const session = await ai.live.connect({
             model,
@@ -669,6 +718,7 @@ export function startGeminiSuperAppServer(
             "vendor/audiocraft",
             "vendor/bun-video",
             "vendor/openpets",
+            "vendor/mochi-desktop",
           ],
         }),
       "/api/voicebox/project": () => Response.json(studioProject),
@@ -920,6 +970,30 @@ export function startGeminiSuperAppServer(
     },
     fetch(req, srv) {
       const url = new URL(req.url);
+      if (url.pathname.startsWith("/assets/mochi/")) {
+        const relPath = url.pathname
+          .slice("/assets/mochi/".length)
+          .replace(/\.\./g, "")
+          .replace(/^\/+/, "");
+        const fullPath = `${mochiAssetsDir}/${relPath}`;
+        const ext = relPath.split(".").pop()?.toLowerCase() ?? "";
+        const contentType =
+          ext === "png"
+            ? "image/png"
+            : ext === "json"
+              ? "application/json; charset=utf-8"
+              : ext === "ogg"
+                ? "audio/ogg"
+                : ext === "wav"
+                  ? "audio/wav"
+                  : "application/octet-stream";
+        return new Response(Bun.file(fullPath), {
+          headers: {
+            "content-type": contentType,
+            "cache-control": "public, max-age=3600",
+          },
+        });
+      }
       if (url.pathname === "/ws") {
         const origin = req.headers.get("origin") ?? "http://127.0.0.1";
         if (

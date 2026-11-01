@@ -53,6 +53,11 @@
       "name": "openpets",
       "path": "vendor/openpets",
       "exists": true
+    },
+    {
+      "name": "mochi-desktop",
+      "path": "vendor/mochi-desktop",
+      "exists": true
     }
   ],
   "consolidatedCrates": [

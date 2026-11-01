@@ -263,6 +263,7 @@
         background-size: 1536px 2288px;
         background-repeat: no-repeat;
         filter: drop-shadow(0 12px 24px rgba(78, 130, 238, 0.32));
+        image-rendering: pixelated;
       }
       .pet-talk-fab {
         position: absolute;
@@ -515,20 +516,27 @@
       <aside class="sidebar">
         <div class="card">
           <h2>1. Choix du Compagnon & Garde-Robe</h2>
-          <div class="btn-grid" style="margin-bottom: 10px">
+          <div class="btn-grid-3" style="margin-bottom: 10px">
             <button
               class="ctrl-btn active"
               id="btn-pet-gemini"
               onclick="switchPetCharacter('gemini-sparkle')"
             >
-              ✦ Gemini Sparkle Pet
+              ✦ Gemini Sparkle
             </button>
             <button
               class="ctrl-btn"
               id="btn-pet-cat"
               onclick="switchPetCharacter('hoodie-cat')"
             >
-              🐾 OpenPets Hoodie Cat
+              🐾 Hoodie Cat
+            </button>
+            <button
+              class="ctrl-btn"
+              id="btn-pet-mochi"
+              onclick="switchPetCharacter('mochi')"
+            >
+              🌱 Mochi Deskling
             </button>
           </div>
           <div class="btn-grid-3" id="outfit-buttons">
@@ -549,6 +557,62 @@
             </button>
             <button class="ctrl-btn" onclick="selectOutfit('holidays')">
               Hiver
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>1b. Mochi 🌱 Cross-Platform (12 Emotes Bond, Focus & Pocket)</h2>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-size: 11.5px;
+              color: #93c5fd;
+              margin-bottom: 8px;
+            "
+          >
+            <span id="mochi-bond-label">Bond LVL 12 · 180/779 XP</span>
+            <span id="mochi-focus-label">Focus : IDLE</span>
+          </div>
+          <div class="btn-grid-3" style="margin-bottom: 8px">
+            <button class="ctrl-btn" onclick="triggerMochiEmote('heart')">
+              💚 Heart
+            </button>
+            <button class="ctrl-btn" onclick="triggerMochiEmote('bounce')">
+              🌱 Bounce
+            </button>
+            <button class="ctrl-btn" onclick="triggerMochiEmote('squish')">
+              🍡 Squish
+            </button>
+            <button class="ctrl-btn" onclick="triggerMochiEmote('coffee')">
+              ☕ Coffee
+            </button>
+            <button class="ctrl-btn" onclick="triggerMochiEmote('side-eye')">
+              👀 Side-Eye
+            </button>
+            <button class="ctrl-btn" onclick="triggerMochiEmote('table-flip')">
+              ╯°□°╯ Flip
+            </button>
+            <button
+              class="ctrl-btn"
+              onclick="triggerMochiEmote('this-is-fine')"
+            >
+              🔥 Fine
+            </button>
+            <button class="ctrl-btn" onclick="triggerMochiEmote('dance')">
+              💃 Dance
+            </button>
+            <button class="ctrl-btn" onclick="triggerMochiEmote('mochi-exe')">
+              ⚡ mochi.exe
+            </button>
+          </div>
+          <div class="btn-grid">
+            <button class="ctrl-btn" onclick="startMochiFocusSession()">
+              ⏱️ Focus 25m
+            </button>
+            <button class="ctrl-btn" onclick="stashMochiPocketNote()">
+              🎒 Pocket Stash
             </button>
           </div>
         </div>
@@ -670,9 +734,136 @@
       let currentPetId = "gemini-sparkle";
       let currentOutfitId = "default";
       let currentSpriteState = "idle";
+      let currentMochiAnimation = "idle_breathe";
       let currentFrameCol = 0;
       let gazeDirection = null;
       let gravityEnabled = true;
+
+      const MOCHI_ANIM_MAP = {
+        idle_breathe: {
+          frames: [
+            "idle/idle_01.png",
+            "idle/idle_02.png",
+            "idle/idle_03.png",
+            "idle/idle_04.png",
+            "idle/idle_05.png",
+            "idle/idle_06.png",
+          ],
+        },
+        bounce: {
+          frames: [
+            "bounce/bounce_01.png",
+            "bounce/bounce_02.png",
+            "bounce/bounce_03.png",
+            "bounce/bounce_04.png",
+            "bounce/bounce_05.png",
+            "bounce/bounce_06.png",
+            "bounce/bounce_07.png",
+          ],
+        },
+        wave: { sheet: "wave/wave.png", count: 8 },
+        squish: {
+          frames: [
+            "squish/squish_01.png",
+            "squish/squish_02.png",
+            "squish/squish_03.png",
+            "squish/squish_04.png",
+            "squish/squish_05.png",
+            "squish/squish_06.png",
+          ],
+        },
+        look: {
+          frames: [
+            "look/look_01.png",
+            "look/look_02.png",
+            "look/look_03.png",
+            "look/look_04.png",
+            "look/look_05.png",
+            "look/look_06.png",
+            "look/look_07.png",
+            "look/look_08.png",
+            "look/look_09.png",
+            "look/look_10.png",
+          ],
+        },
+        dance: {
+          frames: [
+            "dance/dance_01.png",
+            "dance/dance_02.png",
+            "dance/dance_03.png",
+            "dance/dance_04.png",
+            "dance/dance_05.png",
+            "dance/dance_06.png",
+            "dance/dance_07.png",
+            "dance/dance_08.png",
+          ],
+        },
+        eat: {
+          frames: Array.from(
+            { length: 16 },
+            (_, i) => `eat/mochi_eat_${String(i + 1).padStart(4, "0")}.png`,
+          ),
+        },
+        sleep: {
+          frames: [
+            "sleeping/sleeping_01.png",
+            "sleeping/sleeping_02.png",
+            "sleeping/sleeping_03.png",
+          ],
+        },
+        coworking: {
+          frames: Array.from(
+            { length: 11 },
+            (_, i) => `terminal/terminal_${String(i + 1).padStart(2, "0")}.png`,
+          ),
+        },
+        agent_cowork: {
+          frames: Array.from(
+            { length: 18 },
+            (_, i) => `agent/agent_loop_${String(i + 1).padStart(2, "0")}.png`,
+          ),
+        },
+        headphones: {
+          frames: Array.from(
+            { length: 10 },
+            (_, i) =>
+              `sway_idle/sway_idle_${String(i + 1).padStart(2, "0")}.png`,
+          ),
+        },
+        focus: { sheet: "focus/focus_loop.png", count: 24 },
+        focus_celebrate: {
+          sheet: "level_up_default/level_up_default.png",
+          count: 16,
+        },
+        pocket_receive: {
+          frames: Array.from(
+            { length: 8 },
+            (_, i) =>
+              `pocket_grab/mochi_pocket_grab_${String(i + 1).padStart(4, "0")}.png`,
+          ),
+        },
+        emote_heart: {
+          frames: Array.from(
+            { length: 16 },
+            (_, i) => `heart/heart_${String(i + 1).padStart(2, "0")}.png`,
+          ),
+        },
+        emote_coffee: {
+          frames: Array.from(
+            { length: 21 },
+            (_, i) =>
+              `coffee/mochi_coffee_${String(i + 1).padStart(4, "0")}.png`,
+          ),
+        },
+        emote_side_eye: { sheet: "side_eye/side_eye.png", count: 13 },
+        emote_table_flip: { sheet: "table_flip/table_flip.png", count: 16 },
+        emote_this_is_fine: {
+          sheet: "this_is_fine/this_is_fine.png",
+          count: 16,
+        },
+        emote_vs_code: { sheet: "vs_code/vs_code.png", count: 14 },
+        emote_mochi_exe: { sheet: "mochi_exe/mochi_exe.png", count: 16 },
+      };
 
       // Physics state (`stepThrow`)
       let phys = {
@@ -690,12 +881,25 @@
         if (currentPetId === "gemini-sparkle") {
           spriteEl.style.backgroundImage =
             'url("/assets/openpets/gemini-pet-spritesheet.svg")';
+          spriteEl.style.backgroundSize = "1536px 2288px";
+        } else if (currentPetId === "mochi") {
+          const anim = currentMochiAnimation || "idle_breathe";
+          const spec = MOCHI_ANIM_MAP[anim] || MOCHI_ANIM_MAP.idle_breathe;
+          if (spec.sheet) {
+            spriteEl.style.backgroundImage = `url("/assets/mochi/mochi/${spec.sheet}")`;
+            spriteEl.style.backgroundSize = `${spec.count * 192}px 192px`;
+          } else {
+            const firstFrame = spec.frames[0] || "master/mochi_default.png";
+            spriteEl.style.backgroundImage = `url("/assets/mochi/mochi/${firstFrame}")`;
+            spriteEl.style.backgroundSize = "192px 192px";
+          }
         } else {
           const url =
             currentOutfitId === "default"
               ? "/assets/openpets/default-pet-spritesheet.webp"
               : `/assets/openpets/outfits/${currentOutfitId}.webp`;
           spriteEl.style.backgroundImage = `url("${url}")`;
+          spriteEl.style.backgroundSize = "1536px 2288px";
         }
       }
 
@@ -704,19 +908,33 @@
         currentPetId = pet.activePetId;
         currentOutfitId = pet.activeOutfitId;
         currentSpriteState = pet.spriteState || "idle";
+        currentMochiAnimation = pet.mochiAnimation || "idle_breathe";
         updateSpriteBackgroundUrl();
 
         document.getElementById("hud-pet-name").textContent =
           currentPetId === "gemini-sparkle"
             ? "Gemini Sparkle Pet ✦"
-            : "OpenPets Hoodie Cat 🐾";
+            : currentPetId === "mochi"
+              ? "Mochi 🌱 Cross-Platform Deskling"
+              : "OpenPets Hoodie Cat 🐾";
         document.getElementById("hud-level").textContent =
           `LVL ${pet.level} · ${pet.xp} XP`;
         document.getElementById("hud-mood").textContent = String(
           pet.mood || "happy",
         ).toUpperCase();
         document.getElementById("hud-sprite-state").textContent =
-          `${currentSpriteState} (row ${ROW_BY_STATE[currentSpriteState] ?? 0})`;
+          currentPetId === "mochi"
+            ? `mochi:${currentMochiAnimation}`
+            : `${currentSpriteState} (row ${ROW_BY_STATE[currentSpriteState] ?? 0})`;
+
+        if (pet.mochiBond) {
+          document.getElementById("mochi-bond-label").textContent =
+            `Bond LVL ${pet.mochiBond.level} · ${pet.mochiBond.xp}/${pet.mochiBond.xpNeeded} XP (${pet.mochiBond.phase})`;
+        }
+        if (pet.mochiFocus) {
+          document.getElementById("mochi-focus-label").textContent =
+            `Focus : ${String(pet.mochiFocus.phase).toUpperCase()}`;
+        }
 
         for (const stat of ["hunger", "energy", "happiness", "affection"]) {
           const v = Math.round(pet[stat] ?? 80);
@@ -732,10 +950,30 @@
         document
           .getElementById("btn-pet-cat")
           .classList.toggle("active", currentPetId === "hoodie-cat");
+        const mochiBtn = document.getElementById("btn-pet-mochi");
+        if (mochiBtn) {
+          mochiBtn.classList.toggle("active", currentPetId === "mochi");
+        }
       }
 
-      // 8 FPS Sprite Frame Animator + 16-Direction Cursor Gaze
+      // 8 FPS Sprite Frame Animator + 16-Direction Cursor Gaze + Mochi 256x256 Pixel-Art
       setInterval(() => {
+        if (currentPetId === "mochi") {
+          const anim = currentMochiAnimation || "idle_breathe";
+          const spec = MOCHI_ANIM_MAP[anim] || MOCHI_ANIM_MAP.idle_breathe;
+          if (spec.sheet) {
+            currentFrameCol = (currentFrameCol + 1) % spec.count;
+            const bgX = -currentFrameCol * 192;
+            spriteEl.style.backgroundPosition = `${bgX}px 8px`;
+          } else {
+            currentFrameCol = (currentFrameCol + 1) % spec.frames.length;
+            const frameRel = spec.frames[currentFrameCol];
+            spriteEl.style.backgroundImage = `url("/assets/mochi/mochi/${frameRel}")`;
+            spriteEl.style.backgroundPosition = "0px 8px";
+          }
+          return;
+        }
+
         currentFrameCol = (currentFrameCol + 1) % 8;
         let row = ROW_BY_STATE[currentSpriteState] ?? 0;
         let col = currentFrameCol;
@@ -888,8 +1126,53 @@
         applyHudSnapshot(data.pet);
       }
 
+      function playMochiAudio(cue) {
+        const audio = new Audio(`/assets/mochi/audio/${cue}`);
+        audio.volume = 0.45;
+        audio.play().catch(() => {});
+      }
+
       function switchPetCharacter(petId) {
+        if (petId === "mochi") {
+          playMochiAudio("mochi_chirp_01.ogg");
+        }
         triggerPetAction("switchPet", { petId });
+      }
+
+      function triggerMochiEmote(emoteId) {
+        if (currentPetId !== "mochi") {
+          currentPetId = "mochi";
+          triggerPetAction("switchPet", { petId: "mochi" });
+        }
+        playMochiAudio("pet.wav");
+        triggerPetAction("mochi-emote", { emoteId });
+      }
+
+      function startMochiFocusSession() {
+        if (currentPetId !== "mochi") {
+          currentPetId = "mochi";
+          triggerPetAction("switchPet", { petId: "mochi" });
+        }
+        playMochiAudio("level_up.ogg");
+        triggerPetAction("mochi-focus-start", {
+          focusMinutes: 25,
+          breakMinutes: 5,
+          cycles: 1,
+        });
+      }
+
+      function stashMochiPocketNote() {
+        const val = document.getElementById("pet-voice-prompt").value;
+        if (currentPetId !== "mochi") {
+          currentPetId = "mochi";
+          triggerPetAction("switchPet", { petId: "mochi" });
+        }
+        playMochiAudio("drop.ogg");
+        triggerPetAction("mochi-pocket-add", {
+          pocketKind: "text",
+          pocketValue: val || "Note Mochi Cross-Platform 🌱",
+          pocketTitle: (val || "Note Mochi").slice(0, 36),
+        });
       }
 
       function selectOutfit(outfitId) {
