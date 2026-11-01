@@ -1,7 +1,7 @@
-import type {
-  ConversationTurn,
-  VoiceHubTelemetry,
-  VoiceSessionConfig,
+import {
+  GEMINI_LIVE_MODEL,
+  type ConversationTurn,
+  type VoiceSessionConfig,
 } from "@gemini-live/voice-core";
 
 export type ClientMessage =
@@ -62,7 +62,25 @@ export type ServerMessage =
       text?: string;
     };
 
-export function serializeClientCommand(
+export interface HubSpectrumFrame {
+  readonly type: "spectrum";
+  readonly bands: number[];
+  readonly rms: number;
+  readonly isSpeaking: boolean;
+  readonly timestampMs: number;
+}
+
+export interface HubStartCommandFrame {
+  readonly type: "cmd_start";
+  readonly surface: string;
+  readonly model: string;
+  readonly timestampMs: number;
+}
+
+export type HubWireFrame =
+  ClientMessage | ServerMessage | HubSpectrumFrame | HubStartCommandFrame;
+
+export /* @__PURE__ */ function serializeClientCommand(
   action: "toggle_live" | "ptt_start" | "ptt_stop" | "interrupt",
   surface = "web",
 ): string {
@@ -71,4 +89,40 @@ export function serializeClientCommand(
     action,
     surface,
   });
+}
+
+export /* @__PURE__ */ function createSpectrumFrame(
+  bands: number[],
+  rms: number,
+  isSpeaking: boolean,
+): HubSpectrumFrame {
+  return {
+    type: "spectrum",
+    bands,
+    rms,
+    isSpeaking,
+    timestampMs: Date.now(),
+  };
+}
+
+export /* @__PURE__ */ function createStartCommandFrame(
+  surface: string,
+  model: string = GEMINI_LIVE_MODEL,
+): HubStartCommandFrame {
+  return {
+    type: "cmd_start",
+    surface,
+    model,
+    timestampMs: Date.now(),
+  };
+}
+
+export /* @__PURE__ */ function serializeHubMessage(
+  frame: HubWireFrame,
+): string {
+  return JSON.stringify(frame);
+}
+
+export /* @__PURE__ */ function parseHubMessage(raw: string): HubWireFrame {
+  return JSON.parse(raw) as HubWireFrame;
 }

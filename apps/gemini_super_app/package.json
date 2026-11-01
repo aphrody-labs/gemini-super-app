@@ -1,0 +1,33 @@
+{
+  "name": "@gemini-live/super-app",
+  "version": "2026.11.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "start": "bun run src/server.ts",
+    "dev": "bun --watch run src/server.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@gemini-live/audiocraft-bridge": "workspace:*",
+    "@gemini-live/bun-media": "workspace:*",
+    "@gemini-live/jan-adk": "workspace:*",
+    "@gemini-live/mediabunny": "workspace:*",
+    "@gemini-live/voice-core": "workspace:*",
+    "@gemini-live/voice-protocol": "workspace:*",
+    "@gemini-live/voicebox-sdk": "workspace:*",
+    "@gemini-live/ytm-client": "workspace:*",
+    "@google/genai": "^2.32.0",
+    "@tauri-apps/api": "^3.0.0-alpha.3",
+    "@tauri-apps/plugin-dialog": "^3.0.0-alpha.4",
+    "@tauri-apps/plugin-fs": "^3.0.0-alpha.3",
+    "@tauri-apps/plugin-shell": "^3.0.0-alpha.3",
+    "@tauri-apps/plugin-store": "^3.0.0-alpha.3"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^3.0.0-alpha.5",
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,11 @@
+[package]
+name = "lu-voice-engine"
+description = "Consolidated Locally-Uncensored voice loop supervisor (uv-managed), local Whisper STT endpoint, Piper ONNX TTS, and ACE-Step 1.5 music runner"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }

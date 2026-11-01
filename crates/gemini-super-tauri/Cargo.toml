@@ -1,0 +1,42 @@
+[package]
+name = "gemini-super-tauri"
+description = "Unified Tauri v3 Alpha (3.0.0-alpha.5) native desktop & mobile shell crate for the One Big Gemini Super App"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[features]
+default = []
+tauri-v3-shell = [
+    "dep:tauri",
+    "dep:tauri-plugin-shell",
+    "dep:tauri-plugin-dialog",
+    "dep:tauri-plugin-fs",
+    "dep:tauri-plugin-store",
+]
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Internal consolidated workspace crates
+voice_dsp = { path = "../voice_dsp" }
+mic_bridge = { path = "../mic_bridge" }
+flowcat-core = { path = "../flowcat-core" }
+polaris-audio = { path = "../polaris-audio" }
+voicebox-audio = { path = "../voicebox-audio" }
+lu-voice-engine = { path = "../lu-voice-engine" }
+jan-agent-audio = { path = "../jan-agent-audio" }
+awesome-rust-audio = { path = "../awesome-rust-audio" }
+
+# Tauri v3 Alpha (November 2026 release line)
+tauri = { workspace = true, optional = true }
+tauri-plugin-shell = { workspace = true, optional = true }
+tauri-plugin-dialog = { workspace = true, optional = true }
+tauri-plugin-fs = { workspace = true, optional = true }
+tauri-plugin-store = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+rustls = { version = "0.23", default-features = false, features = ["ring"] }

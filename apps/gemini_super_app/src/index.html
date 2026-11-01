@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini 3.8 Live — Voice, Audio, Music & Google Super App</title>
+    <style>
+      :root {
+        --bg: #070b14;
+        --panel: #101729;
+        --border: #1f2d4d;
+        --text: #e8f0fe;
+        --muted: #9aa0a6;
+        --blue: #4285f4;
+        --purple: #9b72cb;
+        --red: #d96570;
+        --green: #34a853;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          "Google Sans",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: radial-gradient(circle at top, #131d38 0%, var(--bg) 65%);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 24px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 16px;
+        margin-bottom: 24px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .orb-wrap {
+        width: 64px;
+        height: 64px;
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+      @keyframes geminiSpin {
+        0% {
+          transform: rotate(0deg) scale(1);
+        }
+        50% {
+          transform: rotate(180deg) scale(1.1);
+        }
+        100% {
+          transform: rotate(360deg) scale(1);
+        }
+      }
+      .gemini-orb-svg {
+        width: 52px;
+        height: 52px;
+        animation: geminiSpin 7s linear infinite;
+        filter: drop-shadow(0 0 14px rgba(66, 133, 244, 0.7));
+      }
+      .badge {
+        background: rgba(66, 133, 244, 0.16);
+        border: 1px solid var(--blue);
+        color: #8ab4f8;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 18px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .card h2 {
+        font-size: 16px;
+        color: #8ab4f8;
+      }
+      .card p {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      .meta {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        color: #c5d9fb;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 8px 10px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <div
+          class="orb-wrap"
+          title="AnimatedGeminiSvgOrb — Permanent 32-Band FFT"
+        >
+          <svg
+            class="gemini-orb-svg"
+            viewBox="0 0 64 64"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient
+                id="geminiGrad"
+                x1="0"
+                y1="0"
+                x2="64"
+                y2="64"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0%" stop-color="#4285F4" />
+                <stop offset="50%" stop-color="#9B72CB" />
+                <stop offset="100%" stop-color="#D96570" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M32 4C32 19.464 19.464 32 4 32C19.464 32 32 44.536 32 60C32 44.536 44.536 32 60 32C44.536 32 32 19.464 32 4Z"
+              fill="url(#geminiGrad)"
+            />
+          </svg>
+        </div>
+        <div>
+          <h1>Gemini Super App — Voice, Audio, Music & Google Ecosystem</h1>
+          <p style="color: var(--muted); font-size: 13px">
+            Bun v1.4.5 • Tauri v3.0.0-alpha.5 • Rust 2024 Workspace (16 Crates)
+            • Python uv • Gemini 3.8 Live & Gemini 4 Argon
+          </p>
+        </div>
+      </div>
+      <span class="badge">NOVEMBER 2026 UNIFIED MONOREPO</span>
+    </header>
+
+    <main class="grid">
+      <section class="card">
+        <h2>1. Gemini 3.8 Live & Extended Thinking</h2>
+        <p>
+          Full-duplex S2S WebSocket (`gemini-3.8-live`,
+          `gemini-3.8-live-extended-thinking`) + deep reasoning
+          (`gemini-4-argon`) & TCP Mic `127.0.0.1:24713`.
+        </p>
+        <div class="meta">
+          crates/voice_dsp • crates/mic_bridge • packages/voice_core
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>2. Flowcat Real-Time WebRTC & SIP Engine</h2>
+        <p>
+          Native Rust `GeminiLive` BidiGenerateContent client, `str0m` WebRTC +
+          Opus, SIP UA, RTP/SDP, Goertzel DTMF & declarative `AgentBrain`.
+        </p>
+        <div class="meta">
+          crates/flowcat-{core,services,transports,telephony,agent,server,cli}
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>3. Voicebox Voice Cloning & Multi-Track Studio</h2>
+        <p>
+          Multi-speaker timeline editor, linear resampler, WAV PCM16 mixer, SSE
+          speak monitor & `gemini-3.8-flash-tts` HD voices (`Aoede`, `Puck`,
+          `Kore`).
+        </p>
+        <div class="meta">crates/voicebox-audio • packages/voicebox_sdk</div>
+      </section>
+
+      <section class="card">
+        <h2>4. Locally-Uncensored Voice Loop & Whisper/Piper</h2>
+        <p>
+          `uv`-supervised voice loop, Faster-Whisper `large-v3-turbo` Silero VAD
+          (250 ms), Piper ONNX TTS & ACE-Step 1.5 music runner.
+        </p>
+        <div class="meta">
+          crates/lu-voice-engine • backend/super_app_hub.py
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>5. AudioCraft & Google Lyria Music Lab</h2>
+        <p>
+          Text-to-Music (`MusicGen`), sound effects (`AudioGen`), neural audio
+          codec (`EnCodec`) & instant harmonic WAV stem previews.
+        </p>
+        <div class="meta">
+          packages/audiocraft_bridge • vendor/audiocraft (uv)
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>6. Polaris Lossless Streamer & YouTube Music Hub</h2>
+        <p>
+          Symphonia FLAC/Opus/MP3/WAV indexing (`polaris-audio`) + YouTube Music
+          Desktop companion (`ytm_client`) with live Gemini Voice DJ intros.
+        </p>
+        <div class="meta">crates/polaris-audio • packages/ytm_client</div>
+      </section>
+
+      <section class="card">
+        <h2>7. Bun-Video & Mediabunny Audio/Video Engine</h2>
+        <p>
+          Zero-Node-API media probing, 16 kHz PCM extraction, BPM beat detection
+          & FFmpeg/FFV1 streaming powered by `Bun.spawn` & `Bun.file`.
+        </p>
+        <div class="meta">
+          crates/bun-video-native • packages/bun_media • packages/mediabunny
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>8. Jan ADK & Awesome-Rust Audio Explorer</h2>
+        <p>
+          JSON-RPC 2.0 `Bun.JSONL` agent runtime, Gemini Live
+          `functionDeclarations` & live `#audio-and-music` / `#google-gemini`
+          crate catalog.
+        </p>
+        <div class="meta">
+          crates/jan-agent-audio • crates/awesome-rust-audio • packages/jan_adk
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

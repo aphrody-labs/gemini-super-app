@@ -1,0 +1,23 @@
+{
+  "name": "@gemini-live/voicebox-sdk",
+  "version": "2026.11.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@gemini-live/voice-core": "workspace:*",
+    "@tauri-apps/api": "^3.0.0-alpha.3",
+    "@tauri-apps/plugin-dialog": "^3.0.0-alpha.4",
+    "@tauri-apps/plugin-fs": "^3.0.0-alpha.3",
+    "@tauri-apps/plugin-shell": "^3.0.0-alpha.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}

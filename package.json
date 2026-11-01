@@ -1,33 +1,49 @@
 {
   "name": "gemini-live-voice-monorepo",
-  "version": "1.0.0",
+  "version": "2026.11.0",
   "private": true,
-  "description": "Monorepo modernisé pour l'écosystème vocal Gemini Live (Bun, Flutter, Cargo, UV/Ruff, GCloud)",
+  "type": "module",
+  "description": "Unified November 2026 Monorepo (Rust Crates + Bun v1.4.5 Packages + Python uv + Tauri v3 Alpha) for the One Big Gemini Voice, Audio & Music Super App",
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
-    "aphrody": "bun run scripts/aphrody_cli.ts",
-    "setup:aphrody": "bun run scripts/setup_aphrody_gcloud.ts",
-    "fmt": "bun fmt",
-    "fmt:check": "bun fmt --check",
-    "lint": "bun lint",
+    "consolidate": "bun run scripts/consolidate_monorepo.ts",
+    "super-app": "bun run apps/gemini_super_app/src/server.ts",
+    "super-app:dev": "bun --watch run apps/gemini_super_app/src/server.ts",
     "check": "bun check",
-    "test": "bun test ./packages/voice_core ./packages/voice_protocol ./packages/google_ai_suite",
-    "clean": "rimraf apps/gemini_voice_app/build target"
-  },
-  "devDependencies": {
-    "@types/chrome": "^0.0.308",
-    "@types/node": "^22.13.9",
-    "typescript": "^5.8.2"
+    "fmt": "bun fmt packages scripts apps/gemini_super_app",
+    "fmt:check": "bun fmt --check packages scripts apps/gemini_super_app",
+    "lint": "bun lint packages scripts apps/gemini_super_app",
+    "test": "bun test",
+    "test:rust": "cargo test --workspace",
+    "test:python": "uv run pytest",
+    "patch:gemini": "bun run apps/gemini_windows_patcher/src/patch_gemini_desktop.ts",
+    "voice:server": "uv run python backend/voice_bridge_server.py",
+    "voice:hub": "uv run python backend/super_app_hub.py"
   },
   "dependencies": {
     "@google/genai": "^2.32.0",
-    "extend": "^3.0.2",
-    "gaxios": "^8.3.2",
+    "@tauri-apps/api": "^3.0.0-alpha.3",
+    "@tauri-apps/plugin-dialog": "^3.0.0-alpha.4",
+    "@tauri-apps/plugin-fs": "^3.0.0-alpha.3",
+    "@tauri-apps/plugin-shell": "^3.0.0-alpha.3",
+    "@tauri-apps/plugin-store": "^3.0.0-alpha.3",
     "google-auth-library": "^11.3.2",
-    "https-proxy-agent": "^9.1.0",
-    "node-fetch": "^3.3.2"
+    "lucide-react": "^1.66.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.3",
+    "wavesurfer.js": "^8.0.4",
+    "zod": "^4.6.7",
+    "zustand": "^5.0.16"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^3.0.0-alpha.5",
+    "@types/bun": "^1.4.4",
+    "@types/chrome": "^0.3.7",
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
   }
 }

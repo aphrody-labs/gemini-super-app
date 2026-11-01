@@ -1,0 +1,88 @@
+{
+  "generatedAt": "2026-11-01T14:35:00+01:00",
+  "bunVersion": "1.4.5",
+  "tauriTargetVersion": "3.0.0-alpha.5",
+  "pythonManager": "uv",
+  "submodules": [
+    {
+      "name": "voicebox",
+      "path": "vendor/voicebox",
+      "exists": true
+    },
+    {
+      "name": "locally-uncensored",
+      "path": "vendor/locally-uncensored",
+      "exists": true
+    },
+    {
+      "name": "jan",
+      "path": "vendor/jan",
+      "exists": true
+    },
+    {
+      "name": "ytmdesktop",
+      "path": "vendor/ytmdesktop",
+      "exists": true
+    },
+    {
+      "name": "awesome-rust",
+      "path": "vendor/awesome-rust",
+      "exists": true
+    },
+    {
+      "name": "flowcat",
+      "path": "vendor/flowcat",
+      "exists": true
+    },
+    {
+      "name": "polaris",
+      "path": "vendor/polaris",
+      "exists": true
+    },
+    {
+      "name": "audiocraft",
+      "path": "vendor/audiocraft",
+      "exists": true
+    },
+    {
+      "name": "bun-video",
+      "path": "vendor/bun-video",
+      "exists": true
+    }
+  ],
+  "consolidatedCrates": [
+    "crates/voice_dsp",
+    "crates/mic_bridge",
+    "crates/flowcat-core",
+    "crates/flowcat-services",
+    "crates/flowcat-transports",
+    "crates/flowcat-telephony",
+    "crates/flowcat-agent",
+    "crates/flowcat-server",
+    "crates/flowcat-cli",
+    "crates/bun-video-native",
+    "crates/polaris-audio",
+    "crates/voicebox-audio",
+    "crates/lu-voice-engine",
+    "crates/jan-agent-audio",
+    "crates/awesome-rust-audio",
+    "crates/gemini-super-tauri"
+  ],
+  "consolidatedPackages": [
+    "packages/voice_core",
+    "packages/voice_protocol",
+    "packages/google_ai_suite",
+    "packages/mediabunny",
+    "packages/bun_media",
+    "packages/ytm_client",
+    "packages/jan_adk",
+    "packages/voicebox_sdk",
+    "packages/audiocraft_bridge"
+  ],
+  "consolidatedApps": [
+    "apps/gemini_super_app",
+    "apps/gemini_voice_app",
+    "apps/gemini_voice_extension",
+    "apps/gemini_windows_patcher"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.tauri.app/config/3",
+  "productName": "Gemini Live Voice & Audio Super App",
+  "version": "2026.11.0-alpha.5",
+  "identifier": "com.google.antigravity.gemini-super-app",
+  "build": {
+    "beforeDevCommand": "bun run dev",
+    "devUrl": "http://127.0.0.1:8787",
+    "beforeBuildCommand": "bun build src/index.html --outdir dist",
+    "frontendDist": "./dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Gemini Live 3.8 — Voice, Audio, Music & Google Super App",
+        "width": 1440,
+        "height": 920,
+        "resizable": true,
+        "decorations": true,
+        "transparent": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' 'unsafe-inline' ws://127.0.0.1:8765 ws://127.0.0.1:8787 https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com"
+    }
+  }
+}

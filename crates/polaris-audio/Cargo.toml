@@ -1,0 +1,13 @@
+[package]
+name = "polaris-audio"
+description = "Consolidated Polaris audio library indexer, Symphonia lossless metadata/stream inspector, and Gemini Music DJ queue engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+hound = { workspace = true }
+voice_dsp = { path = "../voice_dsp" }

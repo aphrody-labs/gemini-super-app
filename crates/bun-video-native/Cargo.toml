@@ -1,0 +1,33 @@
+[package]
+name = "bun-video-native"
+description = "Consolidated native Rust video/audio streaming & FFV1/RGBA/PNG media engine from vendor/bun-video/native"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+name = "bun_video_native"
+path = "src/lib.rs"
+
+[[bin]]
+name = "bun-video-native"
+path = "src/main.rs"
+
+[features]
+default = []
+gpu = []
+libav = []
+mpv = []
+filmcraft = []
+filmcraft-encode = []
+
+[dependencies]
+png = "0.18.1"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = [
+  "Win32_Foundation",
+  "Win32_System_JobObjects",
+  "Win32_System_Threading",
+] }

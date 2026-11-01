@@ -1,15 +1,15 @@
 (() => {
-  const waveformEl = document.getElementById('waveform');
-  const thinkingEl = document.getElementById('thinking');
-  const cancelBtn = document.getElementById('cancelBtn');
-  const sendBtn = document.getElementById('sendBtn');
-  const gemModeBtn = document.getElementById('gemModeBtn');
-  const gemSvgEl = document.getElementById('stc-gemini-svg');
-  const subtitleEl = document.getElementById('stcSubtitle');
-  const waveBars = Array.from(document.querySelectorAll('.wave-bar'));
+  const waveformEl = document.getElementById("waveform");
+  const thinkingEl = document.getElementById("thinking");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const sendBtn = document.getElementById("sendBtn");
+  const gemModeBtn = document.getElementById("gemModeBtn");
+  const gemSvgEl = document.getElementById("stc-gemini-svg");
+  const subtitleEl = document.getElementById("stcSubtitle");
+  const waveBars = Array.from(document.querySelectorAll(".wave-bar"));
   const barWeights = [0.21, 0.21, 0.5, 0.57, 1.0, 0.57, 0.5, 0.21, 0.21];
 
-  let latestTranscript = '';
+  let latestTranscript = "";
   let isSubmitting = false;
   let micAudioCtx = null;
   let micAnalyser = null;
@@ -21,7 +21,7 @@
   let animFrameId = null;
   let svgAngle = 0;
   let currentLevel = 0.08;
-  let stcMode = 'voice_to_voice';
+  let stcMode = "voice_to_voice";
 
   // Continuous 60fps Official Gemini SVG animation
   function animateGeminiSvg() {
@@ -34,25 +34,26 @@
   }
   requestAnimationFrame(animateGeminiSvg);
 
-  gemModeBtn?.addEventListener('click', async () => {
-    stcMode = stcMode === 'voice_to_voice' ? 'dictate_to_window' : 'voice_to_voice';
+  gemModeBtn?.addEventListener("click", async () => {
+    stcMode =
+      stcMode === "voice_to_voice" ? "dictate_to_window" : "voice_to_voice";
     await window.stcBridge?.setStcMode?.(stcMode);
     if (subtitleEl) {
       subtitleEl.textContent =
-        stcMode === 'voice_to_voice'
-          ? 'Mode: Voice-to-Voice Live'
-          : 'Mode: Dictée vers fenêtre active';
+        stcMode === "voice_to_voice"
+          ? "Mode: Voice-to-Voice Live"
+          : "Mode: Dictée vers fenêtre active";
     }
   });
 
   window.stcBridge?.onLocalizedStrings((strings) => {
-    if (strings.cancel) cancelBtn.setAttribute('aria-label', strings.cancel);
+    if (strings.cancel) cancelBtn.setAttribute("aria-label", strings.cancel);
     if (strings.cancelTip) cancelBtn.title = strings.cancelTip;
-    if (strings.send) sendBtn.setAttribute('aria-label', strings.send);
+    if (strings.send) sendBtn.setAttribute("aria-label", strings.send);
     if (strings.sendTip) sendBtn.title = strings.sendTip;
   });
 
-  async function playResponseAudio(base64Audio, mimeType = 'audio/mpeg') {
+  async function playResponseAudio(base64Audio, mimeType = "audio/mpeg") {
     if (!base64Audio) return;
     try {
       const bin = atob(base64Audio);
@@ -86,14 +87,14 @@
         },
         video: false,
       });
-      window.stcBridge?.log('initMicrophoneAudio: Got micStream (16kHz mono)');
+      window.stcBridge?.log("initMicrophoneAudio: Got micStream (16kHz mono)");
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) {
         isInitInFlight = false;
         return;
       }
       micAudioCtx = new AudioCtx({ sampleRate: 16000 });
-      if (micAudioCtx.state === 'suspended') await micAudioCtx.resume();
+      if (micAudioCtx.state === "suspended") await micAudioCtx.resume();
 
       micAnalyser = micAudioCtx.createAnalyser();
       micAnalyser.fftSize = 256;
@@ -114,7 +115,7 @@
         chunkCount++;
         if (chunkCount % 10 === 1) {
           window.stcBridge?.log(
-            `onaudioprocess: chunk #${chunkCount} pcm16_bytes=${pcm16.byteLength}`
+            `onaudioprocess: chunk #${chunkCount} pcm16_bytes=${pcm16.byteLength}`,
           );
         }
         window.stcBridge?.sendAudioData(pcm16.buffer);
@@ -155,7 +156,7 @@
             const maxH = 28 * barWeights[idx];
             const h = Math.max(
               minHeights[idx],
-              Math.min(28, minHeights[idx] + (maxH - minHeights[idx]) * scaled)
+              Math.min(28, minHeights[idx] + (maxH - minHeights[idx]) * scaled),
             );
             bar.style.height = `${h.toFixed(1)}px`;
           });
@@ -185,7 +186,7 @@
         micStream.getTracks().forEach((t) => t.stop());
         micStream = null;
       }
-      if (micAudioCtx && micAudioCtx.state !== 'closed') {
+      if (micAudioCtx && micAudioCtx.state !== "closed") {
         micAudioCtx.close().catch(() => {});
         micAudioCtx = null;
       }
@@ -198,9 +199,9 @@
   function acceptSession() {
     if (isSubmitting) return;
     isSubmitting = true;
-    waveformEl.style.display = 'none';
-    thinkingEl.style.display = 'flex';
-    if (subtitleEl) subtitleEl.textContent = 'Whisper STT + Gemini Live...';
+    waveformEl.style.display = "none";
+    thinkingEl.style.display = "flex";
+    if (subtitleEl) subtitleEl.textContent = "Whisper STT + Gemini Live...";
     stopMicCapture();
     window.stcBridge?.accept(latestTranscript);
   }
@@ -221,31 +222,31 @@
       }
     }
     if (update.audioBase64) {
-      playResponseAudio(update.audioBase64, update.mimeType || 'audio/mpeg');
+      playResponseAudio(update.audioBase64, update.mimeType || "audio/mpeg");
     }
-    if (update.status === 'thinking') {
+    if (update.status === "thinking") {
       isSubmitting = true;
-      waveformEl.style.display = 'none';
-      thinkingEl.style.display = 'flex';
-    } else if (update.status === 'listening' || update.status === 'streaming') {
+      waveformEl.style.display = "none";
+      thinkingEl.style.display = "flex";
+    } else if (update.status === "listening" || update.status === "streaming") {
       isSubmitting = false;
-      waveformEl.style.display = 'flex';
-      thinkingEl.style.display = 'none';
+      waveformEl.style.display = "flex";
+      thinkingEl.style.display = "none";
       if (subtitleEl && !update.text) {
         subtitleEl.textContent =
-          stcMode === 'voice_to_voice'
-            ? 'Gemini Live • Parlez maintenant'
-            : 'Dictée • Parlez maintenant';
+          stcMode === "voice_to_voice"
+            ? "Gemini Live • Parlez maintenant"
+            : "Dictée • Parlez maintenant";
       }
-      if (micAudioCtx && micAudioCtx.state === 'suspended') {
+      if (micAudioCtx && micAudioCtx.state === "suspended") {
         micAudioCtx.resume().catch(() => {});
       }
-      if (!micStream || !micAudioCtx || micAudioCtx.state === 'closed') {
+      if (!micStream || !micAudioCtx || micAudioCtx.state === "closed") {
         initMicrophoneAudio();
       }
     } else if (
-      ['idle', 'hide', 'dismiss', 'reset', 'done', 'error'].includes(
-        update.status
+      ["idle", "hide", "dismiss", "reset", "done", "error"].includes(
+        update.status,
       )
     ) {
       isSubmitting = false;
@@ -253,10 +254,10 @@
     }
   });
 
-  cancelBtn.addEventListener('click', cancelSession);
-  sendBtn.addEventListener('click', acceptSession);
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') cancelSession();
-    else if (e.key === 'Enter') acceptSession();
+  cancelBtn.addEventListener("click", cancelSession);
+  sendBtn.addEventListener("click", acceptSession);
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") cancelSession();
+    else if (e.key === "Enter") acceptSession();
   });
 })();

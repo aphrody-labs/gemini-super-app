@@ -1,18 +1,45 @@
 [workspace]
+resolver = "2"
 members = [
     "crates/voice_dsp",
     "crates/mic_bridge",
+    "crates/flowcat-core",
+    "crates/flowcat-services",
+    "crates/flowcat-transports",
+    "crates/flowcat-telephony",
+    "crates/flowcat-agent",
+    "crates/flowcat-server",
+    "crates/flowcat-cli",
+    "crates/bun-video-native",
+    "crates/polaris-audio",
+    "crates/voicebox-audio",
+    "crates/lu-voice-engine",
+    "crates/jan-agent-audio",
+    "crates/awesome-rust-audio",
+    "crates/gemini-super-tauri",
 ]
-resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
-authors = ["Aphro <dev@google.com>"]
-license = "MIT"
+license = "Apache-2.0"
+authors = ["Antigravity Gemini Live Team"]
+repository = "https://github.com/aphrody-labs/gemini-super-app"
+keywords = ["voice", "audio", "gemini-live", "webrtc", "tauri-v3"]
+categories = ["multimedia::audio", "network-programming", "asynchronous"]
 
 [workspace.dependencies]
-tokio = { version = "1.43", features = ["full"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-anyhow = "1.0"
+# Core Async, Serialization & Error Handling (November 2026 versions)
+anyhow = "1.0.104"
+hound = "3.5.1"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["full"] }
+
+# Tauri v3 Alpha Ecosystem (November 2026 release line)
+tauri = { version = "3.0.0-alpha.5", default-features = false }
+tauri-plugin-dialog = "3.0.0-alpha.4"
+tauri-plugin-fs = "3.0.0-alpha.3"
+tauri-plugin-shell = "3.0.0-alpha.3"
+tauri-plugin-store = "3.0.0-alpha.3"

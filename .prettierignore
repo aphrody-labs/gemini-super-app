@@ -1,0 +1,6 @@
+vendor/
+node_modules/
+.venv/
+target/
+apps/gemini_voice_app/build/
+apps/gemini_voice_app/.dart_tool/

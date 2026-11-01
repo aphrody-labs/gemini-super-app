@@ -5,21 +5,21 @@
 // - Native gemini_native.node Win32 C++ Addon (injectUnicodeText, getForegroundAppInfo, getCaretPosition)
 // - Native Speak-to-Window Floating Capsule (stc_pill.html) & Native Top Bar (top_bar.html)
 
-const http = require('http');
-const net = require('net');
-const fs = require('fs');
-const path = require('path');
-const { spawn } = require('child_process');
-const electron = require('electron');
+const http = require("http");
+const net = require("net");
+const fs = require("fs");
+const path = require("path");
+const { spawn } = require("child_process");
+const electron = require("electron");
 
-const HUB_HOST = '127.0.0.1';
+const HUB_HOST = "127.0.0.1";
 const HUB_PORT = 8765;
 const MIC_TCP_PORT = 24713;
 
 let mainHooks = null;
 let topBarWc = null;
 let micTcpSocket = null;
-let stcMode = 'voice_to_voice'; // 'voice_to_voice' | 'dictate_to_window'
+let stcMode = "voice_to_voice"; // 'voice_to_voice' | 'dictate_to_window'
 let hubEnsureAttempted = false;
 
 function httpPostJson(urlPath, payload, timeoutMs = 12000) {
@@ -31,38 +31,38 @@ function httpPostJson(urlPath, payload, timeoutMs = 12000) {
           hostname: HUB_HOST,
           port: HUB_PORT,
           path: urlPath,
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(bodyStr),
+            "Content-Type": "application/json",
+            "Content-Length": Buffer.byteLength(bodyStr),
           },
           timeout: timeoutMs,
         },
         (res) => {
           const chunks = [];
-          res.on('data', (c) => chunks.push(c));
-          res.on('end', () => {
+          res.on("data", (c) => chunks.push(c));
+          res.on("end", () => {
             try {
-              const txt = Buffer.concat(chunks).toString('utf8');
+              const txt = Buffer.concat(chunks).toString("utf8");
               resolve(JSON.parse(txt));
             } catch {
-              resolve({ status: 'parse_error' });
+              resolve({ status: "parse_error" });
             }
           });
-        }
+        },
       );
-      req.on('error', (err) => {
+      req.on("error", (err) => {
         ensureVoiceHubBackendRunning();
-        resolve({ status: 'error', message: String(err) });
+        resolve({ status: "error", message: String(err) });
       });
-      req.on('timeout', () => {
+      req.on("timeout", () => {
         req.destroy();
-        resolve({ status: 'timeout' });
+        resolve({ status: "timeout" });
       });
       req.write(bodyStr);
       req.end();
     } catch (err) {
-      resolve({ status: 'error', message: String(err) });
+      resolve({ status: "error", message: String(err) });
     }
   });
 }
@@ -79,18 +79,18 @@ function httpGetJson(urlPath, timeoutMs = 3000) {
         },
         (res) => {
           const chunks = [];
-          res.on('data', (c) => chunks.push(c));
-          res.on('end', () => {
+          res.on("data", (c) => chunks.push(c));
+          res.on("end", () => {
             try {
-              resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+              resolve(JSON.parse(Buffer.concat(chunks).toString("utf8")));
             } catch {
               resolve(null);
             }
           });
-        }
+        },
       );
-      req.on('error', () => resolve(null));
-      req.on('timeout', () => {
+      req.on("error", () => resolve(null));
+      req.on("timeout", () => {
         req.destroy();
         resolve(null);
       });
@@ -107,16 +107,17 @@ function ensureVoiceHubBackendRunning() {
     hubEnsureAttempted = false;
   }, 15000);
 
-  httpGetJson('/api/status', 1200).then((status) => {
-    if (status && status.status === 'ok') return;
-    const pyExe = 'C:\\Users\\aphro\\google\\.venv\\Scripts\\python.exe';
-    const serverScript = 'C:\\Users\\aphro\\google\\backend\\voice_bridge_server.py';
+  httpGetJson("/api/status", 1200).then((status) => {
+    if (status && status.status === "ok") return;
+    const pyExe = "C:\\Users\\aphro\\google\\.venv\\Scripts\\python.exe";
+    const serverScript =
+      "C:\\Users\\aphro\\google\\backend\\voice_bridge_server.py";
     if (fs.existsSync(pyExe) && fs.existsSync(serverScript)) {
       try {
         const child = spawn(pyExe, [serverScript], {
-          cwd: 'C:\\Users\\aphro\\google',
+          cwd: "C:\\Users\\aphro\\google",
           detached: true,
-          stdio: 'ignore',
+          stdio: "ignore",
           windowsHide: true,
         });
         child.unref();
@@ -129,7 +130,7 @@ function forwardPcmToAntigravityMic(pcmBuffer) {
   if (!pcmBuffer || pcmBuffer.length === 0) return;
   if (!micTcpSocket || micTcpSocket.destroyed) {
     micTcpSocket = new net.Socket();
-    micTcpSocket.on('error', () => {
+    micTcpSocket.on("error", () => {
       try {
         micTcpSocket.destroy();
       } catch {}
@@ -155,10 +156,10 @@ function forwardPcmToAntigravityMic(pcmBuffer) {
  */
 class RealGeminiVoiceSession {
   constructor() {
-    this.latestTranscript = '';
-    this.latestReply = '';
-    this.latestAudioBase64 = '';
-    this.latestMimeType = 'audio/mpeg';
+    this.latestTranscript = "";
+    this.latestReply = "";
+    this.latestAudioBase64 = "";
+    this.latestMimeType = "audio/mpeg";
     this.listeners = new Map();
     this.pcmChunks = [];
     this.speechContext = {};
@@ -169,15 +170,15 @@ class RealGeminiVoiceSession {
   }
 
   async startSession(onPartial, onError) {
-    this.latestTranscript = '';
-    this.latestReply = '';
+    this.latestTranscript = "";
+    this.latestReply = "";
     this.pcmChunks = [];
     this.cancelled = false;
     this.onPartialCallback = onPartial;
     this.onErrorCallback = onError;
     ensureVoiceHubBackendRunning();
-    if (typeof onPartial === 'function') {
-      onPartial({ transcript: '', isFinal: false });
+    if (typeof onPartial === "function") {
+      onPartial({ transcript: "", isFinal: false });
     }
   }
 
@@ -196,30 +197,30 @@ class RealGeminiVoiceSession {
     if (this.processingPromise) return this.processingPromise;
     this.processingPromise = (async () => {
       if (this.cancelled || this.pcmChunks.length === 0) {
-        return '';
+        return "";
       }
       const fullPcm = Buffer.concat(this.pcmChunks);
       this.pcmChunks = [];
       if (fullPcm.length < 3200) {
-        return '';
+        return "";
       }
 
-      const autoReply = stcMode === 'voice_to_voice';
-      const res = await httpPostJson('/api/voice', {
-        action: autoReply ? 'voice_to_voice' : 'stt_pcm16',
-        surface: 'gemini_windows_stc',
-        pcm16_base64: fullPcm.toString('base64'),
+      const autoReply = stcMode === "voice_to_voice";
+      const res = await httpPostJson("/api/voice", {
+        action: autoReply ? "voice_to_voice" : "stt_pcm16",
+        surface: "gemini_windows_stc",
+        pcm16_base64: fullPcm.toString("base64"),
         auto_reply: autoReply,
         context: this.speechContext,
       });
 
       if (res && res.transcript) {
         this.latestTranscript = res.transcript.trim();
-        this.latestReply = (res.reply_text || '').trim();
-        this.latestAudioBase64 = res.audio_base64 || '';
-        this.latestMimeType = res.mime_type || 'audio/mpeg';
+        this.latestReply = (res.reply_text || "").trim();
+        this.latestAudioBase64 = res.audio_base64 || "";
+        this.latestMimeType = res.mime_type || "audio/mpeg";
 
-        if (typeof this.onPartialCallback === 'function') {
+        if (typeof this.onPartialCallback === "function") {
           this.onPartialCallback({
             transcript: this.latestTranscript,
             reply: this.latestReply,
@@ -230,8 +231,8 @@ class RealGeminiVoiceSession {
         // Send synthesized voice audio & reply to the floating STC capsule so it speaks back!
         const stcWin = mainHooks?.getStcWindow?.();
         if (stcWin && !stcWin.isDestroyed()) {
-          stcWin.webContents.send('stc:update', {
-            status: autoReply && this.latestAudioBase64 ? 'speaking' : 'done',
+          stcWin.webContents.send("stc:update", {
+            status: autoReply && this.latestAudioBase64 ? "speaking" : "done",
             text: this.latestTranscript,
             replyText: this.latestReply,
             audioBase64: this.latestAudioBase64,
@@ -243,27 +244,27 @@ class RealGeminiVoiceSession {
       // Also inject into main Gemini web view if visible
       if (this.latestTranscript) {
         broadcastToRenderers({
-          type: 'transcript',
+          type: "transcript",
           turn: {
-            role: 'user',
+            role: "user",
             text: this.latestTranscript,
-            surface: 'gemini_windows_stc',
+            surface: "gemini_windows_stc",
           },
           is_final: true,
         });
       }
       if (this.latestReply) {
         broadcastToRenderers({
-          type: 'model_response',
+          type: "model_response",
           turn: {
-            role: 'model',
+            role: "model",
             text: this.latestReply,
-            surface: 'gemini_windows_stc',
+            surface: "gemini_windows_stc",
           },
         });
       }
 
-      this.emit('finalResult', this.latestTranscript);
+      this.emit("finalResult", this.latestTranscript);
       return this.latestTranscript;
     })();
     return this.processingPromise;
@@ -271,7 +272,7 @@ class RealGeminiVoiceSession {
 
   finishAudioStream() {
     this._transcribeAndRespond().catch(() => {
-      this.emit('finalResult', this.latestTranscript || '');
+      this.emit("finalResult", this.latestTranscript || "");
     });
   }
 
@@ -312,7 +313,7 @@ class RealGeminiVoiceSession {
     const arr = this.listeners.get(event);
     if (!arr) return;
     const idx = arr.findIndex(
-      (fn) => fn === listener || fn.originalListener === listener
+      (fn) => fn === listener || fn.originalListener === listener,
     );
     if (idx !== -1) arr.splice(idx, 1);
   }
@@ -329,18 +330,18 @@ function broadcastToRenderers(eventPayload) {
   try {
     const mainWc = mainHooks?.getMainWebContents?.();
     if (mainWc && !mainWc.isDestroyed()) {
-      mainWc.send('gemini-voice:hub-event', eventPayload);
+      mainWc.send("gemini-voice:hub-event", eventPayload);
     }
   } catch {}
   try {
     if (topBarWc && !topBarWc.isDestroyed()) {
-      topBarWc.send('gemini-voice:hub-event', eventPayload);
+      topBarWc.send("gemini-voice:hub-event", eventPayload);
     }
   } catch {}
   try {
     const stcWin = mainHooks?.getStcWindow?.();
     if (stcWin && !stcWin.isDestroyed()) {
-      stcWin.webContents.send('gemini-voice:hub-event', eventPayload);
+      stcWin.webContents.send("gemini-voice:hub-event", eventPayload);
     }
   } catch {}
 }
@@ -348,9 +349,9 @@ function broadcastToRenderers(eventPayload) {
 function injectVoiceExtensionIntoMainView(webContents) {
   if (!webContents || webContents.isDestroyed()) return;
   try {
-    const scriptPath = path.join(__dirname, 'gemini_voice_content.js');
+    const scriptPath = path.join(__dirname, "gemini_voice_content.js");
     if (fs.existsSync(scriptPath)) {
-      const code = fs.readFileSync(scriptPath, 'utf8');
+      const code = fs.readFileSync(scriptPath, "utf8");
       webContents.executeJavaScript(code).catch(() => {});
     }
   } catch {}
@@ -360,16 +361,16 @@ function startStatusPollingAndPilotLoop() {
   let lastHistoryId = null;
 
   setInterval(async () => {
-    const status = await httpGetJson('/api/status', 1500);
-    if (!status || status.status !== 'ok') return;
+    const status = await httpGetJson("/api/status", 1500);
+    if (!status || status.status !== "ok") return;
 
     broadcastToRenderers({
-      type: 'telemetry',
-      state: status.state || 'IDLE',
+      type: "telemetry",
+      state: status.state || "IDLE",
       is_live_active: Boolean(status.is_live_active),
       is_recording_ptt: Boolean(status.is_recording_ptt),
-      input_rms: status.state === 'LISTENING' ? 0.25 : 0.06,
-      output_rms: status.state === 'SPEAKING' ? 0.55 : 0.06,
+      input_rms: status.state === "LISTENING" ? 0.25 : 0.06,
+      output_rms: status.state === "SPEAKING" ? 0.55 : 0.06,
     });
 
     if (Array.isArray(status.history) && status.history.length > 0) {
@@ -377,7 +378,7 @@ function startStatusPollingAndPilotLoop() {
       if (latest && latest.id && latest.id !== lastHistoryId) {
         lastHistoryId = latest.id;
         broadcastToRenderers({
-          type: latest.role === 'user' ? 'transcript' : 'model_response',
+          type: latest.role === "user" ? "transcript" : "model_response",
           turn: latest,
           is_final: true,
         });
@@ -392,88 +393,93 @@ function initVoiceBridgeNative(hooks) {
 
   // Enable Speak-to-Window in user settings.json if not already enabled
   try {
-    const userData = electron.app.getPath('userData');
-    const settingsPath = path.join(userData, 'settings.json');
+    const userData = electron.app.getPath("userData");
+    const settingsPath = path.join(userData, "settings.json");
     if (fs.existsSync(settingsPath)) {
-      const cfg = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      const cfg = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
       if (!cfg.speakToWindowEnabled) {
         cfg.speakToWindowEnabled = true;
-        cfg.stcShortcut = cfg.stcShortcut || 'Alt+Shift+D';
-        fs.writeFileSync(settingsPath, JSON.stringify(cfg, null, 2), 'utf8');
+        cfg.stcShortcut = cfg.stcShortcut || "Alt+Shift+D";
+        fs.writeFileSync(settingsPath, JSON.stringify(cfg, null, 2), "utf8");
       }
     }
   } catch {}
 
   // Register IPC handlers for CSP-free communication from preload.js, top_bar, and stc_pill
-  electron.ipcMain.handle('gemini-voice:action', async (_event, payload) => {
-    const action = payload?.action || '';
-    if (action === 'pilot_local') {
+  electron.ipcMain.handle("gemini-voice:action", async (_event, payload) => {
+    const action = payload?.action || "";
+    if (action === "pilot_local") {
       return executeLocalPilotCommand(payload);
     }
-    return await httpPostJson('/api/voice', payload);
+    return await httpPostJson("/api/voice", payload);
   });
 
-  electron.ipcMain.handle('gemini-voice:get-status', async () => {
-    return (await httpGetJson('/api/status')) || { status: 'offline' };
+  electron.ipcMain.handle("gemini-voice:get-status", async () => {
+    return (await httpGetJson("/api/status")) || { status: "offline" };
   });
 
-  electron.ipcMain.on('gemini-voice:pcm-chunk', (_event, arrayBuf) => {
+  electron.ipcMain.on("gemini-voice:pcm-chunk", (_event, arrayBuf) => {
     try {
-      const buf = Buffer.isBuffer(arrayBuf)
-        ? arrayBuf
-        : Buffer.from(arrayBuf);
+      const buf = Buffer.isBuffer(arrayBuf) ? arrayBuf : Buffer.from(arrayBuf);
       forwardPcmToAntigravityMic(buf);
     } catch {}
   });
 
-  electron.ipcMain.handle('gemini-voice:stc-trigger', async () => {
+  electron.ipcMain.handle("gemini-voice:stc-trigger", async () => {
     try {
-      if (typeof mainHooks.triggerStc === 'function') {
+      if (typeof mainHooks.triggerStc === "function") {
         await mainHooks.triggerStc();
-        return { status: 'ok' };
+        return { status: "ok" };
       }
     } catch (err) {
-      return { status: 'error', message: String(err) };
+      return { status: "error", message: String(err) };
     }
-    return { status: 'unavailable' };
+    return { status: "unavailable" };
   });
 
-  electron.ipcMain.handle('gemini-voice:set-stc-mode', async (_event, mode) => {
-    stcMode = mode === 'dictate_to_window' ? 'dictate_to_window' : 'voice_to_voice';
-    return { status: 'ok', stcMode };
+  electron.ipcMain.handle("gemini-voice:set-stc-mode", async (_event, mode) => {
+    stcMode =
+      mode === "dictate_to_window" ? "dictate_to_window" : "voice_to_voice";
+    return { status: "ok", stcMode };
   });
 
-  electron.ipcMain.handle('gemini-voice:inject-unicode', async (_event, text) => {
-    try {
-      const nativeAddon = mainHooks.getNativeAddon?.();
-      if (nativeAddon && typeof nativeAddon.injectUnicodeText === 'function') {
-        const count = nativeAddon.injectUnicodeText(String(text || ''));
-        return { status: 'ok', injectedCount: count };
+  electron.ipcMain.handle(
+    "gemini-voice:inject-unicode",
+    async (_event, text) => {
+      try {
+        const nativeAddon = mainHooks.getNativeAddon?.();
+        if (
+          nativeAddon &&
+          typeof nativeAddon.injectUnicodeText === "function"
+        ) {
+          const count = nativeAddon.injectUnicodeText(String(text || ""));
+          return { status: "ok", injectedCount: count };
+        }
+      } catch (err) {
+        return { status: "error", message: String(err) };
       }
-    } catch (err) {
-      return { status: 'error', message: String(err) };
-    }
-    return { status: 'unavailable' };
-  });
+      return { status: "unavailable" };
+    },
+  );
 
-  electron.ipcMain.handle('gemini-voice:get-foreground-context', async () => {
+  electron.ipcMain.handle("gemini-voice:get-foreground-context", async () => {
     try {
       const nativeAddon = mainHooks.getNativeAddon?.();
-      if (!nativeAddon) return { status: 'unavailable' };
+      if (!nativeAddon) return { status: "unavailable" };
       return {
-        status: 'ok',
+        status: "ok",
         foregroundApp: nativeAddon.getForegroundAppInfo?.() || null,
         caret: nativeAddon.getCaretPosition?.() || null,
-        selectedText: nativeAddon.getSelectedText?.() || '',
+        selectedText: nativeAddon.getSelectedText?.() || "",
       };
     } catch (err) {
-      return { status: 'error', message: String(err) };
+      return { status: "error", message: String(err) };
     }
   });
 
-  electron.ipcMain.on('gemini-voice:open-hub', () => {
+  electron.ipcMain.on("gemini-voice:open-hub", () => {
     try {
-      electron.shell.openExternal('http://127.0.0.1:8765/');
+      electron.shell.openExternal("http://127.0.0.1:8765/");
     } catch {}
   });
 
@@ -481,44 +487,44 @@ function initVoiceBridgeNative(hooks) {
 }
 
 async function executeLocalPilotCommand(payload) {
-  const cmd = payload?.command || '';
+  const cmd = payload?.command || "";
   try {
-    if (cmd === 'show') {
+    if (cmd === "show") {
       mainHooks?.showMainWindow?.();
-      return { status: 'ok', command: cmd };
+      return { status: "ok", command: cmd };
     }
-    if (cmd === 'hide') {
+    if (cmd === "hide") {
       mainHooks?.hideMainWindow?.();
-      return { status: 'ok', command: cmd };
+      return { status: "ok", command: cmd };
     }
-    if (cmd === 'stc_trigger') {
+    if (cmd === "stc_trigger") {
       await mainHooks?.triggerStc?.();
-      return { status: 'ok', command: cmd };
+      return { status: "ok", command: cmd };
     }
-    if (cmd === 'reload') {
+    if (cmd === "reload") {
       mainHooks?.reloadMainWindow?.(true);
-      return { status: 'ok', command: cmd };
+      return { status: "ok", command: cmd };
     }
-    if (cmd === 'send_prompt' && payload.prompt) {
+    if (cmd === "send_prompt" && payload.prompt) {
       broadcastToRenderers({
-        type: 'pilot_gemini_windows',
-        command: 'send_prompt',
+        type: "pilot_gemini_windows",
+        command: "send_prompt",
         prompt: payload.prompt,
       });
-      return { status: 'ok', command: cmd };
+      return { status: "ok", command: cmd };
     }
   } catch (err) {
-    return { status: 'error', message: String(err) };
+    return { status: "error", message: String(err) };
   }
-  return { status: 'unknown_command', command: cmd };
+  return { status: "unknown_command", command: cmd };
 }
 
 function attachToMainWebContents(webContents) {
   if (!webContents) return;
-  webContents.on('dom-ready', () => {
+  webContents.on("dom-ready", () => {
     injectVoiceExtensionIntoMainView(webContents);
   });
-  webContents.on('did-finish-load', () => {
+  webContents.on("did-finish-load", () => {
     injectVoiceExtensionIntoMainView(webContents);
   });
 }

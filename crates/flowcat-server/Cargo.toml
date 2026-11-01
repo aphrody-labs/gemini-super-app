@@ -1,0 +1,92 @@
+[package]
+name = "flowcat-server"
+description = "Config-driven single-agent server for the Flowcat voice runtime — run an agent from a YAML/JSON config with no control plane."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[features]
+default = []
+# --- Framework surface (no bundled connectors) ----------------------------------
+# `server-helper` is the axum HTTP/transport framework — `build_router`, `AppState`,
+# the Plivo media WS, the `run_call*` orchestration — generic over the embedder's
+# `SessionSource` + `AgentBrain`, WITHOUT forcing any `flowcat-services/*-all`
+# bundle. An embedder enables this plus its OWN curated `flowcat-services/*`
+# connector features (which unify into the shared factory). It pulls only the
+# runtime deps the framework itself needs.
+server-helper = [
+    "dep:axum",
+    "dep:tokio",
+    "dep:futures-util",
+    "dep:tracing-subscriber",
+    "dep:flowcat-agent",
+    "dep:flowcat-telephony",
+    "dep:rustls",
+]
+# `server-helper` + the browser WebRTC playground surface: the page, the SDP-offer
+# endpoint (`webrtc::offer` / the reusable `webrtc::handle_offer` signaling helper)
+# over a str0m transport, and the live-events WS — still WITHOUT any connector
+# bundle. This is what an embedder enables to reuse `handle_offer` with its own
+# `flowcat-services/*` selection (issue #30).
+webrtc-helper = [
+    "server-helper",
+    "dep:flowcat-transports",
+    "flowcat-transports/webrtc-str0m",
+]
+
+# --- Standalone binary (framework + every connector bundle) ----------------------
+# The HTTP server binary (axum): `server-helper` plus the full flowcat-services
+# connector set, so the binary can run any provider named in a config. The default
+# (no-feature) build is just the library: the config schema + StaticSession + the
+# run-orchestration helpers.
+server = [
+    "server-helper",
+    "flowcat-services/stt-all",
+    "flowcat-services/tts-all",
+    "flowcat-services/llm-all",
+    "flowcat-services/realtime-all",
+]
+# The full browser WebRTC playground binary: the `webrtc-helper` surface plus the
+# complete `server` connector set. (`webrtc-helper` + `server`.)
+webrtc = ["webrtc-helper", "server"]
+
+[dependencies]
+flowcat-core = { path = "../flowcat-core", version = "0.1.1" }
+# `default-features = false` → only the provider-factory types in the library
+# build; the `server` feature turns on the full connector set.
+flowcat-services = { path = "../flowcat-services", version = "0.1.1", default-features = false }
+# The declarative `AgentBrain` (only needed by the server binary).
+flowcat-agent = { path = "../flowcat-agent", version = "0.1.1", optional = true }
+# Plivo answer XML (only needed by the server binary).
+flowcat-telephony = { path = "../flowcat-telephony", version = "0.1.1", optional = true }
+# str0m WebRTC transport (only needed by the `webrtc` playground feature).
+flowcat-transports = { path = "../flowcat-transports", version = "0.1.1", optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+async-trait = "0.1"
+tracing = "0.1"
+thiserror = "2"
+# Server-only runtime deps.
+axum = { version = "0.8", features = ["ws"], optional = true }
+tokio = { version = "1", features = ["full"], optional = true }
+futures-util = { version = "0.3", optional = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"], optional = true }
+# The binary installs a process-default rustls crypto provider at startup: the
+# `webrtc` build links BOTH aws-lc-rs (str0m) and ring (realtime WS TLS), so rustls
+# 0.23 cannot auto-select one and the Gemini TLS handshake would panic.
+rustls = { version = "0.23", optional = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+# `oneshot` the axum Router in offline server tests.
+tower = { version = "0.5", features = ["util"] }
+
+# The server binary builds only with `--features server`.
+[[bin]]
+name = "flowcat-server"
+path = "src/main.rs"
+required-features = ["server"]

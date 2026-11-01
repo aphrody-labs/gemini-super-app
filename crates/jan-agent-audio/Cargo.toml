@@ -1,0 +1,11 @@
+[package]
+name = "jan-agent-audio"
+description = "Consolidated Jan Agent Development Kit (ADK) hardware probe, RAG/MCP voice tool registry, and Gemini Live tool-calling bridge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
