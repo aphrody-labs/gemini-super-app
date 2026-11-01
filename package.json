@@ -8,16 +8,26 @@
     "packages/*"
   ],
   "scripts": {
+    "aphrody": "bun run scripts/aphrody_cli.ts",
+    "setup:aphrody": "bun run scripts/setup_aphrody_gcloud.ts",
     "fmt": "bun fmt",
     "fmt:check": "bun fmt --check",
     "lint": "bun lint",
     "check": "bun check",
-    "test": "bun test",
+    "test": "bun test ./packages/voice_core ./packages/voice_protocol ./packages/google_ai_suite",
     "clean": "rimraf apps/gemini_voice_app/build target"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.308",
     "@types/node": "^22.13.9",
     "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@google/genai": "^2.32.0",
+    "extend": "^3.0.2",
+    "gaxios": "^8.3.2",
+    "google-auth-library": "^11.3.2",
+    "https-proxy-agent": "^9.1.0",
+    "node-fetch": "^3.3.2"
   }
 }

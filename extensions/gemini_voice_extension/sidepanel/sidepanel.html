@@ -1,63 +1,183 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Gemini Live Side Panel</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 18px;
-      background: #0B0D14;
-      color: #E8EAED;
-      font-family: 'Google Sans', Roboto, system-ui, sans-serif;
-    }
-    .orb-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 0;
-    }
-    .btn {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 999px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      color: #fff;
-      background: linear-gradient(135deg, #4285F4, #9B72CB, #D96570);
-    }
-    #transcript-log {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 12px;
-      background: #151928;
-      min-height: 180px;
-      max-height: 360px;
-      overflow-y: auto;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-  </style>
-</head>
-<body>
-  <div class="orb-wrap">
-    <svg id="side-orb" viewBox="0 0 64 64" width="76" height="76" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="sideGrad" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="#4285F4"/>
-          <stop offset="45%" stop-color="#9B72CB"/>
-          <stop offset="100%" stop-color="#F49C46"/>
-        </linearGradient>
-      </defs>
-      <path d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z" fill="url(#sideGrad)"/>
-    </svg>
-    <div id="side-state" style="margin-top: 10px; font-weight: 600;">Gemini 3.8 Live Ready</div>
-  </div>
-  <button id="side-live-btn" class="btn">Toggle /voice Live Mode</button>
-  <div id="transcript-log">En attente de conversation vocale...</div>
-  <script src="sidepanel.js" type="module"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Gemini Live Side Panel</title>
+    <style>
+      :root {
+        --bg-light: #f8f9fa;
+        --bg-dark: #0b0d14;
+        --panel-light: #ffffff;
+        --panel-dark: #151928;
+        --text-light: #1f1f1f;
+        --text-dark: #e8eaed;
+        --accent-light: #1769e0;
+        --accent-dark: #8ab4f8;
+        --scrollbar-track-light: #e8eaed;
+        --scrollbar-track-dark: #151928;
+        --scrollbar-thumb-light: #9aa0a6;
+        --scrollbar-thumb-dark: #5f6368;
+
+        --bg-color: var(--bg-light);
+        --panel-color: var(--panel-light);
+        --text-color: var(--text-light);
+        --accent-color: var(--accent-light);
+        --scrollbar-track: var(--scrollbar-track-light);
+        --scrollbar-thumb: var(--scrollbar-thumb-light);
+
+        @media (prefers-color-scheme: dark) {
+          --bg-color: var(--bg-dark);
+          --panel-color: var(--panel-dark);
+          --text-color: var(--text-dark);
+          --accent-color: var(--accent-dark);
+          --scrollbar-track: var(--scrollbar-track-dark);
+          --scrollbar-thumb: var(--scrollbar-thumb-dark);
+        }
+
+        @supports (color: light-dark(white, black)) {
+          --bg-color: light-dark(var(--bg-light), var(--bg-dark));
+          --panel-color: light-dark(var(--panel-light), var(--panel-dark));
+          --text-color: light-dark(var(--text-light), var(--text-dark));
+          --accent-color: light-dark(var(--accent-light), var(--accent-dark));
+          --scrollbar-track: light-dark(
+            var(--scrollbar-track-light),
+            var(--scrollbar-track-dark)
+          );
+          --scrollbar-thumb: light-dark(
+            var(--scrollbar-thumb-light),
+            var(--scrollbar-thumb-dark)
+          );
+        }
+
+        color-scheme: light dark;
+        accent-color: var(--accent-color);
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+      }
+
+      @supports not (scrollbar-color: auto) {
+        #transcript-log::-webkit-scrollbar {
+          width: 10px;
+          height: 10px;
+        }
+        #transcript-log::-webkit-scrollbar-thumb {
+          background: var(--scrollbar-thumb);
+        }
+        #transcript-log::-webkit-scrollbar-track {
+          background: var(--scrollbar-track);
+        }
+      }
+
+      body {
+        margin: 0;
+        padding: 18px;
+        background: var(--bg-color);
+        color: var(--text-color);
+        font-family: "Google Sans", Roboto, system-ui, sans-serif;
+      }
+
+      .orb-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0;
+      }
+
+      .switch-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        background: var(--panel-color);
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      input[type="checkbox"][switch] {
+        accent-color: var(--accent-color);
+        margin: 0;
+        cursor: pointer;
+      }
+
+      input[type="checkbox"][switch]:focus-visible {
+        outline: 3px solid #ff8c00;
+        outline-offset: 4px;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 12px;
+        margin-top: 8px;
+        border-radius: 999px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        color: #fff;
+        background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
+      }
+
+      #transcript-log {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--panel-color);
+        min-height: 180px;
+        max-height: 360px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-gutter: stable;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="orb-wrap">
+      <svg
+        id="side-orb"
+        viewBox="0 0 64 64"
+        width="76"
+        height="76"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <linearGradient
+            id="sideGrad"
+            x1="4"
+            y1="4"
+            x2="60"
+            y2="60"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0%" stop-color="#4285F4" />
+            <stop offset="45%" stop-color="#9B72CB" />
+            <stop offset="100%" stop-color="#F49C46" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z"
+          fill="url(#sideGrad)"
+        />
+      </svg>
+      <div id="side-state" style="margin-top: 10px; font-weight: 600">
+        Gemini 3.8 Live Ready
+      </div>
+    </div>
+
+    <label class="switch-row" for="side-live-switch">
+      <span>Activer le flux vocal continu</span>
+      <input id="side-live-switch" type="checkbox" switch />
+    </label>
+
+    <button id="side-live-btn" class="btn" type="button">
+      Toggle /voice Live Mode
+    </button>
+    <div id="transcript-log">En attente de conversation vocale...</div>
+    <script src="sidepanel.js" type="module"></script>
+  </body>
 </html>

@@ -1,70 +1,276 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Gemini Live Voice Hub</title>
-  <style>
-    body {
-      width: 310px;
-      margin: 0;
-      padding: 16px;
-      background: #0F111A;
-      color: #E8EAED;
-      font-family: 'Google Sans', Roboto, system-ui, sans-serif;
-    }
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .title {
-      font-size: 15px;
-      font-weight: 700;
-    }
-    .status-pill {
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(66, 133, 244, 0.2);
-      color: #8AB4F8;
-    }
-    .btn {
-      width: 100%;
-      padding: 10px 14px;
-      margin-top: 8px;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      color: #FFFFFF;
-      background: linear-gradient(135deg, #4285F4, #9B72CB, #D96570);
-    }
-    .btn-secondary {
-      background: #1E2235;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <svg viewBox="0 0 64 64" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="popGrad" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="#4285F4"/>
-          <stop offset="50%" stop-color="#9B72CB"/>
-          <stop offset="100%" stop-color="#F49C46"/>
-        </linearGradient>
-      </defs>
-      <path d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z" fill="url(#popGrad)"/>
-    </svg>
-    <div>
-      <div class="title">Gemini Live Voice</div>
-      <div id="hub-status" class="status-pill">Connecting...</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Gemini Live Voice Hub</title>
+    <style>
+      :root {
+        --surface-light: #f8f9fa;
+        --surface-dark: #0f111a;
+        --card-light: #ffffff;
+        --card-dark: #181b28;
+        --text-light: #1f1f1f;
+        --text-dark: #e8eaed;
+        --muted-light: #5f6368;
+        --muted-dark: #9aa0a6;
+        --brand-accent-light: #1769e0;
+        --brand-accent-dark: #8ab4f8;
+        --focus-color: #ff8c00;
+
+        --surface-bg: var(--surface-light);
+        --card-bg: var(--card-light);
+        --text-color: var(--text-light);
+        --muted-color: var(--muted-light);
+        --accent-color: var(--brand-accent-light);
+
+        @media (prefers-color-scheme: dark) {
+          --surface-bg: var(--surface-dark);
+          --card-bg: var(--card-dark);
+          --text-color: var(--text-dark);
+          --muted-color: var(--muted-dark);
+          --accent-color: var(--brand-accent-dark);
+        }
+
+        @supports (color: light-dark(white, black)) {
+          --surface-bg: light-dark(var(--surface-light), var(--surface-dark));
+          --card-bg: light-dark(var(--card-light), var(--card-dark));
+          --text-color: light-dark(var(--text-light), var(--text-dark));
+          --muted-color: light-dark(var(--muted-light), var(--muted-dark));
+          --accent-color: light-dark(
+            var(--brand-accent-light),
+            var(--brand-accent-dark)
+          );
+        }
+
+        color-scheme: light dark;
+        accent-color: var(--accent-color);
+      }
+
+      body {
+        width: 328px;
+        margin: 0;
+        padding: 16px;
+        background: var(--surface-bg);
+        color: var(--text-color);
+        font-family: "Google Sans", Roboto, system-ui, sans-serif;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .title {
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .status-pill {
+        display: inline-block;
+        margin-top: 2px;
+        font-size: 11px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: rgba(66, 133, 244, 0.18);
+        color: var(--accent-color);
+      }
+
+      .switch-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        border-radius: 12px;
+        background: var(--card-bg);
+        border: 1px solid rgba(155, 114, 203, 0.28);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      input[type="checkbox"][switch] {
+        accent-color: var(--accent-color, #1769e0);
+        margin: 0;
+        cursor: pointer;
+      }
+
+      input[type="checkbox"][switch]:focus-visible {
+        outline: 3px solid var(--focus-color, #ff8c00);
+        outline-offset: 4px;
+      }
+
+      .telemetry-card {
+        display: block;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        border-radius: 12px;
+        background: var(--card-bg);
+        font-size: 12px;
+        color: var(--muted-color);
+        opacity: 1;
+        translate: 0;
+        transition:
+          display 0.3s,
+          opacity 0.3s ease-out,
+          translate 0.3s ease-out;
+        transition-behavior: allow-discrete;
+      }
+
+      @starting-style {
+        .telemetry-card {
+          opacity: 0;
+          translate: 0 -10px;
+        }
+      }
+
+      .telemetry-card:where([hidden], [data-closing]) {
+        opacity: 0;
+        translate: 0 -10px;
+      }
+
+      .telemetry-card[hidden] {
+        display: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .telemetry-card {
+          translate: none;
+          transition-duration: 0.1s;
+        }
+        @starting-style {
+          .telemetry-card {
+            translate: none;
+          }
+        }
+        .telemetry-card:where([hidden], [data-closing]) {
+          translate: none;
+        }
+      }
+
+      .btn {
+        width: 100%;
+        padding: 10px 14px;
+        margin-top: 8px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        color: #ffffff;
+        background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
+      }
+
+      .btn-secondary {
+        color: var(--text-color);
+        background: var(--card-bg);
+        border: 1px solid rgba(138, 180, 248, 0.25);
+      }
+
+      dialog {
+        border: 1px solid rgba(155, 114, 203, 0.45);
+        border-radius: 16px;
+        padding: 16px;
+        background: var(--card-bg);
+        color: var(--text-color);
+        max-width: 280px;
+      }
+
+      dialog::backdrop {
+        background-color: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(2px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="brand-row">
+        <svg
+          viewBox="0 0 64 64"
+          width="28"
+          height="28"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient
+              id="popGrad"
+              x1="4"
+              y1="4"
+              x2="60"
+              y2="60"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stop-color="#4285F4" />
+              <stop offset="50%" stop-color="#9B72CB" />
+              <stop offset="100%" stop-color="#F49C46" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z"
+            fill="url(#popGrad)"
+          />
+        </svg>
+        <div>
+          <div class="title">Gemini Live Voice</div>
+          <div id="hub-status" class="status-pill">Connexion...</div>
+        </div>
+      </div>
+      <button
+        id="open-info-dialog-btn"
+        class="btn-secondary"
+        style="padding: 6px 10px; border-radius: 8px; cursor: pointer"
+        type="button"
+        title="Infos & Raccourcis"
+      >
+        ?
+      </button>
     </div>
-  </div>
-  <button id="toggle-live-btn" class="btn">Activer /voice Live</button>
-  <button id="open-sidepanel-btn" class="btn btn-secondary">Ouvrir le Side Panel Live</button>
-  <script src="popup.js" type="module"></script>
-</body>
+
+    <label class="switch-row" for="live-switch">
+      <span>Mode /voice Full-Duplex</span>
+      <input id="live-switch" type="checkbox" switch />
+    </label>
+
+    <div id="telemetry-card" class="telemetry-card">
+      Modèle : <strong>gemini-3.8-live</strong> • Voix :
+      <strong>Aoede HD</strong><br />
+      STT : <strong>Faster-Whisper large-v3-turbo</strong>
+    </div>
+
+    <button id="toggle-live-btn" class="btn" type="button">
+      Activer /voice Live
+    </button>
+    <button id="open-sidepanel-btn" class="btn btn-secondary" type="button">
+      Ouvrir le Side Panel Live
+    </button>
+
+    <dialog
+      id="voice-info-dialog"
+      closedby="any"
+      aria-labelledby="infoDialogTitle"
+    >
+      <form method="dialog">
+        <h3 id="infoDialogTitle" style="margin-top: 0">Raccourcis Vocaux</h3>
+        <p style="font-size: 12px; line-height: 1.45">
+          • <strong>F5</strong> : Démarrer / Arrêter Record<br />
+          • <strong>Alt+V</strong> : Basculer /voice Live<br />
+          • <strong>Alt+Shift+D</strong> : Capsule Windows Speak-to-Window
+        </p>
+        <button type="submit" class="btn">Fermer</button>
+      </form>
+    </dialog>
+
+    <script src="popup.js" type="module"></script>
+  </body>
 </html>

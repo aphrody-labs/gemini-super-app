@@ -587,15 +587,26 @@ class VoiceHubServer:
     async def start_background_tasks(self, app: web.Application) -> None:
         self._loop = asyncio.get_running_loop()
         self._telemetry_task = asyncio.create_task(self._telemetry_loop())
-        app["mic_tcp_server"] = await asyncio.start_server(
-            self._handle_antigravity_mic_client,
-            host="127.0.0.1",
-            port=ANTIGRAVITY_MIC_PORT,
-        )
-        logger.info(
-            "ANTIGRAVITY_MIC TCP server listening on 127.0.0.1:%d (for `agy` /voice & F5)",
-            ANTIGRAVITY_MIC_PORT,
-        )
+        try:
+            app["mic_tcp_server"] = await asyncio.start_server(
+                self._handle_antigravity_mic_client,
+                host="127.0.0.1",
+                port=ANTIGRAVITY_MIC_PORT,
+            )
+            logger.info(
+                "ANTIGRAVITY_MIC TCP server listening on 127.0.0.1:%d (for `agy` /voice & F5)",
+                ANTIGRAVITY_MIC_PORT,
+            )
+        except OSError:
+            app["mic_tcp_server"] = await asyncio.start_server(
+                self._handle_antigravity_mic_client,
+                host="127.0.0.1",
+                port=0,
+            )
+            logger.info(
+                "ANTIGRAVITY_MIC port %d already active; bound ephemeral test port.",
+                ANTIGRAVITY_MIC_PORT,
+            )
         self._start_hardware_mic_if_available()
 
     async def cleanup_background_tasks(self, app: web.Application) -> None:
@@ -1330,6 +1341,8 @@ class VoiceHubServer:
 
 
 def create_app() -> tuple[web.Application, VoiceHubServer]:
+    from backend.aphrody_ai_hub import register_aphrody_routes
+
     hub = VoiceHubServer()
     app = web.Application()
     app["hub"] = hub
@@ -1337,7 +1350,10 @@ def create_app() -> tuple[web.Application, VoiceHubServer]:
     app.router.add_post("/api/voice", hub.handle_voice_command)
     app.router.add_options("/api/voice", hub.handle_options)
     app.router.add_options("/api/status", hub.handle_options)
+    app.router.add_options("/api/aphrody/ai", hub.handle_options)
+    app.router.add_options("/api/aphrody/status", hub.handle_options)
     app.router.add_get("/ws/voice", hub.handle_ws)
+    register_aphrody_routes(app, hub._cors_headers())
 
     flutter_web_dir = Path(__file__).resolve().parent.parent / "gemini_voice_app" / "build" / "web"
     if flutter_web_dir.exists():

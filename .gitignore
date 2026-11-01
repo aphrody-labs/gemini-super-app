@@ -40,3 +40,13 @@ Thumbs.db
 .vscode/
 *.swp
 *.bak
+
+# Environment & Secrets (Never commit credentials)
+.env
+.env.local
+.env.*.local
+*.secret.json
+config/secrets/
+media/*.mp4
+media/*.mp3
+media/*.wav

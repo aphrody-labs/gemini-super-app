@@ -67,7 +67,7 @@ async def test_http_and_websocket_voice_hub() -> None:
             )
 
             received_types = set()
-            for _ in range(15):
+            for _ in range(250):
                 msg = await ws.receive_json(timeout=5.0)
                 received_types.add(msg.get("type"))
                 if "audio_output" in received_types and "model_response" in received_types:

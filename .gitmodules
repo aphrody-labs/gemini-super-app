@@ -1,0 +1,27 @@
+[submodule "vendor/voicebox"]
+	path = vendor/voicebox
+	url = https://github.com/aphrody-dev/voicebox.git
+[submodule "vendor/locally-uncensored"]
+	path = vendor/locally-uncensored
+	url = https://github.com/aphrody-dev/locally-uncensored.git
+[submodule "vendor/jan"]
+	path = vendor/jan
+	url = https://github.com/aphrody-dev/jan.git
+[submodule "vendor/ytmdesktop"]
+	path = vendor/ytmdesktop
+	url = https://github.com/ytmdesktop/ytmdesktop.git
+[submodule "vendor/awesome-rust"]
+	path = vendor/awesome-rust
+	url = https://github.com/rust-unofficial/awesome-rust.git
+[submodule "vendor/flowcat"]
+	path = vendor/flowcat
+	url = https://github.com/aphrody-labs/flowcat.git
+[submodule "vendor/polaris"]
+	path = vendor/polaris
+	url = https://github.com/aphrody-labs/polaris.git
+[submodule "vendor/audiocraft"]
+	path = vendor/audiocraft
+	url = https://github.com/aphrody-dev/audiocraft.git
+[submodule "vendor/bun-video"]
+	path = vendor/bun-video
+	url = https://github.com/aphrody-labs/bun-video.git
