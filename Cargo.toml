@@ -16,6 +16,7 @@ members = [
     "crates/lu-voice-engine",
     "crates/jan-agent-audio",
     "crates/awesome-rust-audio",
+    "crates/openpets-core",
     "crates/gemini-super-tauri",
 ]
 

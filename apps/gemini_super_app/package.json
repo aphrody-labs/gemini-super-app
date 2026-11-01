@@ -15,6 +15,7 @@
     "@gemini-live/google-ai-suite": "workspace:*",
     "@gemini-live/jan-adk": "workspace:*",
     "@gemini-live/mediabunny": "workspace:*",
+    "@gemini-live/openpets-gemini": "workspace:*",
     "@gemini-live/voice-core": "workspace:*",
     "@gemini-live/voice-protocol": "workspace:*",
     "@gemini-live/voicebox-sdk": "workspace:*",

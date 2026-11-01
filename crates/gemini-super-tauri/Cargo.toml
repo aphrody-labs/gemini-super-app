@@ -43,6 +43,7 @@ voicebox-audio = { path = "../voicebox-audio" }
 lu-voice-engine = { path = "../lu-voice-engine" }
 jan-agent-audio = { path = "../jan-agent-audio" }
 awesome-rust-audio = { path = "../awesome-rust-audio" }
+openpets-core = { path = "../openpets-core" }
 
 # Tauri v3 Alpha (November 2026 release line)
 tauri = { workspace = true, optional = true }

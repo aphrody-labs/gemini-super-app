@@ -1,0 +1,14 @@
+[package]
+name = "openpets-core"
+description = "Cross-platform OpenPets desktop companion protocol, throw physics, reaction-to-animation state engine, and Tamagotchi virtual pet care engine for the Gemini Super App & Tauri v3"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+name = "openpets_core"
+path = "src/lib.rs"
+
+[dependencies]
+serde = { workspace = true }

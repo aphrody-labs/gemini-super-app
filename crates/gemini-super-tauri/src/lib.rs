@@ -25,6 +25,7 @@ use jan_agent_audio::{
 };
 use lu_voice_engine::{LuVoiceLoopConfig, MusicGenerationSpec};
 use mic_bridge::MicStreamConfig;
+use openpets_core::GeminiPetCareState;
 use polaris_audio::{AudioCodecFormat, IndexedTrack, PolarisLibraryIndex};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -112,6 +113,7 @@ pub struct GeminiSuperAppSnapshot {
     pub agent_tools: Vec<VoiceAgentTool>,
     pub gemini_function_declarations: Value,
     pub rust_audio_catalog_count: usize,
+    pub gemini_pet: GeminiPetCareState,
 }
 
 impl GeminiSuperAppSnapshot {
@@ -133,6 +135,7 @@ impl GeminiSuperAppSnapshot {
             agent_tools: tools,
             gemini_function_declarations,
             rust_audio_catalog_count: catalog.len(),
+            gemini_pet: GeminiPetCareState::default(),
         }
     }
 }

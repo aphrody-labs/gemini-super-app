@@ -757,6 +757,14 @@
             >
               <span>Windows Tauri v3 Immersif →</span>
             </a>
+
+            <a
+              href="/pet"
+              class="btn btn-primary"
+              aria-label="Ouvrir le studio Gemini Pet Companion OpenPets"
+            >
+              <span>🐾 Gemini Pet Companion →</span>
+            </a>
           </div>
         </div>
 
@@ -961,6 +969,114 @@
         </article>
       </div>
     </main>
+
+    <!-- Floating Gemini Pet Companion Widget (OpenPets Full Bun v1.4.5) -->
+    <div
+      id="floating-gemini-pet"
+      style="
+        position: fixed;
+        right: 22px;
+        bottom: 18px;
+        width: 152px;
+        height: 178px;
+        z-index: 90;
+        user-select: none;
+        cursor: grab;
+      "
+    >
+      <div
+        id="floating-pet-bubble"
+        style="
+          position: absolute;
+          bottom: 162px;
+          right: 0;
+          width: 210px;
+          padding: 8px 11px;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.96);
+          color: #0f172a;
+          font-size: 11.5px;
+          font-weight: 600;
+          box-shadow: 0 10px 26px rgba(0, 0, 0, 0.38);
+          text-align: center;
+        "
+      >
+        Coucou ! Je suis ton Gemini Pet ✦
+      </div>
+      <div
+        id="floating-pet-sprite"
+        style="
+          width: 192px;
+          height: 208px;
+          transform: scale(0.72);
+          transform-origin: bottom right;
+          background-image: url(&quot;/assets/openpets/gemini-pet-spritesheet.svg&quot;);
+          background-size: 1536px 2288px;
+          background-repeat: no-repeat;
+          filter: drop-shadow(0 10px 22px rgba(78, 130, 238, 0.35));
+        "
+      ></div>
+      <div
+        style="
+          position: absolute;
+          bottom: 0;
+          right: 6px;
+          display: flex;
+          gap: 5px;
+        "
+      >
+        <button
+          type="button"
+          onclick="
+            fetch('/api/pet/action', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ action: 'pet' }),
+            })
+              .then((r) => r.json())
+              .then((d) => {
+                document.getElementById('floating-pet-bubble').textContent =
+                  d.pet.speechText;
+              })
+          "
+          style="
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: rgba(15, 23, 42, 0.88);
+            color: #f8fafc;
+            font-size: 10.5px;
+            cursor: pointer;
+          "
+        >
+          💛 Caresser
+        </button>
+        <a
+          href="/pet"
+          style="
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #4e82ee, #d96570);
+            color: #fff;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-decoration: none;
+          "
+        >
+          Studio 🐾
+        </a>
+      </div>
+    </div>
+    <script>
+      (() => {
+        let fCol = 0;
+        const el = document.getElementById("floating-pet-sprite");
+        setInterval(() => {
+          fCol = (fCol + 1) % 8;
+          if (el) el.style.backgroundPosition = `${-fCol * 192}px 0px`;
+        }, 125);
+      })();
+    </script>
 
     <script>
       (() => {

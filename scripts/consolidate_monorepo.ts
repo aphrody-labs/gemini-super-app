@@ -104,6 +104,14 @@ export const SUBMODULE_SPECS: readonly SubmoduleSpec[] = [
     targetPackages: ["packages/bun_media", "packages/mediabunny"],
     targetApps: ["apps/gemini_super_app"],
   },
+  {
+    name: "openpets",
+    url: "https://github.com/aphrody-labs/openpets",
+    vendorPath: "vendor/openpets",
+    targetCrates: ["crates/openpets-core", "crates/gemini-super-tauri"],
+    targetPackages: ["packages/openpets_gemini"],
+    targetApps: ["apps/gemini_super_app"],
+  },
 ];
 
 async function copyDirectoryFiltered(
@@ -147,6 +155,9 @@ async function consolidateFlowcatCrates(): Promise<string[]> {
   for (const crateName of flowcatCrates) {
     const srcDir = `${REPO_ROOT}/vendor/flowcat/${crateName}`;
     const destDir = `${REPO_ROOT}/crates/${crateName}`;
+    if (await Bun.file(`${destDir}/Cargo.toml`).exists()) {
+      continue;
+    }
     await copyDirectoryFiltered(srcDir, destDir);
 
     const cargoTomlPath = `${destDir}/Cargo.toml`;
@@ -255,6 +266,7 @@ members = [
     "crates/lu-voice-engine",
     "crates/jan-agent-audio",
     "crates/awesome-rust-audio",
+    "crates/openpets-core",
     "crates/gemini-super-tauri",
 ]
 
@@ -314,9 +326,13 @@ async function writeRootPackageJson(): Promise<void> {
       "cookies:refresh": "bun run scripts/gemini_cookie_daemon.ts refresh",
       "cookies:status": "bun run scripts/gemini_cookie_daemon.ts status",
       "cookies:daemon": "bun run scripts/gemini_cookie_daemon.ts daemon",
+      "windows:migrate": "bun run scripts/gemini_windows_tauri_v3.ts",
+      "windows:tauri-v3":
+        "cargo run -p gemini-super-tauri --bin gemini-windows-tauri-v3",
     },
     dependencies: {
       "@gemini-live/google-ai-suite": "workspace:*",
+      "@gemini-live/openpets-gemini": "workspace:*",
       "@google/genai": "^2.32.0",
       "@tauri-apps/api": "^3.0.0-alpha.3",
       "@tauri-apps/plugin-dialog": "^3.0.0-alpha.4",
@@ -380,6 +396,7 @@ export async function runConsolidation() {
       "crates/lu-voice-engine",
       "crates/jan-agent-audio",
       "crates/awesome-rust-audio",
+      "crates/openpets-core",
       "crates/gemini-super-tauri",
     ],
     consolidatedPackages: [
@@ -392,6 +409,7 @@ export async function runConsolidation() {
       "packages/jan_adk",
       "packages/voicebox_sdk",
       "packages/audiocraft_bridge",
+      "packages/openpets_gemini",
     ],
     consolidatedApps: [
       "apps/gemini_super_app",

@@ -48,6 +48,11 @@
       "name": "bun-video",
       "path": "vendor/bun-video",
       "exists": true
+    },
+    {
+      "name": "openpets",
+      "path": "vendor/openpets",
+      "exists": true
     }
   ],
   "consolidatedCrates": [
@@ -66,6 +71,7 @@
     "crates/lu-voice-engine",
     "crates/jan-agent-audio",
     "crates/awesome-rust-audio",
+    "crates/openpets-core",
     "crates/gemini-super-tauri"
   ],
   "consolidatedPackages": [
@@ -77,7 +83,8 @@
     "packages/ytm_client",
     "packages/jan_adk",
     "packages/voicebox_sdk",
-    "packages/audiocraft_bridge"
+    "packages/audiocraft_bridge",
+    "packages/openpets_gemini"
   ],
   "consolidatedApps": [
     "apps/gemini_super_app",

@@ -2,7 +2,7 @@
 
 Dépôt officiel GitHub (`aphrody-labs`) : **`https://github.com/aphrody-labs/gemini-super-app`**
 
-Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `3.0.0-alpha.5` + Python `uv` + Flutter**) consolidant les **9 sous-modules Git (`vendor/*`)** en une **Grande Super Application Gemini (`apps/gemini_super_app`)** dédiée à la voix temps réel (`gemini-3.8-live`, `gemini-3.8-live-extended-thinking`), au raisonnement profond (`gemini-4-argon`), au clonage vocal (`gemini-3.8-flash-tts`, Voicebox), à la génération musicale (AudioCraft, Lyria, ACE-Step 1.5), au streaming lossless (Polaris, YouTube Music) et au traitement audio-vidéo natif (Bun-Video / Mediabunny).
+Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `3.0.0-alpha.5` + Python `uv` + Flutter**) consolidant les **10 sous-modules Git (`vendor/*`)** en une **Grande Super Application Gemini (`apps/gemini_super_app`)** dédiée à la voix temps réel (`gemini-3.8-live`, `gemini-3.8-live-extended-thinking`), au compagnon de bureau interactif **Gemini Pet** (OpenPets Full Bun v1.4.5), au raisonnement profond (`gemini-4-argon`), au clonage vocal (`gemini-3.8-flash-tts`, Voicebox), à la génération musicale (AudioCraft, Lyria, ACE-Step 1.5), au streaming lossless (Polaris, YouTube Music) et au traitement audio-vidéo natif (Bun-Video / Mediabunny).
 
 ---
 
@@ -14,7 +14,7 @@ Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `
 │   ├── gemini_voice_app/         # Application Flutter (Desktop Windows, Web, Mobile — AnimatedGeminiSvgOrb)
 │   ├── gemini_voice_extension/   # Extension Chrome Manifest V3 (gemini.google.com, aistudio, music.youtube.com)
 │   └── gemini_windows_patcher/   # Injection ASAR & Speak-to-Window pour Gemini.exe
-├── crates/                       # Workspace Rust Cargo Unifié (16 Crates — Édition 2024)
+├── crates/                       # Workspace Rust Cargo Unifié (17 Crates — Édition 2024)
 │   ├── voice_dsp/                # Analyse spectrale FFT 32 bandes & RMS PCM16 temps réel
 │   ├── mic_bridge/               # Pont TCP PCM16 16 kHz (ANTIGRAVITY_MIC=127.0.0.1:24713)
 │   ├── flowcat-core/             # Client Rust natif GeminiLive BidiGenerateContent, SIP UA, RTP/SDP, VAD
@@ -30,8 +30,9 @@ Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `
 │   ├── lu-voice-engine/          # Superviseur Rust uv pour Voice Loop, Whisper STT, Piper TTS & ACE-Step 1.5
 │   ├── jan-agent-audio/          # Capacités matérielles ADK & functionDeclarations Gemini Live
 │   ├── awesome-rust-audio/       # Parseur & registre indexé #audio-and-music et #google-gemini
-│   └── gemini-super-tauri/       # Hôte natif Tauri v3 Alpha (tauri = "3.0.0-alpha.5") fédérant les 16 crates
-├── packages/                     # Workspaces Bun v1.4.5 Unifiés (9 Packages — 100% APIs Natives Bun)
+│   ├── openpets-core/            # Protocole binaire OpenPets, physique step_throw, états & soins Tamagotchi
+│   └── gemini-super-tauri/       # Hôte natif Tauri v3 Alpha (tauri = "3.0.0-alpha.5") fédérant les 17 crates
+├── packages/                     # Workspaces Bun v1.4.5 Unifiés (10 Packages — 100% APIs Natives Bun)
 │   ├── voice_core/               # Constantes audio (16/24 kHz, FFT 32) & modèles Gemini 3.8 / 4 Argon
 │   ├── voice_protocol/           # Trames WebSocket temps réel & commandes du Hub
 │   ├── google_ai_suite/          # Suite Google AI 2026 & OAuth/ADC projet GCP aphrody
@@ -40,8 +41,9 @@ Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `
 │   ├── ytm_client/               # Client compagnon YouTube Music Desktop & intros DJ Gemini 3.8 Flash TTS
 │   ├── jan_adk/                  # Agent Development Kit JSON-RPC 2.0 propulsé par Bun.JSONL.parse()
 │   ├── voicebox_sdk/             # SDK Studio multi-pistes, clonage vocal & Tauri v3 Alpha (@tauri-apps/api)
-│   └── audiocraft_bridge/        # Pont AudioCraft (MusicGen, AudioGen, EnCodec) via uv run + synthèse WAV
-├── vendor/                       # 9 Sous-Modules Git Clonés (.gitmodules)
+│   ├── audiocraft_bridge/        # Pont AudioCraft (MusicGen, AudioGen, EnCodec) via uv run + synthèse WAV
+│   └── openpets_gemini/          # Moteur Gemini Pet & OpenPets (Atlas SVG V2 1536x2288, regard 16 secteurs, Tamagotchi, IPC v1)
+├── vendor/                       # 10 Sous-Modules Git Clonés (.gitmodules)
 │   ├── voicebox/                 # https://github.com/aphrody-dev/voicebox
 │   ├── locally-uncensored/       # https://github.com/aphrody-dev/locally-uncensored
 │   ├── jan/                      # https://github.com/aphrody-dev/jan
@@ -50,7 +52,8 @@ Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `
 │   ├── flowcat/                  # https://github.com/aphrody-labs/flowcat
 │   ├── polaris/                  # https://github.com/aphrody-labs/polaris
 │   ├── audiocraft/               # https://github.com/aphrody-dev/audiocraft
-│   └── bun-video/                # https://github.com/aphrody-labs/bun-video/tree/main
+│   ├── bun-video/                # https://github.com/aphrody-labs/bun-video/tree/main
+│   └── openpets/                 # https://github.com/aphrody-labs/openpets (Fork Full Bun v1.4.5)
 ├── backend/                      # Serveurs Python gérés par uv (voice_bridge_server.py, super_app_hub.py)
 ├── scripts/                      # Script de consolidation (consolidate_monorepo.ts) & CLI aphrody
 ├── CONSOLIDATION_PLAN.md         # Plan d'architecture et matrices de migration Novembre 2026

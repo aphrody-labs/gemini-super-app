@@ -24,7 +24,7 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     expect(health.tauriVersion).toBe("3.0.0-alpha.5");
     expect(health.models.live).toBe("gemini-3.8-live");
     expect(health.models.deepReasoning).toBe("gemini-4-argon");
-    expect(health.consolidatedSubmodules.length).toBe(9);
+    expect(health.consolidatedSubmodules.length).toBe(10);
 
     // 2. HTML UI with AnimatedGeminiSvgOrb
     const htmlRes = await fetch(`${baseUrl}/`);
@@ -107,6 +107,53 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     const winUiHtml = await winUiRes.text();
     expect(winUiHtml).toContain("TAURI v3.0.0-alpha.5 NATIVE");
     expect(winUiHtml).toContain("AnimatedGeminiSvgOrb");
+
+    // 9. OpenPets × Gemini Pet Companion Studio (/pet, /api/pet/state, /api/pet/action, /api/openpets/ipc)
+    const petHtmlRes = await fetch(`${baseUrl}/pet`);
+    expect(petHtmlRes.status).toBe(200);
+    const petHtml = await petHtmlRes.text();
+    expect(petHtml).toContain("Gemini Pet Companion Studio");
+
+    const svgAtlasRes = await fetch(
+      `${baseUrl}/assets/openpets/gemini-pet-spritesheet.svg`,
+    );
+    expect(svgAtlasRes.status).toBe(200);
+    const svgAtlas = await svgAtlasRes.text();
+    expect(svgAtlas).toContain('viewBox="0 0 1536 2288"');
+
+    const petStateRes = await fetch(`${baseUrl}/api/pet/state`);
+    expect(petStateRes.status).toBe(200);
+    const petState = (await petStateRes.json()) as {
+      pet: { activePetId: string; hunger: number };
+      characters: unknown[];
+    };
+    expect(petState.pet.activePetId).toBe("gemini-sparkle");
+    expect(petState.characters.length).toBe(2);
+
+    const petFeedRes = await fetch(`${baseUrl}/api/pet/action`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "feed" }),
+    });
+    expect(petFeedRes.status).toBe(200);
+    const petFeed = (await petFeedRes.json()) as {
+      ok: boolean;
+      pet: { hunger: number; reaction: string };
+    };
+    expect(petFeed.ok).toBe(true);
+    expect(petFeed.pet.hunger).toBe(100);
+
+    const ipcHelloRes = await fetch(`${baseUrl}/api/openpets/ipc`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: "ipc-1", version: 1, method: "hello" }),
+    });
+    const ipcHello = (await ipcHelloRes.json()) as {
+      ok: boolean;
+      result: { protocolVersion: number };
+    };
+    expect(ipcHello.ok).toBe(true);
+    expect(ipcHello.result.protocolVersion).toBe(1);
   });
 
   test("executes real live Gemini API calls (gemini-4-argon, gemini-3.8-flash-tts, gemini-3.8-live)", async () => {
@@ -184,5 +231,28 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     expect(liveJson.audioChunks).toBeGreaterThan(0);
     expect(liveJson.totalAudioBase64Chars).toBeGreaterThan(1000);
     expect(liveJson.turnDone).toBe(true);
-  }, 30000);
+
+    // 4. Real Gemini Pet Companion Voice Turn (/api/pet/voice -> gemini-3.8-live)
+    const petVoiceRes = await fetch(`${baseUrl}/api/pet/voice`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        voice: "Puck",
+        prompt: "Dis Miaou en un seul mot !",
+      }),
+    });
+    expect(petVoiceRes.status).toBe(200);
+    const petVoiceJson = (await petVoiceRes.json()) as {
+      model: string;
+      audio_chunks_count: number;
+      pcm24k_bytes_len: number;
+      wav_base64: string;
+      pet: { reaction: string };
+    };
+    expect(petVoiceJson.model).toBe("gemini-3.8-live");
+    expect(petVoiceJson.audio_chunks_count).toBeGreaterThan(0);
+    expect(petVoiceJson.pcm24k_bytes_len).toBeGreaterThan(500);
+    expect(petVoiceJson.wav_base64.length).toBeGreaterThan(500);
+    expect(petVoiceJson.pet.reaction).toBe("celebrating");
+  }, 45000);
 });

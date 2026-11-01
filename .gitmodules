@@ -25,3 +25,6 @@
 [submodule "vendor/bun-video"]
 	path = vendor/bun-video
 	url = https://github.com/aphrody-labs/bun-video.git
+[submodule "vendor/openpets"]
+	path = vendor/openpets
+	url = https://github.com/aphrody-labs/openpets.git

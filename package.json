@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@gemini-live/google-ai-suite": "workspace:*",
+    "@gemini-live/openpets-gemini": "workspace:*",
     "@google/genai": "^2.32.0",
     "@tauri-apps/api": "^3.0.0-alpha.3",
     "@tauri-apps/plugin-dialog": "^3.0.0-alpha.4",
