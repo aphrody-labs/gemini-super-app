@@ -1,0 +1,10 @@
+[package]
+name = "voice_dsp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "High-performance DSP, RMS calculation, and 32-band FFT spectral analyzer for Gemini Live"
+
+[dependencies]
+serde.workspace = true

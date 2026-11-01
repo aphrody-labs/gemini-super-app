@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Gemini Live Voice & Antigravity Bridge",
+  "version": "1.0.0",
+  "description": "Connects Gemini Web App, AI Studio, and Antigravity Remote Control to the local Gemini 3.8 Live + Whisper + Flutter Voice Hub with a permanently animated official Gemini SVG.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://gemini.google.com/*",
+    "https://aistudio.google.com/*",
+    "https://antigravity.google.com/*",
+    "http://127.0.0.1:8765/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Gemini Live Voice Hub"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://gemini.google.com/*",
+        "https://aistudio.google.com/*",
+        "https://antigravity.google.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

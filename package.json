@@ -1,0 +1,23 @@
+{
+  "name": "gemini-live-voice-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo modernisé pour l'écosystème vocal Gemini Live (Bun, Flutter, Cargo, UV/Ruff, GCloud)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "fmt": "bun fmt",
+    "fmt:check": "bun fmt --check",
+    "lint": "bun lint",
+    "check": "bun check",
+    "test": "bun test",
+    "clean": "rimraf apps/gemini_voice_app/build target"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.308",
+    "@types/node": "^22.13.9",
+    "typescript": "^5.8.2"
+  }
+}

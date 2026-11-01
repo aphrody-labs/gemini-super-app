@@ -1,0 +1,12 @@
+{
+  "gemini-live-voice-autostart": {
+    "enabled": true,
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "C:\\Users\\aphro\\google\\.venv\\Scripts\\python.exe C:\\Users\\aphro\\google\\scripts\\voice_hook_session_start.py",
+        "timeout": 10
+      }
+    ]
+  }
+}

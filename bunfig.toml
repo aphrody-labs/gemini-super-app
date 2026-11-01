@@ -1,0 +1,7 @@
+[install]
+frozenLockfile = false
+
+[test]
+root = "."
+
+[lint]

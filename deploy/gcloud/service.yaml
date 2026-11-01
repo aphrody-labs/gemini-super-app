@@ -1,0 +1,35 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: gemini-live-voice-hub
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "5"
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/sessionAffinity: "true"
+    spec:
+      containerConcurrency: 80
+      containers:
+        - image: gcr.io/aphrody/gemini-live-voice-hub:latest
+          resources:
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+          ports:
+            - containerPort: 8765
+          env:
+            - name: GEMINI_LIVE_MODEL
+              value: "gemini-3.8-live"
+            - name: GEMINI_REASONING_MODEL
+              value: "gemini-4-argon"
+            - name: GEMINI_TTS_MODEL
+              value: "gemini-3.8-flash-tts"
+            - name: WHISPER_MODEL_SIZE
+              value: "large-v3-turbo"
+            - name: GEMINI_VOICE_NAME
+              value: "Aoede"

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="geminiOfficialGrad" x1="6" y1="6" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4285F4"/>
+      <stop offset="35%" stop-color="#9B72CB"/>
+      <stop offset="72%" stop-color="#D96570"/>
+      <stop offset="100%" stop-color="#F49C46"/>
+    </linearGradient>
+    <radialGradient id="geminiCoreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.92"/>
+      <stop offset="45%" stop-color="#A8C7FA" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#4285F4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="28" fill="url(#geminiCoreGlow)"/>
+  <path
+    d="M32 2C32 18.5685 18.5685 32 2 32C18.5685 32 32 45.4315 32 62C32 45.4315 45.4315 32 62 32C45.4315 32 32 18.5685 32 2Z"
+    fill="url(#geminiOfficialGrad)"
+  />
+  <path
+    d="M51 6C51 11.5228 46.5228 16 41 16C46.5228 16 51 20.4772 51 26C51 20.4772 55.4772 16 61 16C55.4772 16 51 11.5228 51 6Z"
+    fill="url(#geminiOfficialGrad)"
+    opacity="0.88"
+  />
+</svg>

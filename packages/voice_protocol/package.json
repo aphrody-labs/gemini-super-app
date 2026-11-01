@@ -1,0 +1,11 @@
+{
+  "name": "@gemini-live/voice-protocol",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WebSocket & REST protocol messages for Voice Hub clients",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@gemini-live/voice-core": "workspace:*"
+  }
+}

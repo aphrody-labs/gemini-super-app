@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Gemini Live Voice Hub</title>
+  <style>
+    body {
+      width: 310px;
+      margin: 0;
+      padding: 16px;
+      background: #0F111A;
+      color: #E8EAED;
+      font-family: 'Google Sans', Roboto, system-ui, sans-serif;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .status-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(66, 133, 244, 0.2);
+      color: #8AB4F8;
+    }
+    .btn {
+      width: 100%;
+      padding: 10px 14px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #FFFFFF;
+      background: linear-gradient(135deg, #4285F4, #9B72CB, #D96570);
+    }
+    .btn-secondary {
+      background: #1E2235;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <svg viewBox="0 0 64 64" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="popGrad" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#4285F4"/>
+          <stop offset="50%" stop-color="#9B72CB"/>
+          <stop offset="100%" stop-color="#F49C46"/>
+        </linearGradient>
+      </defs>
+      <path d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z" fill="url(#popGrad)"/>
+    </svg>
+    <div>
+      <div class="title">Gemini Live Voice</div>
+      <div id="hub-status" class="status-pill">Connecting...</div>
+    </div>
+  </div>
+  <button id="toggle-live-btn" class="btn">Activer /voice Live</button>
+  <button id="open-sidepanel-btn" class="btn btn-secondary">Ouvrir le Side Panel Live</button>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

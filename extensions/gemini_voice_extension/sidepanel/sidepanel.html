@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Gemini Live Side Panel</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 18px;
+      background: #0B0D14;
+      color: #E8EAED;
+      font-family: 'Google Sans', Roboto, system-ui, sans-serif;
+    }
+    .orb-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 0;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #4285F4, #9B72CB, #D96570);
+    }
+    #transcript-log {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #151928;
+      min-height: 180px;
+      max-height: 360px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <div class="orb-wrap">
+    <svg id="side-orb" viewBox="0 0 64 64" width="76" height="76" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sideGrad" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#4285F4"/>
+          <stop offset="45%" stop-color="#9B72CB"/>
+          <stop offset="100%" stop-color="#F49C46"/>
+        </linearGradient>
+      </defs>
+      <path d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z" fill="url(#sideGrad)"/>
+    </svg>
+    <div id="side-state" style="margin-top: 10px; font-weight: 600;">Gemini 3.8 Live Ready</div>
+  </div>
+  <button id="side-live-btn" class="btn">Toggle /voice Live Mode</button>
+  <div id="transcript-log">En attente de conversation vocale...</div>
+  <script src="sidepanel.js" type="module"></script>
+</body>
+</html>
