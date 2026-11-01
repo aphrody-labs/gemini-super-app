@@ -89,6 +89,24 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     expect(cookieJson.hasValid1Psid).toBe(true);
     expect(cookieJson.hasValid1PsidTs).toBe(true);
     expect(cookieJson.totalCookiesStored).toBeGreaterThanOrEqual(15);
+
+    // 8. Migrated Gemini Windows App -> Native Tauri v3.0.0-alpha.5 Status & Immersive UI
+    const winStatusRes = await fetch(`${baseUrl}/api/windows-tauri/status`);
+    expect(winStatusRes.status).toBe(200);
+    const winStatus = (await winStatusRes.json()) as {
+      legacyElectron: { found: boolean; exeSizeBytes: number };
+      nativeTauriV3: { version: string; binaryExists: boolean };
+    };
+    expect(winStatus.legacyElectron.found).toBe(true);
+    expect(winStatus.legacyElectron.exeSizeBytes).toBeGreaterThan(100_000_000);
+    expect(winStatus.nativeTauriV3.version).toBe("3.0.0-alpha.5");
+    expect(winStatus.nativeTauriV3.binaryExists).toBe(true);
+
+    const winUiRes = await fetch(`${baseUrl}/windows-tauri`);
+    expect(winUiRes.status).toBe(200);
+    const winUiHtml = await winUiRes.text();
+    expect(winUiHtml).toContain("TAURI v3.0.0-alpha.5 NATIVE");
+    expect(winUiHtml).toContain("AnimatedGeminiSvgOrb");
   });
 
   test("executes real live Gemini API calls (gemini-4-argon, gemini-3.8-flash-tts, gemini-3.8-live)", async () => {

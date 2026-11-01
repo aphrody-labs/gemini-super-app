@@ -25,7 +25,9 @@
     "cookies:import": "bun run scripts/gemini_cookie_daemon.ts import",
     "cookies:refresh": "bun run scripts/gemini_cookie_daemon.ts refresh",
     "cookies:status": "bun run scripts/gemini_cookie_daemon.ts status",
-    "cookies:daemon": "bun run scripts/gemini_cookie_daemon.ts daemon"
+    "cookies:daemon": "bun run scripts/gemini_cookie_daemon.ts daemon",
+    "windows:migrate": "bun run scripts/gemini_windows_tauri_v3.ts",
+    "windows:tauri-v3": "cargo run -p gemini-super-tauri --bin gemini-windows-tauri-v3"
   },
   "dependencies": {
     "@gemini-live/google-ai-suite": "workspace:*",

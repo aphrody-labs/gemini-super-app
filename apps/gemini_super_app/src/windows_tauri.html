@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="fr" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>
+      Gemini Windows App — Tauri v3.0.0-alpha.5 Native Immersive Voice-to-Voice
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --md-sys-color-primary: #cfbdfe;
+        --md-sys-color-on-primary: #36275d;
+        --md-sys-color-secondary-container: #4a4458;
+        --md-sys-color-on-secondary-container: #e8def8;
+        --md-sys-color-tertiary-container: #633b48;
+        --md-sys-color-on-tertiary-container: #ffd9e3;
+        --md-sys-color-surface: #0e0c12;
+        --md-sys-color-surface-container-low: #17151c;
+        --md-sys-color-surface-container: #1f1d26;
+        --md-sys-color-on-surface: #e6e0e9;
+        --md-sys-color-on-surface-variant: #cac4cf;
+        --md-sys-color-outline-variant: #49454e;
+        --gemini-blue: #4285f4;
+        --gemini-purple: #9b72cb;
+        --gemini-coral: #d96570;
+        --gemini-amber: #f49c46;
+        --gemini-emerald: #81c995;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          "Google Sans Flex",
+          "Google Sans",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background:
+          radial-gradient(
+            circle at 50% 34%,
+            rgba(66, 133, 244, 0.14) 0%,
+            rgba(155, 114, 203, 0.08) 32%,
+            transparent 65%
+          ),
+          var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        user-select: none;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--md-sys-color-primary);
+        outline-offset: 2px;
+      }
+
+      /* 1. Migrated Native Top Bar (from asar_extracted/src/top_bar/top_bar.html) */
+      .tauri-titlebar {
+        height: 44px;
+        background: rgba(23, 21, 28, 0.92);
+        border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px;
+        -webkit-app-region: drag;
+        z-index: 50;
+      }
+
+      .titlebar-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .titlebar-orb-mini {
+        width: 22px;
+        height: 22px;
+        animation: gemSpin 6s linear infinite;
+      }
+
+      @keyframes gemSpin {
+        0% {
+          transform: rotate(0deg) scale(1);
+        }
+        50% {
+          transform: rotate(180deg) scale(1.14);
+        }
+        100% {
+          transform: rotate(360deg) scale(1);
+        }
+      }
+
+      .titlebar-name {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--md-sys-color-on-surface);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .tauri-tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10.5px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(207, 189, 254, 0.14);
+        border: 1px solid rgba(207, 189, 254, 0.35);
+        color: var(--md-sys-color-primary);
+      }
+
+      .titlebar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        -webkit-app-region: no-drag;
+      }
+
+      .voice-pill-btn {
+        height: 28px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(138, 180, 248, 0.38);
+        background: rgba(66, 133, 244, 0.14);
+        color: var(--md-sys-color-on-surface);
+        font-family: inherit;
+        font-size: 11.5px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 160ms ease;
+        text-decoration: none;
+      }
+      .voice-pill-btn:hover {
+        background: rgba(66, 133, 244, 0.28);
+      }
+      .voice-pill-btn.active {
+        background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
+        color: #ffffff;
+        border-color: transparent;
+      }
+      .voice-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #8ab4f8;
+      }
+      .voice-pill-btn.active .voice-dot {
+        background: var(--gemini-emerald);
+        box-shadow: 0 0 8px var(--gemini-emerald);
+      }
+
+      /* 2. Center Immersive Voice-to-Voice Stage */
+      .immersive-stage {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 20px;
+        padding: 24px;
+        overflow: hidden;
+      }
+      @media (max-width: 980px) {
+        .immersive-stage {
+          grid-template-columns: 1fr;
+          overflow-y: auto;
+        }
+      }
+
+      .orb-arena {
+        position: relative;
+        background: rgba(23, 21, 28, 0.65);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        gap: 22px;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+      }
+
+      .orb-radial-stage {
+        position: relative;
+        width: 240px;
+        height: 240px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+      }
+
+      .radial-spectrum-svg {
+        position: absolute;
+        inset: 0;
+        width: 240px;
+        height: 240px;
+        pointer-events: none;
+      }
+
+      .hero-gemini-svg {
+        width: 112px;
+        height: 112px;
+        filter: drop-shadow(0 0 28px rgba(66, 133, 244, 0.65));
+        transition: transform 60ms linear;
+      }
+
+      .state-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background: rgba(207, 189, 254, 0.12);
+        border: 1px solid rgba(207, 189, 254, 0.32);
+        color: var(--md-sys-color-primary);
+      }
+
+      .live-caption-box {
+        width: 100%;
+        max-width: 640px;
+        min-height: 76px;
+        background: rgba(14, 12, 18, 0.82);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: 16px;
+        padding: 14px 18px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 6px;
+      }
+      .caption-user {
+        font-size: 13px;
+        color: #8ab4f8;
+      }
+      .caption-gemini {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--md-sys-color-on-surface);
+      }
+
+      /* 3. Migrated Native Floating STC Capsule (from asar_extracted/src/stc/stc_pill.html) */
+      .stc-capsule {
+        width: 340px;
+        height: 58px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: rgba(20, 22, 32, 0.96);
+        backdrop-filter: blur(28px);
+        border: 1px solid rgba(155, 114, 203, 0.55);
+        border-radius: 999px;
+        box-shadow: 0 10px 32px rgba(66, 133, 244, 0.35);
+      }
+
+      .btn-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition:
+          transform 150ms ease,
+          background 150ms ease;
+      }
+      .btn-cancel {
+        background: rgba(255, 255, 255, 0.12);
+        color: var(--md-sys-color-on-surface);
+      }
+      .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.22);
+      }
+      .btn-send {
+        background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
+        color: #ffffff;
+      }
+      .btn-send:hover {
+        transform: scale(1.06);
+      }
+
+      .waveform-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        height: 34px;
+        flex: 1;
+      }
+      .wave-bar {
+        width: 3px;
+        height: 6px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #8ab4f8, #c58af9, #f28b82);
+        transition: height 70ms ease;
+      }
+
+      /* 4. Right Panel: Localized Gemini Windows App & Tauri v3 Migration Inspector */
+      .migration-sidebar {
+        background: var(--md-sys-color-surface-container-low);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: 20px;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        overflow-y: auto;
+      }
+      .sidebar-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--md-sys-color-primary);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .info-block {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .info-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--md-sys-color-on-surface-variant);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .info-val {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11.5px;
+        color: var(--md-sys-color-on-surface);
+        word-break: break-all;
+      }
+      .voice-select {
+        width: 100%;
+        min-height: 40px;
+        border-radius: 10px;
+        background: var(--md-sys-color-surface-container);
+        color: var(--md-sys-color-on-surface);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        padding: 0 12px;
+        font-family: inherit;
+        font-size: 12.5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Migrated Native Top Bar (top_bar.html -> Tauri v3) -->
+    <header class="tauri-titlebar">
+      <div class="titlebar-left">
+        <span class="titlebar-orb-mini" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="20" height="20" fill="none">
+            <defs>
+              <linearGradient
+                id="tbGemGrad"
+                x1="4"
+                y1="4"
+                x2="60"
+                y2="60"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0%" stop-color="#4285F4" />
+                <stop offset="38%" stop-color="#9B72CB" />
+                <stop offset="72%" stop-color="#D96570" />
+                <stop offset="100%" stop-color="#F49C46" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z"
+              fill="url(#tbGemGrad)"
+            />
+          </svg>
+        </span>
+        <div class="titlebar-name">
+          <span>Gemini Windows App</span>
+          <span class="tauri-tag">TAURI v3.0.0-alpha.5 NATIVE</span>
+        </div>
+      </div>
+
+      <div class="titlebar-actions">
+        <button
+          id="btn-voice-live"
+          class="voice-pill-btn"
+          type="button"
+          title="Activer/Désactiver le microphone Full-Duplex 16kHz VAD"
+        >
+          <span class="voice-dot"></span>
+          <span id="btn-voice-live-label">/voice Immersif</span>
+        </button>
+        <button
+          id="btn-instant-turn"
+          class="voice-pill-btn active"
+          type="button"
+          title="Exécuter un tour Voice-to-Voice réel sur Gemini 3.8 Live"
+        >
+          <span>⚡ Parler à Gemini 3.8 Live</span>
+        </button>
+        <a href="/" class="voice-pill-btn" title="Retour au Hub Super App">
+          <span>Hub Super App</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Immersive Voice-to-Voice Stage -->
+    <main class="immersive-stage">
+      <section
+        class="orb-arena"
+        aria-label="Scène vocale immersive Gemini 3.8 Live"
+      >
+        <div class="state-pill" id="live-state-pill">
+          PRÊT • FULL-DUPLEX VOICE-TO-VOICE (16kHz PCM ⇄ 24kHz WAV)
+        </div>
+
+        <!-- Permanently Animated Official Gemini SVG Orb + 32-Band Radial FFT -->
+        <div
+          class="orb-radial-stage"
+          id="orb-hit-target"
+          role="button"
+          tabindex="0"
+          aria-label="AnimatedGeminiSvgOrb — Cliquer pour parler à Gemini 3.8 Live"
+          title="AnimatedGeminiSvgOrb — Cliquer pour lancer une conversation vocale"
+        >
+          <svg
+            class="radial-spectrum-svg"
+            id="radial-spectrum-svg"
+            viewBox="0 0 240 240"
+            aria-hidden="true"
+          ></svg>
+          <svg
+            class="hero-gemini-svg"
+            id="hero-gemini-svg"
+            viewBox="0 0 64 64"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient
+                id="heroGemGrad"
+                x1="4"
+                y1="4"
+                x2="60"
+                y2="60"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0%" stop-color="#4285F4" />
+                <stop offset="38%" stop-color="#9B72CB" />
+                <stop offset="72%" stop-color="#D96570" />
+                <stop offset="100%" stop-color="#F49C46" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z"
+              fill="url(#heroGemGrad)"
+            />
+          </svg>
+        </div>
+
+        <div class="live-caption-box" role="status" aria-live="polite">
+          <div class="caption-user" id="caption-user">
+            Microphone 16 kHz PCM16 + VAD Hybride Silero (Barge-in actif)
+          </div>
+          <div class="caption-gemini" id="caption-gemini">
+            Cliquez sur l'Orbe Gemini ou sur « Parler à Gemini 3.8 Live » pour
+            démarrer le dialogue vocal immersif.
+          </div>
+        </div>
+
+        <!-- Migrated STC Capsule (stc_pill.html -> Tauri v3) -->
+        <div
+          class="stc-capsule"
+          aria-label="Capsule vocale Speak-to-Window migrée"
+        >
+          <button
+            id="stc-cancel-btn"
+            class="btn-circle btn-cancel"
+            type="button"
+            aria-label="Arrêter ou interrompre la voix (Barge-in)"
+            title="Interrompre (ESC)"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.4"
+              fill="none"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+
+          <div class="waveform-container" id="stc-waveform" aria-hidden="true">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+
+          <button
+            id="stc-send-btn"
+            class="btn-circle btn-send"
+            type="button"
+            aria-label="Envoyer le tour vocal à Gemini 3.8 Live"
+            title="Envoyer à Gemini 3.8 Live (Entrée)"
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.4"
+              fill="none"
+            >
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Right Sidebar: Localized Gemini Windows App & Native Tauri v3 Status -->
+      <aside
+        class="migration-sidebar"
+        aria-label="Diagnostic de migration Windows vers Tauri v3"
+      >
+        <div class="sidebar-title">
+          <span>Migration Gemini Windows → Tauri v3</span>
+          <span class="tauri-tag">VÉRIFIÉ</span>
+        </div>
+
+        <div class="info-block">
+          <span class="info-label">Voix HD Gemini 3.8 Live</span>
+          <select
+            id="voice-picker"
+            class="voice-select"
+            aria-label="Sélectionner la voix HD Gemini"
+          >
+            <option value="Aoede">
+              Aoede (FR/Multi — Chaleureuse & Expressive)
+            </option>
+            <option value="Puck">Puck (Dynamique & Technique)</option>
+            <option value="Kore">Kore (Calme & Studio)</option>
+            <option value="Fenrir">Fenrir (Profonde & Temps Réel)</option>
+            <option value="Charon">Charon (Claire & Analytique)</option>
+            <option value="Zephyr">Zephyr (Fluide & Naturelle)</option>
+          </select>
+        </div>
+
+        <div class="info-block">
+          <span class="info-label">1. App Electron Localisée (Legacy)</span>
+          <div class="info-val" id="legacy-exe-path">
+            %LOCALAPPDATA%\Google\Gemini\app-1.17.0\Gemini.exe (246.27 MB)
+          </div>
+        </div>
+
+        <div class="info-block">
+          <span class="info-label"
+            >2. Hôte Natif Rust Tauri v3.0.0-alpha.5</span
+          >
+          <div class="info-val" id="tauri-bin-path">
+            crates/gemini-super-tauri → gemini-windows-tauri-v3.exe
+          </div>
+        </div>
+
+        <div class="info-block">
+          <span class="info-label"
+            >3. Coffre-Fort Cookies DPAPI + AES-256-GCM</span
+          >
+          <div class="info-val" id="cookie-vault-info">
+            25 cookies importés depuis %APPDATA%\gemini\Network\Cookies
+          </div>
+        </div>
+
+        <div class="info-block">
+          <span class="info-label">4. Télémétrie Audio Temps Réel</span>
+          <div class="info-val" id="audio-telemetry-info">
+            Entrée : 16 kHz PCM16 Mono • Sortie : 24 kHz WAV • FFT : 32 bandes
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <script>
+      (() => {
+        const radialSvg = document.getElementById("radial-spectrum-svg");
+        const heroGemSvg = document.getElementById("hero-gemini-svg");
+        const statePill = document.getElementById("live-state-pill");
+        const captionUser = document.getElementById("caption-user");
+        const captionGemini = document.getElementById("caption-gemini");
+        const voicePicker = document.getElementById("voice-picker");
+        const btnVoiceLive = document.getElementById("btn-voice-live");
+        const btnVoiceLiveLabel = document.getElementById(
+          "btn-voice-live-label",
+        );
+        const btnInstantTurn = document.getElementById("btn-instant-turn");
+        const orbHitTarget = document.getElementById("orb-hit-target");
+        const stcCancelBtn = document.getElementById("stc-cancel-btn");
+        const stcSendBtn = document.getElementById("stc-send-btn");
+        const waveBars = Array.from(document.querySelectorAll(".wave-bar"));
+
+        // Create 32 radial FFT spokes around the Gemini Orb
+        const spokes = [];
+        for (let i = 0; i < 32; i++) {
+          const line = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line",
+          );
+          const angleRad = (i / 32) * Math.PI * 2;
+          const r1 = 68;
+          const r2 = 84;
+          line.setAttribute("x1", String(120 + Math.cos(angleRad) * r1));
+          line.setAttribute("y1", String(120 + Math.sin(angleRad) * r1));
+          line.setAttribute("x2", String(120 + Math.cos(angleRad) * r2));
+          line.setAttribute("y2", String(120 + Math.sin(angleRad) * r2));
+          line.setAttribute("stroke", i % 2 === 0 ? "#8AB4F8" : "#CFBDFE");
+          line.setAttribute("stroke-width", "3.2");
+          line.setAttribute("stroke-linecap", "round");
+          radialSvg.appendChild(line);
+          spokes.push({ line, angleRad });
+        }
+
+        let liveState = "IDLE"; // IDLE | LISTENING | THINKING | SPEAKING
+        let isMicStreaming = false;
+        let currentRms = 0.08;
+        let orbAngle = 0;
+        let spectrumBands = Array.from({ length: 32 }, () => 0.14);
+
+        let micStream = null;
+        let micAudioCtx = null;
+        let micScriptNode = null;
+        let pcmChunks = [];
+        let speechActive = false;
+        let silenceStart = 0;
+        let playbackCtx = null;
+        let activeSource = null;
+
+        // 60 FPS Orb & 32-Band Radial FFT animation loop
+        function renderFrame() {
+          const speed =
+            liveState === "SPEAKING"
+              ? 3.2
+              : liveState === "THINKING"
+                ? 4.2
+                : liveState === "LISTENING"
+                  ? 2.0
+                  : 0.9;
+          orbAngle = (orbAngle + speed) % 360;
+          const scale = 1 + Math.min(0.35, currentRms * 0.9);
+          heroGemSvg.style.transform = `rotate(${orbAngle.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
+
+          const t = Date.now() / 160;
+          for (let i = 0; i < 32; i++) {
+            const bandVal =
+              spectrumBands[i] ||
+              0.12 +
+                Math.abs(Math.sin(t + i * 0.3)) *
+                  (liveState === "IDLE" ? 0.12 : 0.45);
+            const r1 = 68;
+            const r2 = r1 + 10 + Math.min(44, bandVal * 42);
+            const sp = spokes[i];
+            sp.line.setAttribute(
+              "x2",
+              (120 + Math.cos(sp.angleRad) * r2).toFixed(1),
+            );
+            sp.line.setAttribute(
+              "y2",
+              (120 + Math.sin(sp.angleRad) * r2).toFixed(1),
+            );
+          }
+
+          for (let i = 0; i < waveBars.length; i++) {
+            const wVal =
+              6 +
+              Math.round(
+                Math.abs(Math.sin(t + i * 0.5)) *
+                  (liveState === "IDLE" ? 6 : 24),
+              );
+            waveBars[i].style.height = `${wVal}px`;
+          }
+
+          requestAnimationFrame(renderFrame);
+        }
+        requestAnimationFrame(renderFrame);
+
+        function setUiState(nextState, userMsg, geminiMsg) {
+          liveState = nextState;
+          statePill.textContent = `ÉTAT : ${nextState} • TAURI v3 VOICE-TO-VOICE`;
+          if (userMsg) captionUser.textContent = userMsg;
+          if (geminiMsg) captionGemini.textContent = geminiMsg;
+        }
+
+        function stopAudioPlayback() {
+          if (activeSource) {
+            try {
+              activeSource.stop();
+              activeSource.disconnect();
+            } catch {}
+            activeSource = null;
+          }
+        }
+
+        async function playWavBase64(wavBase64) {
+          if (!wavBase64) return;
+          stopAudioPlayback();
+          setUiState("SPEAKING");
+          try {
+            const bin = atob(wavBase64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!playbackCtx || playbackCtx.state === "closed") {
+              playbackCtx = new AudioCtx({ sampleRate: 24000 });
+            }
+            if (playbackCtx.state === "suspended") await playbackCtx.resume();
+
+            const audioBuffer = await playbackCtx.decodeAudioData(
+              bytes.buffer.slice(0),
+            );
+            const src = playbackCtx.createBufferSource();
+            const analyser = playbackCtx.createAnalyser();
+            analyser.fftSize = 64;
+            src.buffer = audioBuffer;
+            src.connect(analyser);
+            analyser.connect(playbackCtx.destination);
+            activeSource = src;
+
+            const freqData = new Uint8Array(analyser.frequencyBinCount);
+            const pumpAnalyser = () => {
+              if (activeSource !== src) return;
+              analyser.getByteFrequencyData(freqData);
+              let sum = 0;
+              for (let i = 0; i < 32; i++) {
+                const v = (freqData[i] || 20) / 255;
+                spectrumBands[i] = Math.max(0.14, v);
+                sum += v;
+              }
+              currentRms = Math.min(0.95, sum / 32);
+              requestAnimationFrame(pumpAnalyser);
+            };
+            requestAnimationFrame(pumpAnalyser);
+
+            src.onended = () => {
+              if (activeSource === src) {
+                activeSource = null;
+                currentRms = 0.08;
+                setUiState(isMicStreaming ? "LISTENING" : "IDLE");
+              }
+            };
+            src.start(0);
+          } catch (err) {
+            setUiState(isMicStreaming ? "LISTENING" : "IDLE");
+          }
+        }
+
+        function int16ChunksToBase64(chunks) {
+          let total = 0;
+          for (const c of chunks) total += c.length;
+          const merged = new Int16Array(total);
+          let offset = 0;
+          for (const c of chunks) {
+            merged.set(c, offset);
+            offset += c.length;
+          }
+          const bytes = new Uint8Array(merged.buffer);
+          let binary = "";
+          for (let i = 0; i < bytes.length; i += 0x8000) {
+            binary += String.fromCharCode.apply(
+              null,
+              bytes.subarray(i, i + 0x8000),
+            );
+          }
+          return btoa(binary);
+        }
+
+        async function runImmersiveVoiceTurn(opts = {}) {
+          const voice = voicePicker.value || "Aoede";
+          stopAudioPlayback();
+          setUiState(
+            "THINKING",
+            opts.userLabel || "Envoi audio 16 kHz vers Gemini 3.8 Live...",
+            "Connexion WebSocket BidiGenerateContent (Gemini 3.8 Live)...",
+          );
+
+          try {
+            const res = await fetch("/api/tauri/voice-to-voice", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                voice,
+                prompt:
+                  opts.prompt ||
+                  "Bonjour Gemini ! Confirme vocalement en français que l'application Windows est migrée en Tauri v3 natif avec Voice-to-Voice immersif.",
+                pcm16_base64: opts.pcm16Base64 || undefined,
+              }),
+            });
+            const data = await res.json();
+            if (data.orb_spectrum && Array.isArray(data.orb_spectrum.bands)) {
+              spectrumBands = data.orb_spectrum.bands;
+            }
+            const transcriptOut =
+              data.output_transcript ||
+              `Réponse vocale 24 kHz reçue (${data.audio_chunks_count} chunks, ${data.pcm24k_bytes_len} octets PCM24k, voix ${data.voice}).`;
+            setUiState(
+              "SPEAKING",
+              data.input_transcript
+                ? `Vous : « ${data.input_transcript} »`
+                : opts.userLabel || `Tour vocal (${voice})`,
+              `Gemini (${voice}) : ${transcriptOut}`,
+            );
+            document.getElementById("audio-telemetry-info").textContent =
+              `Chunks 24kHz : ${data.audio_chunks_count} • PCM : ${data.pcm24k_bytes_len} octets • RMS : ${(data.orb_spectrum?.rms || 0.25).toFixed(3)}`;
+
+            if (data.wav_base64) {
+              await playWavBase64(data.wav_base64);
+            } else {
+              setUiState(isMicStreaming ? "LISTENING" : "IDLE");
+            }
+          } catch (err) {
+            setUiState("IDLE", "Erreur réseau", String(err));
+          }
+        }
+
+        async function toggleMicFullDuplex() {
+          isMicStreaming = !isMicStreaming;
+          btnVoiceLive.classList.toggle("active", isMicStreaming);
+          btnVoiceLiveLabel.textContent = isMicStreaming
+            ? "● Micro 16kHz ON"
+            : "/voice Immersif";
+
+          if (!isMicStreaming) {
+            if (micScriptNode) micScriptNode.disconnect();
+            if (micStream) micStream.getTracks().forEach((t) => t.stop());
+            micStream = null;
+            setUiState("IDLE", "Microphone désactivé", "Prêt.");
+            return;
+          }
+
+          try {
+            micStream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                channelCount: 1,
+                sampleRate: 16000,
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              },
+            });
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            micAudioCtx = new AudioCtx({ sampleRate: 16000 });
+            const source = micAudioCtx.createMediaStreamSource(micStream);
+            micScriptNode = micAudioCtx.createScriptProcessor(4096, 1, 1);
+            pcmChunks = [];
+            speechActive = false;
+            silenceStart = 0;
+
+            micScriptNode.onaudioprocess = (ev) => {
+              if (!isMicStreaming) return;
+              const input = ev.inputBuffer.getChannelData(0);
+              let sumSq = 0;
+              const pcm16 = new Int16Array(input.length);
+              for (let i = 0; i < input.length; i++) {
+                const s = Math.max(-1, Math.min(1, input[i]));
+                sumSq += s * s;
+                pcm16[i] = s < 0 ? s * 32768 : s * 32767;
+              }
+              const rms = Math.sqrt(sumSq / input.length);
+              if (liveState !== "SPEAKING") {
+                currentRms = Math.min(0.95, rms * 5);
+              }
+
+              // Barge-in if user speaks while Gemini is speaking
+              if (liveState === "SPEAKING" && rms > 0.065) {
+                stopAudioPlayback();
+                setUiState(
+                  "LISTENING",
+                  "Barge-in détecté • Parlez...",
+                  "Écoute en cours...",
+                );
+              }
+
+              if (rms > 0.025) {
+                speechActive = true;
+                silenceStart = 0;
+                pcmChunks.push(pcm16);
+              } else if (speechActive) {
+                pcmChunks.push(pcm16);
+                if (!silenceStart) silenceStart = performance.now();
+                else if (performance.now() - silenceStart > 880) {
+                  const captured = pcmChunks.slice();
+                  pcmChunks = [];
+                  speechActive = false;
+                  silenceStart = 0;
+                  const b64 = int16ChunksToBase64(captured);
+                  runImmersiveVoiceTurn({
+                    pcm16Base64: b64,
+                    userLabel: "Audio microphone 16 kHz capturé",
+                  });
+                }
+              }
+            };
+
+            source.connect(micScriptNode);
+            micScriptNode.connect(micAudioCtx.destination);
+            setUiState(
+              "LISTENING",
+              "Micro 16 kHz actif • Parlez librement",
+              "VAD Hybride en écoute...",
+            );
+          } catch (err) {
+            isMicStreaming = false;
+            btnVoiceLive.classList.remove("active");
+            setUiState(
+              "IDLE",
+              "Microphone matériel non détecté — Mode simulation directe activé",
+              "Cliquez sur l'Orbe pour envoyer un tour vocal direct à Gemini 3.8 Live.",
+            );
+          }
+        }
+
+        btnVoiceLive.addEventListener("click", toggleMicFullDuplex);
+        btnInstantTurn.addEventListener("click", () => runImmersiveVoiceTurn());
+        orbHitTarget.addEventListener("click", () => runImmersiveVoiceTurn());
+        stcSendBtn.addEventListener("click", () => runImmersiveVoiceTurn());
+        stcCancelBtn.addEventListener("click", () => {
+          stopAudioPlayback();
+          setUiState("IDLE", "Session interrompue", "Prêt.");
+        });
+
+        // Load localized Gemini Windows App migration status
+        fetch("/api/windows-tauri/status")
+          .then((r) => r.json())
+          .then((report) => {
+            if (!report) return;
+            if (report.legacyElectron) {
+              const mb = (
+                report.legacyElectron.exeSizeBytes /
+                1024 /
+                1024
+              ).toFixed(2);
+              document.getElementById("legacy-exe-path").textContent =
+                `${report.legacyElectron.exePath} (${mb} MB)`;
+            }
+            if (report.nativeTauriV3) {
+              document.getElementById("tauri-bin-path").textContent =
+                `${report.nativeTauriV3.binaryPath} (${report.nativeTauriV3.sizeReductionRatio})`;
+            }
+            if (report.sessionCookies) {
+              document.getElementById("cookie-vault-info").textContent =
+                `${report.sessionCookies.importedCount} cookies actifs (1PSID: ${report.sessionCookies.hasValid1Psid}, 1PSIDTS: ${report.sessionCookies.hasValid1PsidTs})`;
+            }
+          })
+          .catch(() => {});
+      })();
+    </script>
+  </body>
+</html>

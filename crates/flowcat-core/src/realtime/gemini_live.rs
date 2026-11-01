@@ -520,9 +520,15 @@ impl GeminiLive {
     /// first off the system instruction). The pipeline calls this after
     /// `connect` for outbound calls.
     pub async fn kickoff(&mut self) -> Result<(), FlowcatError> {
+        self.send_user_text_turn("Bonjour").await
+    }
+
+    /// Send a user text turn over the live `BidiGenerateContent` WebSocket so the model
+    /// replies with 24 kHz audio (`responseModalities: ["AUDIO"]`).
+    pub async fn send_user_text_turn(&mut self, text: &str) -> Result<(), FlowcatError> {
         let msg = json!({
             "clientContent": {
-                "turns": [{ "role": "user", "parts": [{ "text": "" }] }],
+                "turns": [{ "role": "user", "parts": [{ "text": text }] }],
                 "turnComplete": true
             }
         });

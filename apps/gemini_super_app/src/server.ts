@@ -27,6 +27,7 @@ import {
   parseJanAdkJsonlStream,
 } from "@gemini-live/jan-adk";
 import { createWavPcm16Buffer, parseWavHeader } from "@gemini-live/mediabunny";
+import { inspectAndMigrateGeminiWindowsToTauriV3 } from "../../../scripts/gemini_windows_tauri_v3";
 import {
   DEFAULT_SURFACE_ENDPOINTS,
   GEMINI_DEEP_REASONING_MODEL,
@@ -94,6 +95,7 @@ export function startGeminiSuperAppServer(
   });
   const studioProject = createStudioProject("Gemini Super App Master Session");
   const indexHtmlPath = `${import.meta.dir}/index.html`;
+  const windowsTauriHtmlPath = `${import.meta.dir}/windows_tauri.html`;
 
   const insertSessionStmt = db.query(
     "INSERT OR REPLACE INTO voice_sessions (id, surface, model, created_at) VALUES ($id, $surface, $model, $createdAt)",
@@ -110,6 +112,147 @@ export function startGeminiSuperAppServer(
         return new Response(html, {
           headers: { "content-type": "text/html; charset=utf-8" },
         });
+      },
+      "/windows-tauri": async () => {
+        const html = await Bun.file(windowsTauriHtmlPath).text();
+        return new Response(html, {
+          headers: { "content-type": "text/html; charset=utf-8" },
+        });
+      },
+      "/api/windows-tauri/status": async () => {
+        const report = await inspectAndMigrateGeminiWindowsToTauriV3();
+        return Response.json(report);
+      },
+      "/api/tauri/voice-to-voice": {
+        POST: async (req: Request) => {
+          const body = (await req.json()) as {
+            prompt?: string;
+            voice?: string;
+            pcm16_base64?: string;
+          };
+          const apiKey = Bun.env.GEMINI_API_KEY ?? Bun.env.GOOGLE_API_KEY ?? "";
+          const ai = new GoogleGenAI({ apiKey, vertexai: false });
+          const model = GEMINI_LIVE_MODEL;
+          const voiceName = body.voice ?? "Aoede";
+          const pcm24kChunks: Uint8Array[] = [];
+          let inputTranscript = "";
+          let outputTranscript = "";
+          let turnDone = false;
+
+          const session = await ai.live.connect({
+            model,
+            config: {
+              responseModalities: [Modality.AUDIO],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: { voiceName },
+                },
+              },
+              inputAudioTranscription: {},
+              outputAudioTranscription: {},
+            },
+            callbacks: {
+              onmessage(msg) {
+                const sc = msg.serverContent;
+                if (sc?.inputTranscription?.text) {
+                  inputTranscript += sc.inputTranscription.text;
+                }
+                if (sc?.outputTranscription?.text) {
+                  outputTranscript += sc.outputTranscription.text;
+                }
+                const parts = sc?.modelTurn?.parts;
+                if (parts) {
+                  for (const part of parts) {
+                    if (part.inlineData?.data) {
+                      pcm24kChunks.push(
+                        new Uint8Array(
+                          Buffer.from(part.inlineData.data, "base64"),
+                        ),
+                      );
+                    }
+                  }
+                }
+                if (sc?.turnComplete) {
+                  turnDone = true;
+                }
+              },
+            },
+          });
+
+          if (body.pcm16_base64 && body.pcm16_base64.length > 200) {
+            session.sendRealtimeInput({
+              audio: {
+                data: body.pcm16_base64,
+                mimeType: "audio/pcm;rate=16000",
+              },
+            });
+          }
+
+          session.sendClientContent({
+            turns: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text:
+                      body.prompt ??
+                      "Bonjour Gemini ! Confirme en français que la version Windows Tauri v3 Voice-to-Voice fonctionne.",
+                  },
+                ],
+              },
+            ],
+            turnComplete: true,
+          });
+
+          const started = Date.now();
+          while (!turnDone && Date.now() - started < 8500) {
+            await Bun.sleep(80);
+          }
+          session.close();
+
+          let totalBytes = 0;
+          for (const c of pcm24kChunks) totalBytes += c.byteLength;
+          const mergedPcmBytes = new Uint8Array(totalBytes);
+          let offset = 0;
+          for (const c of pcm24kChunks) {
+            mergedPcmBytes.set(c, offset);
+            offset += c.byteLength;
+          }
+
+          const sampleCount = Math.floor(mergedPcmBytes.byteLength / 2);
+          const samples24k = new Int16Array(
+            mergedPcmBytes.buffer,
+            mergedPcmBytes.byteOffset,
+            sampleCount,
+          );
+          const timeline = analyzePcm16AudioTimeline(
+            samples24k.length > 0 ? samples24k : new Int16Array(512),
+            24000,
+          );
+          const wavBuffer = createWavPcm16Buffer(samples24k, 24000, 1);
+          const wavBase64 = Buffer.from(wavBuffer).toString("base64");
+
+          const avgRms =
+            timeline.rmsEnvelope.length > 0
+              ? timeline.rmsEnvelope.reduce((a, b) => a + b, 0) /
+                timeline.rmsEnvelope.length
+              : 0.18;
+
+          return Response.json({
+            model,
+            voice: voiceName,
+            input_transcript: inputTranscript.trim(),
+            output_transcript: outputTranscript.trim(),
+            audio_chunks_count: pcm24kChunks.length,
+            pcm24k_bytes_len: mergedPcmBytes.byteLength,
+            wav_base64: wavBase64,
+            orb_spectrum: {
+              bands: timeline.spectrumBands32,
+              rms: avgRms,
+              bpmEstimate: timeline.bpmEstimate,
+            },
+          });
+        },
       },
       "/api/health": () =>
         Response.json({
