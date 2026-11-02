@@ -897,6 +897,71 @@ export function stepThrow(
 export type GeminiPetMood =
   "content" | "happy" | "hungry" | "sleepy" | "bored" | "grumpy";
 
+export type GeminiPetAccessory =
+  | "none"
+  | "crown"
+  | "headphones"
+  | "sunglasses"
+  | "wizard-hat"
+  | "halo"
+  | "bowtie";
+
+export type GeminiPetParticleEffect =
+  "sparkles" | "hearts" | "matrix" | "fireflies" | "cosmic-stars" | "none";
+
+export interface GeminiPetCustomStyle {
+  customName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  eyeColor: string;
+  auraColor: string;
+  scale: number;
+  animationSpeed: number;
+  accessory: GeminiPetAccessory;
+  particleEffect: GeminiPetParticleEffect;
+  voiceName: string;
+  is3dMode: boolean;
+}
+
+export interface GeminiPetChoreographyStep {
+  reaction: OpenPetsReaction;
+  mochiAnimation?: string;
+  emoteId?: string;
+  speechText?: string;
+  durationMs: number;
+  position?: { x: number; y: number };
+}
+
+export interface GeminiPetCustomizeOptions {
+  petId?: GeminiPetId;
+  outfitId?: string;
+  autoScheduleOutfit?: boolean;
+  reaction?: OpenPetsReaction;
+  emoteId?: string;
+  mochiAnimation?: string;
+  speechText?: string;
+  gravityEnabled?: boolean;
+  position?: { x: number; y: number };
+  customStyle?: Partial<GeminiPetCustomStyle>;
+  choreography?: GeminiPetChoreographyStep[];
+}
+
+export const DEFAULT_GEMINI_PET_CUSTOM_STYLE: GeminiPetCustomStyle = {
+  customName: "Gemini Sparkle ✦",
+  primaryColor: "#4E82EE",
+  secondaryColor: "#8B5CF6",
+  accentColor: "#D96570",
+  eyeColor: "#0F172A",
+  auraColor: "#38BDF8",
+  scale: 1.0,
+  animationSpeed: 1.0,
+  accessory: "none",
+  particleEffect: "sparkles",
+  voiceName: "Aoede",
+  is3dMode: true,
+};
+
 export interface GeminiPetCareSnapshot {
   activePetId: GeminiPetId;
   activeOutfitId: string;
@@ -918,6 +983,8 @@ export interface GeminiPetCareSnapshot {
   mochiAnimation: string;
   mochiFocus: MochiFocusSession;
   mochiPocket: MochiPocketItem[];
+  customStyle: GeminiPetCustomStyle;
+  choreography: GeminiPetChoreographyStep[];
   updatedAt: string;
 }
 
@@ -979,6 +1046,11 @@ export class GeminiPetStateManager {
         cycles: 1,
       },
       mochiPocket: initial?.mochiPocket ?? [],
+      customStyle: {
+        ...DEFAULT_GEMINI_PET_CUSTOM_STYLE,
+        ...(initial?.customStyle ?? {}),
+      },
+      choreography: initial?.choreography ?? [],
       updatedAt: new Date().toISOString(),
     };
   }
@@ -995,6 +1067,8 @@ export class GeminiPetStateManager {
       mochiBond: { ...this.state.mochiBond },
       mochiFocus: { ...this.state.mochiFocus },
       mochiPocket: [...this.state.mochiPocket],
+      customStyle: { ...this.state.customStyle },
+      choreography: [...this.state.choreography],
     };
   }
 
@@ -1265,6 +1339,114 @@ export class GeminiPetStateManager {
     this.state.updatedAt = new Date().toISOString();
     return this.getSnapshot();
   }
+
+  customizeAndAnimate(
+    options: GeminiPetCustomizeOptions,
+  ): GeminiPetCareSnapshot {
+    if (options.petId) {
+      this.state.activePetId = options.petId;
+    }
+    if (typeof options.autoScheduleOutfit === "boolean") {
+      this.state.autoScheduleOutfit = options.autoScheduleOutfit;
+    }
+    if (options.outfitId) {
+      this.state.activeOutfitId = options.outfitId;
+    }
+    if (typeof options.gravityEnabled === "boolean") {
+      this.state.gravityEnabled = options.gravityEnabled;
+    }
+    if (
+      options.position &&
+      Number.isFinite(options.position.x) &&
+      Number.isFinite(options.position.y)
+    ) {
+      this.state.position = {
+        x: Math.round(options.position.x),
+        y: Math.round(options.position.y),
+      };
+    }
+    if (options.customStyle) {
+      const nextStyle = { ...this.state.customStyle };
+      if (options.customStyle.customName !== undefined) {
+        nextStyle.customName =
+          options.customStyle.customName.trim().slice(0, 64) ||
+          nextStyle.customName;
+      }
+      if (options.customStyle.primaryColor) {
+        nextStyle.primaryColor = options.customStyle.primaryColor;
+      }
+      if (options.customStyle.secondaryColor) {
+        nextStyle.secondaryColor = options.customStyle.secondaryColor;
+      }
+      if (options.customStyle.accentColor) {
+        nextStyle.accentColor = options.customStyle.accentColor;
+      }
+      if (options.customStyle.eyeColor) {
+        nextStyle.eyeColor = options.customStyle.eyeColor;
+      }
+      if (options.customStyle.auraColor) {
+        nextStyle.auraColor = options.customStyle.auraColor;
+      }
+      if (
+        typeof options.customStyle.scale === "number" &&
+        Number.isFinite(options.customStyle.scale)
+      ) {
+        nextStyle.scale = Math.max(
+          0.5,
+          Math.min(2.5, Number(options.customStyle.scale.toFixed(2))),
+        );
+      }
+      if (
+        typeof options.customStyle.animationSpeed === "number" &&
+        Number.isFinite(options.customStyle.animationSpeed)
+      ) {
+        nextStyle.animationSpeed = Math.max(
+          0.25,
+          Math.min(3.0, Number(options.customStyle.animationSpeed.toFixed(2))),
+        );
+      }
+      if (options.customStyle.accessory) {
+        nextStyle.accessory = options.customStyle.accessory;
+      }
+      if (options.customStyle.particleEffect) {
+        nextStyle.particleEffect = options.customStyle.particleEffect;
+      }
+      if (options.customStyle.voiceName) {
+        nextStyle.voiceName = options.customStyle.voiceName;
+      }
+      if (typeof options.customStyle.is3dMode === "boolean") {
+        nextStyle.is3dMode = options.customStyle.is3dMode;
+      }
+      this.state.customStyle = nextStyle;
+    }
+
+    if (Array.isArray(options.choreography)) {
+      this.state.choreography = options.choreography.slice(0, 12);
+    }
+
+    if (options.emoteId) {
+      this.triggerMochiEmote(options.emoteId);
+    }
+    if (options.reaction && isAllowedReaction(options.reaction)) {
+      this.updateReactionInternal(
+        options.reaction,
+        options.speechText,
+        options.mochiAnimation,
+      );
+    } else if (options.mochiAnimation || options.speechText !== undefined) {
+      if (options.mochiAnimation) {
+        this.state.mochiAnimation = options.mochiAnimation;
+      }
+      if (options.speechText !== undefined) {
+        this.state.speechText = options.speechText.trim().slice(0, 220);
+      }
+    }
+
+    this.addXp(6);
+    this.state.mood = getPetMood(this.state);
+    this.state.updatedAt = new Date().toISOString();
+    return this.getSnapshot();
+  }
 }
 
 // ── 7. Static SVG Spritesheet Validator & Gemini Sparkle Pet V2 Atlas ────────
@@ -1327,7 +1509,13 @@ export function validateSvgSpritesheet(
  * - Row 8: `review` (thinking monocle/halo + upward gaze)
  * - Rows 9..10: 16-sector directional cursor gaze frames (`quantizeCodexV2GazeDirection`).
  */
-export function generateGeminiPetSvgSpritesheet(): string {
+export function generateGeminiPetSvgSpritesheet(
+  customStyle?: Partial<GeminiPetCustomStyle>,
+): string {
+  const style: GeminiPetCustomStyle = {
+    ...DEFAULT_GEMINI_PET_CUSTOM_STYLE,
+    ...(customStyle ?? {}),
+  };
   const cells: string[] = [];
 
   for (let row = 0; row < 11; row++) {
@@ -1405,44 +1593,66 @@ export function generateGeminiPetSvgSpritesheet(): string {
         ? `<path d="M ${cx - 22} ${cy - 8} L ${cx - 10} ${cy + 4} M ${cx - 10} ${cy - 8} L ${cx - 22} ${cy + 4}" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
            <path d="M ${cx + 10} ${cy - 8} L ${cx + 22} ${cy + 4} M ${cx + 22} ${cy - 8} L ${cx + 10} ${cy + 4}" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>`
         : blink
-          ? `<line x1="${cx - 24}" y1="${cy - 2}" x2="${cx - 10}" y2="${cy - 2}" stroke="#0F172A" stroke-width="4" stroke-linecap="round"/>
-             <line x1="${cx + 10}" y1="${cy - 2}" x2="${cx + 24}" y2="${cy - 2}" stroke="#0F172A" stroke-width="4" stroke-linecap="round"/>`
+          ? `<line x1="${cx - 24}" y1="${cy - 2}" x2="${cx - 10}" y2="${cy - 2}" stroke="${style.eyeColor}" stroke-width="4" stroke-linecap="round"/>
+             <line x1="${cx + 10}" y1="${cy - 2}" x2="${cx + 24}" y2="${cy - 2}" stroke="${style.eyeColor}" stroke-width="4" stroke-linecap="round"/>`
           : happyEyes
-            ? `<path d="M ${cx - 24} ${cy} Q ${cx - 17} ${cy - 12} ${cx - 10} ${cy}" fill="none" stroke="#0F172A" stroke-width="4" stroke-linecap="round"/>
-               <path d="M ${cx + 10} ${cy} Q ${cx + 17} ${cy - 12} ${cx + 24} ${cy}" fill="none" stroke="#0F172A" stroke-width="4" stroke-linecap="round"/>`
-            : `<ellipse cx="${cx - 17 + eyeOffsetX}" cy="${cy - 2 + eyeOffsetY}" rx="6.5" ry="8.5" fill="#0F172A"/>
+            ? `<path d="M ${cx - 24} ${cy} Q ${cx - 17} ${cy - 12} ${cx - 10} ${cy}" fill="none" stroke="${style.eyeColor}" stroke-width="4" stroke-linecap="round"/>
+               <path d="M ${cx + 10} ${cy} Q ${cx + 17} ${cy - 12} ${cx + 24} ${cy}" fill="none" stroke="${style.eyeColor}" stroke-width="4" stroke-linecap="round"/>`
+            : `<ellipse cx="${cx - 17 + eyeOffsetX}" cy="${cy - 2 + eyeOffsetY}" rx="6.5" ry="8.5" fill="${style.eyeColor}"/>
                <circle cx="${cx - 19 + eyeOffsetX}" cy="${cy - 5 + eyeOffsetY}" r="2.5" fill="#FFFFFF"/>
-               <ellipse cx="${cx + 17 + eyeOffsetX}" cy="${cy - 2 + eyeOffsetY}" rx="6.5" ry="8.5" fill="#0F172A"/>
+               <ellipse cx="${cx + 17 + eyeOffsetX}" cy="${cy - 2 + eyeOffsetY}" rx="6.5" ry="8.5" fill="${style.eyeColor}"/>
                <circle cx="${cx + 15 + eyeOffsetX}" cy="${cy - 5 + eyeOffsetY}" r="2.5" fill="#FFFFFF"/>`;
 
       const mouthMarkup = dizzyEyes
-        ? `<path d="M ${cx - 8} ${cy + 16} Q ${cx} ${cy + 10} ${cx + 8} ${cy + 16}" fill="none" stroke="#0F172A" stroke-width="3.5" stroke-linecap="round"/>`
-        : `<path d="M ${cx - 8} ${cy + 12} Q ${cx} ${cy + 19} ${cx + 8} ${cy + 12}" fill="none" stroke="#0F172A" stroke-width="3.5" stroke-linecap="round"/>`;
+        ? `<path d="M ${cx - 8} ${cy + 16} Q ${cx} ${cy + 10} ${cx + 8} ${cy + 16}" fill="none" stroke="${style.eyeColor}" stroke-width="3.5" stroke-linecap="round"/>`
+        : `<path d="M ${cx - 8} ${cy + 12} Q ${cx} ${cy + 19} ${cx + 8} ${cy + 12}" fill="none" stroke="${style.eyeColor}" stroke-width="3.5" stroke-linecap="round"/>`;
 
-      const haloMarkup = thinkingHalo
-        ? `<ellipse cx="${cx}" cy="${cy - 68}" rx="28" ry="8" fill="none" stroke="#38BDF8" stroke-width="3" stroke-dasharray="6 4"/>
-           <circle cx="${cx + 34}" cy="${cy - 58}" r="5" fill="#F472B6"/>`
-        : `<path d="M ${cx} ${cy - 76} C ${cx + 4} ${cy - 62}, ${cx + 8} ${cy - 58}, ${cx + 22} ${cy - 54} C ${cx + 8} ${cy - 50}, ${cx + 4} ${cy - 46}, ${cx} ${cy - 32} C ${cx - 4} ${cy - 46}, ${cx - 8} ${cy - 50}, ${cx - 22} ${cy - 54} C ${cx - 8} ${cy - 58}, ${cx - 4} ${cy - 62}, ${cx} ${cy - 76} Z" fill="url(#${gradId})" opacity="0.9"/>`;
+      const haloMarkup =
+        thinkingHalo || style.accessory === "halo"
+          ? `<ellipse cx="${cx}" cy="${cy - 68}" rx="28" ry="8" fill="none" stroke="${style.auraColor}" stroke-width="3.5" stroke-dasharray="6 4"/>
+           <circle cx="${cx + 34}" cy="${cy - 58}" r="5" fill="${style.accentColor}"/>`
+          : `<path d="M ${cx} ${cy - 76} C ${cx + 4} ${cy - 62}, ${cx + 8} ${cy - 58}, ${cx + 22} ${cy - 54} C ${cx + 8} ${cy - 50}, ${cx + 4} ${cy - 46}, ${cx} ${cy - 32} C ${cx - 4} ${cy - 46}, ${cx - 8} ${cy - 50}, ${cx - 22} ${cy - 54} C ${cx - 8} ${cy - 58}, ${cx - 4} ${cy - 62}, ${cx} ${cy - 76} Z" fill="url(#${gradId})" opacity="0.9"/>`;
+
+      let accessoryMarkup = "";
+      if (style.accessory === "crown") {
+        accessoryMarkup = `<path d="M ${cx - 24} ${cy - 44} L ${cx - 18} ${cy - 64} L ${cx - 8} ${cy - 52} L ${cx} ${cy - 68} L ${cx + 8} ${cy - 52} L ${cx + 18} ${cy - 64} L ${cx + 24} ${cy - 44} Z" fill="#FBBF24" stroke="#F59E0B" stroke-width="2"/>`;
+      } else if (style.accessory === "headphones") {
+        accessoryMarkup = `<path d="M ${cx - 42} ${cy - 4} A 42 42 0 0 1 ${cx + 42} ${cy - 4}" fill="none" stroke="${style.auraColor}" stroke-width="6" stroke-linecap="round"/>
+          <rect x="${cx - 49}" y="${cy - 14}" width="12" height="24" rx="6" fill="${style.primaryColor}"/>
+          <rect x="${cx + 37}" y="${cy - 14}" width="12" height="24" rx="6" fill="${style.primaryColor}"/>`;
+      } else if (style.accessory === "sunglasses") {
+        accessoryMarkup = `<rect x="${cx - 30}" y="${cy - 11}" width="24" height="14" rx="4" fill="#0F172A" stroke="${style.auraColor}" stroke-width="2"/>
+          <rect x="${cx + 6}" y="${cy - 11}" width="24" height="14" rx="4" fill="#0F172A" stroke="${style.auraColor}" stroke-width="2"/>
+          <line x1="${cx - 6}" y1="${cy - 5}" x2="${cx + 6}" y2="${cy - 5}" stroke="${style.auraColor}" stroke-width="2.5"/>`;
+      } else if (style.accessory === "wizard-hat") {
+        accessoryMarkup = `<polygon points="${cx},${cy - 88} ${cx - 28},${cy - 42} ${cx + 28},${cy - 42}" fill="${style.secondaryColor}" stroke="#FBBF24" stroke-width="2"/>
+          <ellipse cx="${cx}" cy="${cy - 42}" rx="36" ry="7" fill="${style.primaryColor}"/>`;
+      } else if (style.accessory === "bowtie") {
+        accessoryMarkup = `<polygon points="${cx - 16},${cy + 26} ${cx},${cy + 34} ${cx - 16},${cy + 42}" fill="${style.accentColor}"/>
+          <polygon points="${cx + 16},${cy + 26} ${cx},${cy + 34} ${cx + 16},${cy + 42}" fill="${style.accentColor}"/>
+          <circle cx="${cx}" cy="${cy + 34}" r="4.5" fill="#FBBF24"/>`;
+      }
 
       cells.push(`<g transform="rotate(${tiltDeg} ${cx} ${cy})">
         <!-- Ground Shadow -->
         <ellipse cx="${originX + 96}" cy="${originY + 186}" rx="${Math.max(24, 42 + Math.round(bobY * 0.5))}" ry="10" fill="rgba(15, 23, 42, 0.32)"/>
         <!-- Cute Feet -->
-        <ellipse cx="${cx - 20 + feetOffset}" cy="${cy + 58}" rx="12" ry="8" fill="#6366F1"/>
-        <ellipse cx="${cx + 20 - feetOffset}" cy="${cy + 58}" rx="12" ry="8" fill="#8B5CF6"/>
+        <ellipse cx="${cx - 20 + feetOffset}" cy="${cy + 58}" rx="12" ry="8" fill="${style.primaryColor}"/>
+        <ellipse cx="${cx + 20 - feetOffset}" cy="${cy + 58}" rx="12" ry="8" fill="${style.secondaryColor}"/>
         <!-- Gemini Sparkle Body -->
         <path d="M ${cx} ${cy - 56} C ${cx + 22} ${cy - 34}, ${cx + 36} ${cy - 20}, ${cx + 58} ${cy} C ${cx + 36} ${cy + 20}, ${cx + 22} ${cy + 34}, ${cx} ${cy + 56} C ${cx - 22} ${cy + 34}, ${cx - 36} ${cy + 20}, ${cx - 58} ${cy} C ${cx - 36} ${cy - 20}, ${cx - 22} ${cy - 34}, ${cx} ${cy - 56} Z" fill="url(#${gradId})" stroke="#FFFFFF" stroke-width="2.5" stroke-opacity="0.65"/>
         <!-- Inner Plush Belly -->
         <circle cx="${cx}" cy="${cy + 2}" r="36" fill="#F8FAFC" fill-opacity="0.92"/>
         <!-- Cheeks -->
-        <ellipse cx="${cx - 26}" cy="${cy + 8}" rx="6" ry="3.5" fill="#F472B6" fill-opacity="0.65"/>
-        <ellipse cx="${cx + 26}" cy="${cy + 8}" rx="6" ry="3.5" fill="#F472B6" fill-opacity="0.65"/>
+        <ellipse cx="${cx - 26}" cy="${cy + 8}" rx="6" ry="3.5" fill="${style.accentColor}" fill-opacity="0.65"/>
+        <ellipse cx="${cx + 26}" cy="${cy + 8}" rx="6" ry="3.5" fill="${style.accentColor}" fill-opacity="0.65"/>
         <!-- Waving / Side Paws -->
-        <ellipse cx="${cx - 46}" cy="${cy + 6}" rx="10" ry="7" fill="#60A5FA" transform="rotate(-15 ${cx - 46} ${cy + 6})"/>
-        <ellipse cx="${cx + 46}" cy="${cy - 4}" rx="11" ry="7.5" fill="#C084FC" transform="rotate(${waveAngle} ${cx + 46} ${cy - 4})"/>
+        <ellipse cx="${cx - 46}" cy="${cy + 6}" rx="10" ry="7" fill="${style.primaryColor}" transform="rotate(-15 ${cx - 46} ${cy + 6})"/>
+        <ellipse cx="${cx + 46}" cy="${cy - 4}" rx="11" ry="7.5" fill="${style.secondaryColor}" transform="rotate(${waveAngle} ${cx + 46} ${cy - 4})"/>
         ${eyesMarkup}
         ${mouthMarkup}
         ${haloMarkup}
+        ${accessoryMarkup}
       </g>`);
     }
   }
@@ -1450,13 +1660,13 @@ export function generateGeminiPetSvgSpritesheet(): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="2288" viewBox="0 0 1536 2288">
   <defs>
     <linearGradient id="geminiMainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4E82EE"/>
-      <stop offset="52%" stop-color="#8B5CF6"/>
-      <stop offset="100%" stop-color="#D96570"/>
+      <stop offset="0%" stop-color="${style.primaryColor}"/>
+      <stop offset="52%" stop-color="${style.secondaryColor}"/>
+      <stop offset="100%" stop-color="${style.accentColor}"/>
     </linearGradient>
     <linearGradient id="geminiCelebrateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#38BDF8"/>
-      <stop offset="50%" stop-color="#A855F7"/>
+      <stop offset="0%" stop-color="${style.auraColor}"/>
+      <stop offset="50%" stop-color="${style.secondaryColor}"/>
       <stop offset="100%" stop-color="#F59E0B"/>
     </linearGradient>
     <linearGradient id="geminiErrorGrad" x1="0%" y1="0%" x2="100%" y2="100%">

@@ -1,6 +1,6 @@
 {
   "version": "2026.11.2",
-  "updatedAt": "2026-11-02T03:42:50.598Z",
+  "updatedAt": "2026-11-02T05:52:59.810Z",
   "source": "gemini.google.com (Gemini.exe Native Runtime)",
   "account": {
     "email": "aphro@google.com",
@@ -8,6 +8,12 @@
     "authenticated": false
   },
   "savedInfo": [
+    {
+      "id": "mem-1793598753731",
+      "text": "Plugin gemini-app-runtime actif nativement dans Gemini.exe (:8789/mcp) et agy CLI.",
+      "source": "agy_mcp_save_memory",
+      "createdAt": "2026-11-02T05:52:33.731Z"
+    },
     {
       "id": "mem-1793590970598",
       "text": "Plugin gemini-app-runtime actif nativement dans Gemini.exe (:8789/mcp) et agy CLI.",

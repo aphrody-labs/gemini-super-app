@@ -159,6 +159,51 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     expect(mochiEmote.ok).toBe(true);
     expect(mochiEmote.pet.mochiAnimation).toBe("emote_mochi_exe");
 
+    // 9b. Real-Time Pet Customization & Dynamic SVG Spritesheet (/api/pet/customize)
+    const petCustomRes = await fetch(`${baseUrl}/api/pet/customize`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        petId: "gemini-sparkle",
+        reaction: "celebrating",
+        speechText: "Couronne cosmique équipée par agy ✦👑",
+        customStyle: {
+          customName: "Aphrody Sparkle King ✦",
+          primaryColor: "#10B981",
+          secondaryColor: "#6366F1",
+          accentColor: "#F43F5E",
+          accessory: "crown",
+          scale: 1.25,
+          animationSpeed: 1.5,
+        },
+      }),
+    });
+    expect(petCustomRes.status).toBe(200);
+    const petCustom = (await petCustomRes.json()) as {
+      ok: boolean;
+      pet: {
+        reaction: string;
+        speechText: string;
+        customStyle: {
+          customName: string;
+          primaryColor: string;
+          accessory: string;
+          scale: number;
+        };
+      };
+    };
+    expect(petCustom.ok).toBe(true);
+    expect(petCustom.pet.customStyle.customName).toBe("Aphrody Sparkle King ✦");
+    expect(petCustom.pet.customStyle.primaryColor).toBe("#10B981");
+    expect(petCustom.pet.customStyle.accessory).toBe("crown");
+
+    const customSvgRes = await fetch(
+      `${baseUrl}/assets/openpets/gemini-pet-spritesheet.svg`,
+    );
+    const customSvgText = await customSvgRes.text();
+    expect(customSvgText).toContain("#10B981");
+    expect(customSvgText).toContain("#FBBF24"); // Crown gold polygon
+
     // 10. OpenPets 3D Plugin: 2D PNG -> 3D Voxel Mesh & Binary glTF 2.0 .GLB + gfx-rs/wgpu WGSL
     const glbRes = await fetch(
       `${baseUrl}/api/pet/3d/glb?sprite=mochi/master/mochi_default.png&depth=0.16&step=8`,

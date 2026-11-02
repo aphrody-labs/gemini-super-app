@@ -570,6 +570,159 @@ export function getMcpToolDefinitions() {
         required: ["command"],
       },
     },
+    {
+      name: "gemini_pet_customize_and_animate",
+      description:
+        "Customizes and animates the user's interactive Gemini Pet Companion ('gemini-sparkle', 'hoodie-cat', or 'mochi' 🌱) in real time across the Windows 11 Live Wallpaper (/wallpaper), Pet Studio (/pet), and Chrome Home (/chrome-home) via WebSockets and dynamic 8x11 OpenPets V2 SVG spritesheets.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: [
+              "customize",
+              "animate",
+              "choreography",
+              "switchPet",
+              "feed",
+              "play",
+              "pet",
+              "nap",
+              "react",
+              "say",
+              "outfit",
+              "mochi-emote",
+              "physics",
+            ],
+            description:
+              "Action to perform (default 'customize'). Supports care actions, reactions, emotes, outfits, custom styling, and multi-step choreography.",
+          },
+          petId: {
+            type: "string",
+            enum: ["gemini-sparkle", "hoodie-cat", "mochi"],
+            description:
+              "Companion character ID ('gemini-sparkle', 'hoodie-cat', or 'mochi').",
+          },
+          outfitId: {
+            type: "string",
+            description:
+              "Outfit ID ('default', 'coworking', 'agent', 'headphones', 'focus').",
+          },
+          reaction: {
+            type: "string",
+            enum: [
+              "idle",
+              "thinking",
+              "working",
+              "editing",
+              "running",
+              "testing",
+              "waiting",
+              "waving",
+              "success",
+              "error",
+              "celebrating",
+            ],
+            description: "Real-time animation reaction state.",
+          },
+          emoteId: {
+            type: "string",
+            enum: [
+              "heart",
+              "bounce",
+              "squish",
+              "wave",
+              "coffee",
+              "side-eye",
+              "look",
+              "table-flip",
+              "this-is-fine",
+              "vs-code",
+              "dance",
+              "mochi-exe",
+            ],
+            description: "Mochi Bond emote animation to trigger immediately.",
+          },
+          mochiAnimation: {
+            type: "string",
+            description:
+              "Specific Mochi animation name (e.g., 'dance', 'wave', 'bounce', 'coworking', 'focus', 'emote_heart').",
+          },
+          speechText: {
+            type: "string",
+            description:
+              "Speech bubble text for the Pet to display in real time.",
+          },
+          position: {
+            type: "object",
+            properties: {
+              x: { type: "number" },
+              y: { type: "number" },
+            },
+            description: "Screen coordinates { x, y } for the Pet.",
+          },
+          gravityEnabled: {
+            type: "boolean",
+            description: "Enable or disable gravity physics on the Pet.",
+          },
+          customStyle: {
+            type: "object",
+            properties: {
+              customName: { type: "string" },
+              primaryColor: { type: "string" },
+              secondaryColor: { type: "string" },
+              accentColor: { type: "string" },
+              eyeColor: { type: "string" },
+              auraColor: { type: "string" },
+              scale: { type: "number" },
+              animationSpeed: { type: "number" },
+              accessory: {
+                type: "string",
+                enum: [
+                  "none",
+                  "crown",
+                  "headphones",
+                  "sunglasses",
+                  "wizard-hat",
+                  "halo",
+                  "bowtie",
+                ],
+              },
+              particleEffect: {
+                type: "string",
+                enum: [
+                  "sparkles",
+                  "hearts",
+                  "matrix",
+                  "fireflies",
+                  "cosmic-stars",
+                  "none",
+                ],
+              },
+              voiceName: { type: "string" },
+              is3dMode: { type: "boolean" },
+            },
+            description:
+              "Real-time visual customization (colors, scale, animationSpeed, accessory, particleEffect, 3D mode, customName).",
+          },
+          choreography: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                reaction: { type: "string" },
+                mochiAnimation: { type: "string" },
+                emoteId: { type: "string" },
+                speechText: { type: "string" },
+                durationMs: { type: "number" },
+              },
+            },
+            description:
+              "Optional multi-step animation sequence played automatically in real time over WebSocket.",
+          },
+        },
+      },
+    },
   ];
 }
 
@@ -606,6 +759,68 @@ export async function handleRpcRequest(
     return { jsonrpc: "2.0", id, result: {} };
   }
 
+  if (method === "tools/list") {
+    return {
+      jsonrpc: "2.0",
+      id,
+      result: {
+        tools: getMcpToolDefinitions(),
+      },
+    };
+  }
+
+  if (
+    method === "tools/call" &&
+    String(params.name || "") === "gemini_pet_customize_and_animate"
+  ) {
+    const args = (params.arguments || {}) as Record<string, unknown>;
+    let petRes: Record<string, unknown> = { status: "ok" };
+    try {
+      const r = await fetch(`${SUPER_APP_URL}/api/pet/action`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          action: args.action || "customize",
+          ...args,
+        }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (r.ok) {
+        petRes = (await r.json()) as Record<string, unknown>;
+      } else {
+        petRes = { status: "error", httpStatus: r.status };
+      }
+    } catch (err) {
+      petRes = { status: "error", message: String(err) };
+    }
+    return {
+      jsonrpc: "2.0",
+      id,
+      result: {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                status: "ok",
+                tool: "gemini_pet_customize_and_animate",
+                surfacesUpdated: [
+                  "http://127.0.0.1:8787/pet",
+                  "http://127.0.0.1:8787/wallpaper",
+                  "http://127.0.0.1:8787/chrome-home",
+                  "http://127.0.0.1:8787/assets/openpets/gemini-pet-spritesheet.svg",
+                ],
+                ...petRes,
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+      },
+    };
+  }
+
   // Forward to Gemini.exe (:8789/mcp) whenever running!
   const isNativeUp = await ensureGeminiWindowsAppRunning();
   if (isNativeUp) {
@@ -621,17 +836,6 @@ export async function handleRpcRequest(
         return (await r.json()) as Record<string, unknown>;
       }
     } catch {}
-  }
-
-  // Local fallback if Gemini.exe is still initializing or running headlessly
-  if (method === "tools/list") {
-    return {
-      jsonrpc: "2.0",
-      id,
-      result: {
-        tools: getMcpToolDefinitions(),
-      },
-    };
   }
 
   if (method === "resources/list") {
@@ -799,26 +1003,28 @@ if (!existsSync(MEMORY_FILE_PATH) || !existsSync(MEMORY_RULE_MD_PATH)) {
 }
 
 if (import.meta.main) {
-  const decoder = new TextDecoder();
-  let buffer = "";
+  void (async () => {
+    const decoder = new TextDecoder();
+    let buffer = "";
 
-  for await (const chunk of Bun.stdin.stream()) {
-    buffer += decoder.decode(chunk, { stream: true });
+    for await (const chunk of Bun.stdin.stream()) {
+      buffer += decoder.decode(chunk, { stream: true });
 
-    while (true) {
-      const newlineIdx = buffer.indexOf("\n");
-      if (newlineIdx === -1) break;
-      const line = buffer.slice(0, newlineIdx).trim();
-      buffer = buffer.slice(newlineIdx + 1);
+      while (true) {
+        const newlineIdx = buffer.indexOf("\n");
+        if (newlineIdx === -1) break;
+        const line = buffer.slice(0, newlineIdx).trim();
+        buffer = buffer.slice(newlineIdx + 1);
 
-      if (!line || line.startsWith("Content-Length:")) continue;
-      try {
-        const rpcReq = JSON.parse(line) as Record<string, unknown>;
-        const rpcRes = await handleRpcRequest(rpcReq);
-        if (rpcRes !== null) {
-          process.stdout.write(`${JSON.stringify(rpcRes)}\n`);
-        }
-      } catch {}
+        if (!line || line.startsWith("Content-Length:")) continue;
+        try {
+          const rpcReq = JSON.parse(line) as Record<string, unknown>;
+          const rpcRes = await handleRpcRequest(rpcReq);
+          if (rpcRes !== null) {
+            process.stdout.write(`${JSON.stringify(rpcRes)}\n`);
+          }
+        } catch {}
+      }
     }
-  }
+  })();
 }

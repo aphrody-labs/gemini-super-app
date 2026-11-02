@@ -388,7 +388,14 @@
         </div>
 
         <div class="pet-walker" id="petStatus">
-          <span>🌱 Mochi & Gemini Pet</span>
+          <canvas
+            id="wallPetCanvas"
+            width="52"
+            height="52"
+            style="cursor: pointer"
+            title="Cliquer pour caresser le Pet"
+          ></canvas>
+          <span id="wallPetLabel">🌱 Mochi & Gemini Pet</span>
           <span>•</span>
           <span id="workerwInfo">Win32 WorkerW Actif</span>
         </div>
@@ -481,16 +488,164 @@
       }
       requestAnimationFrame(renderLoop);
 
-      // 3. Telemetry & Controls
+      // 3. Telemetry, Real-Time Pet Companion & Controls
       const bar = document.getElementById("transcriptBar");
       const orb = document.getElementById("orbTrigger");
       const badge = document.getElementById("liveStateBadge");
+      const wallPetCanvas = document.getElementById("wallPetCanvas");
+      const wallPetCtx = wallPetCanvas ? wallPetCanvas.getContext("2d") : null;
+      const wallPetLabel = document.getElementById("wallPetLabel");
+
+      let wallPet = {
+        activePetId: "gemini-sparkle",
+        reaction: "idle",
+        mochiAnimation: "idle_breathe",
+        speechText: "Gemini Sparkle ✦",
+        customStyle: {
+          customName: "Gemini Sparkle ✦",
+          primaryColor: "#4E82EE",
+          secondaryColor: "#8B5CF6",
+          accentColor: "#D96570",
+          auraColor: "#38BDF8",
+          accessory: "none",
+          scale: 1.0,
+          animationSpeed: 1.0,
+        },
+      };
+      let wallPetPhase = 0;
+      let wallPetBounce = 0;
+
+      function applyWallPetState(pet, isRealtime = false) {
+        if (!pet) return;
+        wallPet = {
+          ...wallPet,
+          ...pet,
+          customStyle: {
+            ...wallPet.customStyle,
+            ...(pet.customStyle || {}),
+          },
+        };
+        if (wallPetLabel) {
+          const name = wallPet.customStyle?.customName || "Gemini Pet";
+          const acc =
+            wallPet.customStyle?.accessory &&
+            wallPet.customStyle.accessory !== "none"
+              ? ` [${wallPet.customStyle.accessory}]`
+              : "";
+          wallPetLabel.textContent = `${name}${acc} • ${wallPet.reaction} (${wallPet.mochiAnimation || "idle"})`;
+        }
+        if (isRealtime && pet.speechText) {
+          bar.textContent = `🐾 ${wallPet.customStyle?.customName || "Pet"} (${wallPet.reaction}) : ${pet.speechText}`;
+          wallPetBounce = 1.2;
+        }
+      }
+
+      function renderWallPet() {
+        if (wallPetCtx && wallPetCanvas) {
+          const w = wallPetCanvas.width;
+          const h = wallPetCanvas.height;
+          wallPetCtx.clearRect(0, 0, w, h);
+          const speed = Number(wallPet.customStyle?.animationSpeed) || 1.0;
+          wallPetPhase += 0.06 * speed;
+          if (wallPetBounce > 0.01) wallPetBounce *= 0.9;
+          const bob = Math.sin(wallPetPhase * 1.6) * 3 - wallPetBounce * 6;
+          const cx = w / 2;
+          const cy = h / 2 + bob;
+          const s = wallPet.customStyle || {};
+          const pCol = s.primaryColor || "#4E82EE";
+          const sCol = s.secondaryColor || "#8B5CF6";
+          const aCol = s.accentColor || "#D96570";
+
+          wallPetCtx.save();
+          wallPetCtx.translate(cx, cy);
+          const grad = wallPetCtx.createLinearGradient(-16, -16, 16, 16);
+          grad.addColorStop(0, pCol);
+          grad.addColorStop(0.5, sCol);
+          grad.addColorStop(1, aCol);
+          wallPetCtx.fillStyle = grad;
+
+          if (wallPet.activePetId === "mochi") {
+            wallPetCtx.fillStyle = "#f4f7f5";
+            wallPetCtx.beginPath();
+            wallPetCtx.roundRect(-15, -12, 30, 26, 12);
+            wallPetCtx.fill();
+            wallPetCtx.fillStyle = "#81c995";
+            wallPetCtx.beginPath();
+            wallPetCtx.ellipse(-3, -15, 5, 3, -0.4, 0, Math.PI * 2);
+            wallPetCtx.ellipse(3, -15, 5, 3, 0.4, 0, Math.PI * 2);
+            wallPetCtx.fill();
+          } else {
+            wallPetCtx.beginPath();
+            wallPetCtx.arc(0, 0, 15, 0, Math.PI * 2);
+            wallPetCtx.fill();
+          }
+
+          // Eyes
+          wallPetCtx.fillStyle =
+            wallPet.activePetId === "mochi" ? "#1f1f1f" : "#ffffff";
+          wallPetCtx.beginPath();
+          wallPetCtx.arc(-5, -2, 2, 0, Math.PI * 2);
+          wallPetCtx.arc(5, -2, 2, 0, Math.PI * 2);
+          wallPetCtx.fill();
+
+          if (s.accessory === "crown") {
+            wallPetCtx.fillStyle = "#FBBF24";
+            wallPetCtx.beginPath();
+            wallPetCtx.moveTo(-8, -13);
+            wallPetCtx.lineTo(-5, -20);
+            wallPetCtx.lineTo(0, -15);
+            wallPetCtx.lineTo(5, -20);
+            wallPetCtx.lineTo(8, -13);
+            wallPetCtx.closePath();
+            wallPetCtx.fill();
+          }
+          wallPetCtx.restore();
+        }
+        requestAnimationFrame(renderWallPet);
+      }
+      requestAnimationFrame(renderWallPet);
+
+      wallPetCanvas?.addEventListener("click", async () => {
+        wallPetBounce = 1.3;
+        const r = await fetch("/api/pet/action", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ action: "pet" }),
+        });
+        if (r.ok) {
+          const d = await r.json();
+          if (d.pet) applyWallPetState(d.pet, true);
+        }
+      });
+
+      function connectWallpaperWs() {
+        try {
+          const ws = new WebSocket("ws://127.0.0.1:8787/ws?surface=wallpaper");
+          ws.addEventListener("message", (ev) => {
+            try {
+              const msg = JSON.parse(ev.data);
+              if (msg.type === "pet:realtime-update" && msg.pet) {
+                applyWallPetState(msg.pet, true);
+              }
+            } catch {}
+          });
+          ws.addEventListener("close", () =>
+            setTimeout(connectWallpaperWs, 2500),
+          );
+        } catch {
+          setTimeout(connectWallpaperWs, 2500);
+        }
+      }
+      connectWallpaperWs();
 
       async function pollWallpaperTelemetry() {
         try {
           const r = await fetch("/api/wallpaper/status");
           if (!r.ok) return;
           const d = await r.json();
+          if (d.pet) {
+            applyWallPetState(d.pet, false);
+          }
           if (d.wallpaper?.gpu?.name) {
             const g = d.wallpaper.gpu;
             document.getElementById("gpuPillText").textContent =

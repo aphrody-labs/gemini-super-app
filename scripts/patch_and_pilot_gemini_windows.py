@@ -39,6 +39,7 @@ ROAMING_SETTINGS = Path(r"C:\Users\aphro\AppData\Roaming\gemini\settings.json")
 WORKSPACE_ROOT = Path(r"C:\Users\aphro\google")
 EXTRACTED_DIR = WORKSPACE_ROOT / "apps" / "gemini_windows_patcher" / "asar_extracted"
 EXT_CONTENT_JS = WORKSPACE_ROOT / "apps" / "gemini_voice_extension" / "content.js"
+EXT_WEBMCP_JS = WORKSPACE_ROOT / "apps" / "gemini_voice_extension" / "webmcp_chrome_ai.js"
 BRIDGE_HTTP = "http://127.0.0.1:8765"
 SUPER_APP_HTTP = "http://127.0.0.1:8787"
 TAURI_V3_HTTP = "http://127.0.0.1:8788"
@@ -227,6 +228,8 @@ def install_voice_extension() -> dict[str, Any]:
         shutil.copy2(ASAR_PATH, ASAR_BAK_PATH)
 
     shutil.copy2(EXT_CONTENT_JS, EXTRACTED_DIR / "src" / "gemini_voice_content.js")
+    if EXT_WEBMCP_JS.exists():
+        shutil.copy2(EXT_WEBMCP_JS, EXTRACTED_DIR / "src" / "webmcp_chrome_ai.js")
     patch_main_js()
 
     ROAMING_SETTINGS.parent.mkdir(parents=True, exist_ok=True)
@@ -258,27 +261,54 @@ def launch_gemini_windows(start_dictation: bool = False) -> dict[str, Any]:
     env["GEMINI_ENABLE_SPEAK_TO_WINDOW"] = "true"
     env["ANTIGRAVITY_MIC"] = "127.0.0.1:24713"
 
+    creation_flags = (
+        getattr(subprocess, "DETACHED_PROCESS", 0x00000008)
+        | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
+        | 0x01000000
+    )
     if GEMINI_LAUNCHER_EXE.exists():
-        subprocess.Popen(
-            [str(GEMINI_LAUNCHER_EXE)],
-            cwd=str(GEMINI_APP_DIR),
-            env=env,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        try:
+            subprocess.Popen(
+                [str(GEMINI_LAUNCHER_EXE)],
+                cwd=str(GEMINI_APP_DIR),
+                env=env,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=creation_flags,
+                close_fds=True,
+            )
+        except Exception:
+            subprocess.Popen(
+                [str(GEMINI_LAUNCHER_EXE)],
+                cwd=str(GEMINI_APP_DIR),
+                env=env,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
         time.sleep(0.4)
 
     args = [str(GEMINI_EXE)]
     if start_dictation:
         args.append("--start-dictation")
 
-    proc = subprocess.Popen(
-        args,
-        cwd=str(GEMINI_APP_DIR),
-        env=env,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    try:
+        proc = subprocess.Popen(
+            args,
+            cwd=str(GEMINI_APP_DIR),
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=creation_flags,
+            close_fds=True,
+        )
+    except Exception:
+        proc = subprocess.Popen(
+            args,
+            cwd=str(GEMINI_APP_DIR),
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
     return {
         "status": "launched",
         "pid": proc.pid,

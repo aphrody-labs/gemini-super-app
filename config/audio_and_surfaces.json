@@ -82,11 +82,7 @@
     "hotkeys": {
       "toggle_voice": "F5",
       "push_to_talk": "Ctrl+Shift+V",
-      "slash_commands": [
-        "/voice",
-        "/record",
-        "/voice-live"
-      ]
+      "slash_commands": ["/voice", "/record", "/voice-live"]
     },
     "sidecar_config_path": "C:\\Users\\aphro\\.gemini\\config\\sidecars\\gemini-live-voice\\sidecar.json",
     "session_start_hook_path": "C:\\Users\\aphro\\google\\.agents\\hooks.json",

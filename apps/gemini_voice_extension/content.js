@@ -112,11 +112,14 @@
         });
         if (res?.data) return res.data;
       }
-      const resp = await fetch("http://127.0.0.1:8787/api/antigravity/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const resp = await fetch(
+        "http://127.0.0.1:8787/api/antigravity/session",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
       return await resp.json();
     } catch (err) {
       return { ok: false, error: String(err) };
@@ -310,7 +313,11 @@
             pcmChunks.push(pcm16);
             speechDetectedInTurn = true;
             silenceStartMs = 0;
-            if (liveState !== "SPEAKING" && liveState !== "THINKING" && liveState !== "LISTENING") {
+            if (
+              liveState !== "SPEAKING" &&
+              liveState !== "THINKING" &&
+              liveState !== "LISTENING"
+            ) {
               liveState = "LISTENING";
               updateUiState();
             }
@@ -698,18 +705,25 @@
 
     injectBtn?.addEventListener("click", () => {
       if (!editorBox?.value) return;
-      const header = activeFilePath ? `[PC File: ${activeFilePath}]\n` : "[PC / Antigravity Context]\n";
+      const header = activeFilePath
+        ? `[PC File: ${activeFilePath}]\n`
+        : "[PC / Antigravity Context]\n";
       injectTranscriptIntoPage(`${header}${editorBox.value}`, false);
     });
 
     injectSendBtn?.addEventListener("click", () => {
       if (!editorBox?.value) return;
-      const header = activeFilePath ? `[PC File: ${activeFilePath}]\n` : "[PC / Antigravity Context]\n";
+      const header = activeFilePath
+        ? `[PC File: ${activeFilePath}]\n`
+        : "[PC / Antigravity Context]\n";
       injectTranscriptIntoPage(`${header}${editorBox.value}`, true);
     });
 
     compactNowBtn?.addEventListener("click", async () => {
-      const res = await callAgySession({ action: "compact", keepRecentTurns: 2 });
+      const res = await callAgySession({
+        action: "compact",
+        keepRecentTurns: 2,
+      });
       if (res?.ok) {
         if (compactBadge) {
           compactBadge.textContent = `gemini-3.8-flash (low) • Auto-Compact #${res.compactCount}`;
@@ -717,7 +731,9 @@
         if (editorBox) {
           editorBox.value = `[Auto-Compact #${res.compactCount} • gemini-3.8-flash (low)]\n${res.compactedSummary}`;
         }
-        showConfirmationToast(`Auto-Compact #${res.compactCount} exécuté (gemini-3.8-flash low)`);
+        showConfirmationToast(
+          `Auto-Compact #${res.compactCount} exécuté (gemini-3.8-flash low)`,
+        );
       }
     });
 
@@ -842,11 +858,7 @@
       document.getElementById("agy-gem-pc-btn")?.click();
     } else if (e.altKey && e.key === "Enter") {
       const activeEl = document.activeElement;
-      const text = (
-        activeEl?.value ||
-        activeEl?.textContent ||
-        ""
-      ).trim();
+      const text = (activeEl?.value || activeEl?.textContent || "").trim();
       if (text && /(\/fs|@fs|\/read|@read|\/cmd|@cmd|\/compact)/i.test(text)) {
         e.preventDefault();
         const res = await callAgySession({ action: "turn", prompt: text });

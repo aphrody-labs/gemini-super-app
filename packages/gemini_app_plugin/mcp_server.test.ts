@@ -7,9 +7,9 @@ import {
 } from "./mcp_server";
 
 describe("Gemini App Native Runtime Plugin & MCP Server (gemini-app-runtime)", () => {
-  test("exposes all 9 eager MCP tools and 17 Gemini Web App capabilities", async () => {
+  test("exposes all 10 eager MCP tools and 17 Gemini Web App capabilities", async () => {
     const tools = getMcpToolDefinitions();
-    expect(tools.length).toBe(9);
+    expect(tools.length).toBe(10);
     const names = tools.map((t) => t.name);
     expect(names).toContain("gemini_web_runtime_status");
     expect(names).toContain("gemini_web_execute_prompt");
@@ -20,6 +20,7 @@ describe("Gemini App Native Runtime Plugin & MCP Server (gemini-app-runtime)", (
     expect(names).toContain("gemini_web_read_thread");
     expect(names).toContain("gemini_web_navigate");
     expect(names).toContain("gemini_windows_native_control");
+    expect(names).toContain("gemini_pet_customize_and_animate");
 
     expect(GEMINI_WEB_TOOLS_CATALOG.length).toBe(17);
   });
@@ -113,5 +114,39 @@ describe("Gemini App Native Runtime Plugin & MCP Server (gemini-app-runtime)", (
     );
     expect(savePayload.status).toBe("ok");
     expect(savePayload.totalSavedInfo).toBeGreaterThanOrEqual(3);
+
+    // 6. gemini_pet_customize_and_animate
+    const petRes = await handleRpcRequest({
+      jsonrpc: "2.0",
+      id: 6,
+      method: "tools/call",
+      params: {
+        name: "gemini_pet_customize_and_animate",
+        arguments: {
+          action: "customize",
+          petId: "gemini-sparkle",
+          reaction: "celebrating",
+          emoteId: "dance",
+          speechText: "Personnalisé et animé en temps réel par agy ✦👑",
+          customStyle: {
+            customName: "Aphrody Sparkle King ✦",
+            primaryColor: "#38BDF8",
+            secondaryColor: "#A855F7",
+            accentColor: "#F59E0B",
+            accessory: "crown",
+            particleEffect: "cosmic-stars",
+            scale: 1.15,
+            animationSpeed: 1.4,
+            is3dMode: true,
+          },
+        },
+      },
+    });
+    const petPayload = JSON.parse(
+      (petRes?.result as { content: Array<{ text: string }> }).content[0]
+        ?.text || "{}",
+    );
+    expect(petPayload.status).toBe("ok");
+    expect(petPayload.tool).toBe("gemini_pet_customize_and_animate");
   }, 30000);
 });

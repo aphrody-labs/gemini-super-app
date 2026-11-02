@@ -35,6 +35,9 @@ import {
   convertPngToGlb,
   generateGeminiPetSvgSpritesheet,
   isAllowedReaction,
+  type GeminiPetCareSnapshot,
+  type GeminiPetChoreographyStep,
+  type GeminiPetCustomStyle,
   type MochiPocketKind,
   type OpenPetsReaction,
 } from "@gemini-live/openpets-gemini";
@@ -207,9 +210,21 @@ export function startGeminiSuperAppServer(
   const chromeHomeJsPath = `${repoRootDir}/apps/gemini_voice_extension/newtab/newtab.js`;
   const openPetsAssetsDir = `${repoRootDir}/vendor/openpets/apps/desktop/assets`;
   const mochiAssetsDir = `${repoRootDir}/vendor/mochi-desktop/assets`;
-  const petManager = new GeminiPetStateManager();
-  const cachedGeminiPetSvg = generateGeminiPetSvgSpritesheet();
+  const savedPetRow = db
+    .query("SELECT payload_json FROM pet_care_state WHERE id = 'default'")
+    .get() as { payload_json: string } | null;
+  let initialPetState: Partial<GeminiPetCareSnapshot> | undefined;
+  if (savedPetRow?.payload_json) {
+    try {
+      initialPetState = JSON.parse(
+        savedPetRow.payload_json,
+      ) as Partial<GeminiPetCareSnapshot>;
+    } catch {}
+  }
+  const petManager = new GeminiPetStateManager(initialPetState);
   const agySession = new PermanentAntigravitySessionManager(db);
+  let activeChoreographyTimer: ReturnType<typeof setTimeout> | null = null;
+  let serverRef: ReturnType<typeof Bun.serve<SuperAppSocketData>> | null = null;
 
   const insertSessionStmt = db.query(
     "INSERT OR REPLACE INTO voice_sessions (id, surface, model, created_at) VALUES ($id, $surface, $model, $createdAt)",
@@ -220,15 +235,55 @@ export function startGeminiSuperAppServer(
   const upsertPetStateStmt = db.query(
     "INSERT OR REPLACE INTO pet_care_state (id, payload_json, updated_at) VALUES ('default', $payloadJson, $updatedAt)",
   );
-  const persistPetSnapshot = () => {
+  const persistPetSnapshot = (broadcast = false) => {
     const snap = petManager.getSnapshot();
     upsertPetStateStmt.run({
       $payloadJson: JSON.stringify(snap),
       $updatedAt: Date.now(),
     });
+    if (broadcast && serverRef) {
+      try {
+        serverRef.publish(
+          "super-app-live",
+          JSON.stringify({
+            type: "pet:realtime-update",
+            pet: snap,
+            timestamp: Date.now(),
+          }),
+        );
+      } catch {}
+    }
     return snap;
   };
-  persistPetSnapshot();
+  persistPetSnapshot(false);
+
+  const runChoreographySteps = (steps: GeminiPetChoreographyStep[]) => {
+    if (activeChoreographyTimer) {
+      clearTimeout(activeChoreographyTimer);
+      activeChoreographyTimer = null;
+    }
+    if (!Array.isArray(steps) || steps.length === 0) return;
+    let idx = 0;
+    const nextStep = () => {
+      if (idx >= steps.length) {
+        activeChoreographyTimer = null;
+        return;
+      }
+      const step = steps[idx++];
+      if (!step) return;
+      petManager.customizeAndAnimate({
+        reaction: step.reaction,
+        mochiAnimation: step.mochiAnimation,
+        emoteId: step.emoteId,
+        speechText: step.speechText,
+        position: step.position,
+      });
+      persistPetSnapshot(true);
+      const waitMs = Math.max(250, Math.min(15_000, step.durationMs || 1200));
+      activeChoreographyTimer = setTimeout(nextStep, waitMs);
+    };
+    nextStep();
+  };
 
   const server = Bun.serve<SuperAppSocketData>({
     port,
@@ -297,6 +352,7 @@ export function startGeminiSuperAppServer(
           status: "ok",
           wallpaper: tauriWallpaper,
           voice: voiceState,
+          pet: petManager.getSnapshot(),
         });
       },
       "/api/wallpaper/apply": {
@@ -434,6 +490,17 @@ export function startGeminiSuperAppServer(
                 "Writer",
                 "Rewriter",
                 "Proofreader",
+              ],
+              win32GoogleApps: [
+                "GoogleGeminiWin32.exe",
+                "GeminiInChromeGlicWin32.exe",
+                "GoogleAIStudioWin32.exe",
+                "GoogleAntigravityWin32.exe",
+                "GoogleNotebookLMWin32.exe",
+                "YouTubeMusicWin32.exe",
+                "GoogleDocsWin32.exe",
+                "GoogleDriveWin32.exe",
+                "GoogleGmailWin32.exe",
               ],
               glicExtraction: manifest,
             },
@@ -915,13 +982,17 @@ export function startGeminiSuperAppServer(
           });
         },
       },
-      "/assets/openpets/gemini-pet-spritesheet.svg": () =>
-        new Response(cachedGeminiPetSvg, {
+      "/assets/openpets/gemini-pet-spritesheet.svg": () => {
+        const dynamicSvg = generateGeminiPetSvgSpritesheet(
+          petManager.getSnapshot().customStyle,
+        );
+        return new Response(dynamicSvg, {
           headers: {
             "content-type": "image/svg+xml; charset=utf-8",
-            "cache-control": "public, max-age=3600",
+            "cache-control": "no-cache",
           },
-        }),
+        });
+      },
       "/assets/openpets/default-pet-spritesheet.webp": () =>
         new Response(
           Bun.file(`${openPetsAssetsDir}/default-pet-spritesheet.webp`),
@@ -949,12 +1020,66 @@ export function startGeminiSuperAppServer(
       },
       "/api/pet/state": {
         GET: () =>
-          Response.json({
-            pet: persistPetSnapshot(),
-            characters: GEMINI_PET_CHARACTERS,
-            mochiEmotes: MOCHI_EMOTE_CATALOGUE,
-            leases: petManager.leaseManager.list(),
-          }),
+          Response.json(
+            {
+              pet: persistPetSnapshot(false),
+              characters: GEMINI_PET_CHARACTERS,
+              mochiEmotes: MOCHI_EMOTE_CATALOGUE,
+              leases: petManager.leaseManager.list(),
+            },
+            { headers: CORS_HEADERS },
+          ),
+      },
+      "/api/pet/customize": {
+        POST: async (req: Request) => {
+          const body = (await req.json()) as {
+            petId?: "gemini-sparkle" | "hoodie-cat" | "mochi";
+            outfitId?: string;
+            autoScheduleOutfit?: boolean;
+            reaction?: OpenPetsReaction;
+            emoteId?: string;
+            mochiAnimation?: string;
+            speechText?: string;
+            text?: string;
+            gravityEnabled?: boolean;
+            position?: { x: number; y: number };
+            customStyle?: Partial<GeminiPetCustomStyle>;
+            choreography?: GeminiPetChoreographyStep[];
+          };
+          petManager.customizeAndAnimate({
+            petId: body.petId,
+            outfitId: body.outfitId,
+            autoScheduleOutfit: body.autoScheduleOutfit,
+            reaction: isAllowedReaction(body.reaction)
+              ? body.reaction
+              : undefined,
+            emoteId: body.emoteId,
+            mochiAnimation: body.mochiAnimation,
+            speechText: body.speechText ?? body.text,
+            gravityEnabled: body.gravityEnabled,
+            position: body.position,
+            customStyle: body.customStyle,
+            choreography: body.choreography,
+          });
+          const snap = persistPetSnapshot(true);
+          if (
+            Array.isArray(body.choreography) &&
+            body.choreography.length > 0
+          ) {
+            runChoreographySteps(body.choreography);
+          }
+          return Response.json(
+            {
+              ok: true,
+              pet: snap,
+              characters: GEMINI_PET_CHARACTERS,
+              mochiEmotes: MOCHI_EMOTE_CATALOGUE,
+            },
+            { headers: CORS_HEADERS },
+          );
+        },
+        OPTIONS: () =>
+          new Response(null, { status: 204, headers: CORS_HEADERS }),
       },
       "/api/pet/action": {
         POST: async (req: Request) => {
@@ -962,12 +1087,17 @@ export function startGeminiSuperAppServer(
             action?: string;
             reaction?: string;
             text?: string;
+            speechText?: string;
             petId?: "gemini-sparkle" | "hoodie-cat" | "mochi";
             outfitId?: string;
             autoSchedule?: boolean;
+            autoScheduleOutfit?: boolean;
             gravityEnabled?: boolean;
             position?: { x: number; y: number };
             emoteId?: string;
+            mochiAnimation?: string;
+            customStyle?: Partial<GeminiPetCustomStyle>;
+            choreography?: GeminiPetChoreographyStep[];
             focusMinutes?: number;
             breakMinutes?: number;
             cycles?: number;
@@ -993,11 +1123,13 @@ export function startGeminiSuperAppServer(
               break;
             case "react":
               if (isAllowedReaction(body.reaction)) {
-                petManager.react(body.reaction, body.text);
+                petManager.react(body.reaction, body.text ?? body.speechText);
               }
               break;
             case "say":
-              if (body.text) petManager.say(body.text);
+              if (body.text ?? body.speechText) {
+                petManager.say((body.text ?? body.speechText) as string);
+              }
               break;
             case "switchPet":
             case "switch-character":
@@ -1023,6 +1155,32 @@ export function startGeminiSuperAppServer(
             case "mochi-emote":
               if (body.emoteId) {
                 petManager.triggerMochiEmote(body.emoteId);
+              }
+              break;
+            case "customize":
+            case "animate":
+            case "choreography":
+              petManager.customizeAndAnimate({
+                petId: body.petId,
+                outfitId: body.outfitId,
+                autoScheduleOutfit:
+                  body.autoScheduleOutfit ?? body.autoSchedule,
+                reaction: isAllowedReaction(body.reaction)
+                  ? body.reaction
+                  : undefined,
+                emoteId: body.emoteId,
+                mochiAnimation: body.mochiAnimation,
+                speechText: body.speechText ?? body.text,
+                gravityEnabled: body.gravityEnabled,
+                position: body.position,
+                customStyle: body.customStyle,
+                choreography: body.choreography,
+              });
+              if (
+                Array.isArray(body.choreography) &&
+                body.choreography.length > 0
+              ) {
+                runChoreographySteps(body.choreography);
               }
               break;
             case "mochi-focus-start":
@@ -1053,16 +1211,50 @@ export function startGeminiSuperAppServer(
               petManager.clearMochiPocket();
               break;
             default:
+              if (
+                body.customStyle ||
+                body.choreography ||
+                body.petId ||
+                body.reaction ||
+                body.emoteId ||
+                body.mochiAnimation
+              ) {
+                petManager.customizeAndAnimate({
+                  petId: body.petId,
+                  outfitId: body.outfitId,
+                  reaction: isAllowedReaction(body.reaction)
+                    ? body.reaction
+                    : undefined,
+                  emoteId: body.emoteId,
+                  mochiAnimation: body.mochiAnimation,
+                  speechText: body.speechText ?? body.text,
+                  gravityEnabled: body.gravityEnabled,
+                  position: body.position,
+                  customStyle: body.customStyle,
+                  choreography: body.choreography,
+                });
+                if (
+                  Array.isArray(body.choreography) &&
+                  body.choreography.length > 0
+                ) {
+                  runChoreographySteps(body.choreography);
+                }
+              }
               break;
           }
-          return Response.json({
-            ok: true,
-            leveledUp,
-            pet: persistPetSnapshot(),
-            characters: GEMINI_PET_CHARACTERS,
-            mochiEmotes: MOCHI_EMOTE_CATALOGUE,
-          });
+          return Response.json(
+            {
+              ok: true,
+              leveledUp,
+              pet: persistPetSnapshot(true),
+              characters: GEMINI_PET_CHARACTERS,
+              mochiEmotes: MOCHI_EMOTE_CATALOGUE,
+            },
+            { headers: CORS_HEADERS },
+          );
         },
+        OPTIONS: () =>
+          new Response(null, { status: 204, headers: CORS_HEADERS }),
       },
       "/api/pet/3d/glb": {
         GET: async (req: Request) => {
@@ -2350,6 +2542,7 @@ export function startGeminiSuperAppServer(
     websocket: {
       data: {} as SuperAppSocketData,
       open(ws) {
+        ws.subscribe("super-app-live");
         insertSessionStmt.run({
           $id: ws.data.clientId,
           $surface: ws.data.surface,
@@ -2362,6 +2555,13 @@ export function startGeminiSuperAppServer(
           false,
         );
         ws.send(serializeHubMessage(welcome));
+        ws.send(
+          JSON.stringify({
+            type: "pet:realtime-update",
+            pet: petManager.getSnapshot(),
+            timestamp: Date.now(),
+          }),
+        );
       },
       message(ws, message) {
         const text =
@@ -2381,6 +2581,7 @@ export function startGeminiSuperAppServer(
       },
     },
   });
+  serverRef = server;
 
   return { server, db, ytm, cookieManager };
 }

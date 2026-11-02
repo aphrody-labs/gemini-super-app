@@ -13,8 +13,8 @@
  */
 
 (() => {
-  const BRIDGE_HTTP_URL = 'http://127.0.0.1:8765';
-  const SUPER_APP_HTTP_URL = 'http://127.0.0.1:8787';
+  const BRIDGE_HTTP_URL = "http://127.0.0.1:8765";
+  const SUPER_APP_HTTP_URL = "http://127.0.0.1:8787";
 
   /** @type {AbortController | null} */
   let webMcpRegistrationController = null;
@@ -28,7 +28,7 @@
    * @return {any | null}
    */
   function getDocumentModelContext() {
-    if (typeof document !== 'undefined' && document.modelContext) {
+    if (typeof document !== "undefined" && document.modelContext) {
       return document.modelContext;
     }
     return null;
@@ -42,61 +42,61 @@
   async function probeChromeAiCapabilities() {
     const capabilities = {
       webMcpAvailable: Boolean(getDocumentModelContext()),
-      languageModel: 'unavailable',
+      languageModel: "unavailable",
       languageModelParams: null,
-      summarizer: 'unavailable',
-      translatorFrEn: 'unavailable',
-      languageDetector: 'unavailable',
+      summarizer: "unavailable",
+      translatorFrEn: "unavailable",
+      languageDetector: "unavailable",
       userActivationActive:
-        typeof navigator !== 'undefined' && 'userActivation' in navigator
+        typeof navigator !== "undefined" && "userActivation" in navigator
           ? Boolean(navigator.userActivation.isActive)
           : false,
     };
 
-    if ('LanguageModel' in self) {
+    if ("LanguageModel" in self) {
       try {
         capabilities.languageModel = await self.LanguageModel.availability();
-        if (typeof self.LanguageModel.params === 'function') {
+        if (typeof self.LanguageModel.params === "function") {
           capabilities.languageModelParams = await self.LanguageModel.params();
         }
       } catch {
-        capabilities.languageModel = 'unavailable';
+        capabilities.languageModel = "unavailable";
       }
     }
 
-    if ('Summarizer' in self) {
+    if ("Summarizer" in self) {
       try {
         const summarizerOptions = {
-          type: 'key-points',
-          format: 'plain-text',
-          length: 'short',
+          type: "key-points",
+          format: "plain-text",
+          length: "short",
         };
         capabilities.summarizer =
           await self.Summarizer.availability(summarizerOptions);
       } catch {
-        capabilities.summarizer = 'unavailable';
+        capabilities.summarizer = "unavailable";
       }
     }
 
-    if ('Translator' in self) {
+    if ("Translator" in self) {
       try {
         const translatorOptions = {
-          sourceLanguage: 'fr',
-          targetLanguage: 'en',
+          sourceLanguage: "fr",
+          targetLanguage: "en",
         };
         capabilities.translatorFrEn =
           await self.Translator.availability(translatorOptions);
       } catch {
-        capabilities.translatorFrEn = 'unavailable';
+        capabilities.translatorFrEn = "unavailable";
       }
     }
 
-    if ('LanguageDetector' in self) {
+    if ("LanguageDetector" in self) {
       try {
         capabilities.languageDetector =
           await self.LanguageDetector.availability();
       } catch {
-        capabilities.languageDetector = 'unavailable';
+        capabilities.languageDetector = "unavailable";
       }
     }
 
@@ -119,34 +119,34 @@
    * @return {Promise<{ ok: boolean, source: string, output?: string, parsed?: unknown, error?: string }>}
    */
   async function runOnDeviceLanguageModel(promptText, options = {}) {
-    if (!('LanguageModel' in self)) {
+    if (!("LanguageModel" in self)) {
       return {
         ok: false,
-        source: 'LanguageModel',
-        error: 'LanguageModel API is not supported in this browser.',
+        source: "LanguageModel",
+        error: "LanguageModel API is not supported in this browser.",
       };
     }
 
     const availability = await self.LanguageModel.availability();
-    if (availability === 'unavailable') {
+    if (availability === "unavailable") {
       return {
         ok: false,
-        source: 'LanguageModel',
-        error: 'On-device Gemini Nano model is unavailable on this device.',
+        source: "LanguageModel",
+        error: "On-device Gemini Nano model is unavailable on this device.",
       };
     }
 
     if (
-      (availability === 'downloadable' || availability === 'downloading') &&
-      typeof navigator !== 'undefined' &&
+      (availability === "downloadable" || availability === "downloading") &&
+      typeof navigator !== "undefined" &&
       navigator.userActivation &&
       !navigator.userActivation.isActive
     ) {
       return {
         ok: false,
-        source: 'LanguageModel',
+        source: "LanguageModel",
         error:
-          'User interaction is required to initiate the on-device Gemini Nano download.',
+          "User interaction is required to initiate the on-device Gemini Nano download.",
       };
     }
 
@@ -155,12 +155,12 @@
       if (!cachedBaseLanguageModelSession) {
         const systemPrompt =
           options.systemPrompt ||
-          'You are Gemini in Chrome, a concise, accurate voice and browser assistant.';
+          "You are Gemini in Chrome, a concise, accurate voice and browser assistant.";
         cachedBaseLanguageModelSession = await self.LanguageModel.create({
-          initialPrompts: [{ role: 'system', content: systemPrompt }],
+          initialPrompts: [{ role: "system", content: systemPrompt }],
           monitor(m) {
-            m.addEventListener('downloadprogress', (e) => {
-              if (typeof options.onDownloadProgress === 'function') {
+            m.addEventListener("downloadprogress", (e) => {
+              if (typeof options.onDownloadProgress === "function") {
                 options.onDownloadProgress(Number(e.loaded) || 0);
               }
             });
@@ -175,20 +175,20 @@
       }
       if (
         options.responseConstraint &&
-        typeof options.responseConstraint === 'object'
+        typeof options.responseConstraint === "object"
       ) {
         promptOptions.responseConstraint = options.responseConstraint;
       }
 
       if (options.targetElement && !options.responseConstraint) {
-        options.targetElement.textContent = '';
+        options.targetElement.textContent = "";
         const stream = taskSession.promptStreaming(promptText, promptOptions);
-        let fullText = '';
+        let fullText = "";
         for await (const chunk of stream) {
           fullText += String(chunk);
           options.targetElement.textContent = fullText;
         }
-        return { ok: true, source: 'LanguageModel', output: fullText };
+        return { ok: true, source: "LanguageModel", output: fullText };
       }
 
       const resultText = await taskSession.prompt(promptText, promptOptions);
@@ -199,30 +199,30 @@
         try {
           return {
             ok: true,
-            source: 'LanguageModel',
+            source: "LanguageModel",
             output: String(resultText),
             parsed: JSON.parse(String(resultText)),
           };
         } catch {
           return {
             ok: true,
-            source: 'LanguageModel',
+            source: "LanguageModel",
             output: String(resultText),
           };
         }
       }
-      return { ok: true, source: 'LanguageModel', output: String(resultText) };
+      return { ok: true, source: "LanguageModel", output: String(resultText) };
     } catch (err) {
       if (options.signal && options.signal.aborted) {
         throw err;
       }
       return {
         ok: false,
-        source: 'LanguageModel',
+        source: "LanguageModel",
         error: err instanceof Error ? err.message : String(err),
       };
     } finally {
-      if (taskSession && typeof taskSession.destroy === 'function') {
+      if (taskSession && typeof taskSession.destroy === "function") {
         taskSession.destroy();
       }
     }
@@ -243,33 +243,34 @@
    * @return {Promise<{ ok: boolean, summary?: string, error?: string }>}
    */
   async function runOnDeviceSummarizer(text, config = {}) {
-    if (!('Summarizer' in self)) {
+    if (!("Summarizer" in self)) {
       return {
         ok: false,
-        error: 'Summarizer API is not supported in this browser.',
+        error: "Summarizer API is not supported in this browser.",
       };
     }
 
     const options = {
-      sharedContext: config.sharedContext || 'Web page and voice transcript content',
-      type: config.type || 'key-points',
-      format: config.format || 'plain-text',
-      length: config.length || 'short',
+      sharedContext:
+        config.sharedContext || "Web page and voice transcript content",
+      type: config.type || "key-points",
+      format: config.format || "plain-text",
+      length: config.length || "short",
     };
 
     const availability = await self.Summarizer.availability(options);
-    if (availability === 'unavailable') {
-      return { ok: false, error: 'Summarizer model is unavailable.' };
+    if (availability === "unavailable") {
+      return { ok: false, error: "Summarizer model is unavailable." };
     }
     if (
-      (availability === 'downloadable' || availability === 'downloading') &&
-      typeof navigator !== 'undefined' &&
+      (availability === "downloadable" || availability === "downloading") &&
+      typeof navigator !== "undefined" &&
       navigator.userActivation &&
       !navigator.userActivation.isActive
     ) {
       return {
         ok: false,
-        error: 'User interaction is required to download the Summarizer model.',
+        error: "User interaction is required to download the Summarizer model.",
       };
     }
 
@@ -278,11 +279,11 @@
       summarizer = await self.Summarizer.create({
         ...options,
         monitor(m) {
-          m.addEventListener('downloadprogress', () => {});
+          m.addEventListener("downloadprogress", () => {});
         },
       });
       const summary = await summarizer.summarize(text, {
-        context: config.context || 'Provide a clear, concise summary.',
+        context: config.context || "Provide a clear, concise summary.",
       });
       return { ok: true, summary: String(summary) };
     } catch (err) {
@@ -291,7 +292,7 @@
         error: err instanceof Error ? err.message : String(err),
       };
     } finally {
-      if (summarizer && typeof summarizer.destroy === 'function') {
+      if (summarizer && typeof summarizer.destroy === "function") {
         summarizer.destroy();
       }
     }
@@ -306,31 +307,31 @@
    * @return {Promise<{ ok: boolean, detectedLanguage?: string, confidence?: number, translatedText?: string, error?: string }>}
    */
   async function runOnDeviceLanguageAndTranslator(text, langConfig = {}) {
-    let sourceLanguage = langConfig.sourceLanguage || '';
+    let sourceLanguage = langConfig.sourceLanguage || "";
     let confidence = 1;
 
-    if (!sourceLanguage && 'LanguageDetector' in self) {
+    if (!sourceLanguage && "LanguageDetector" in self) {
       const detAvail = await self.LanguageDetector.availability();
       if (
-        detAvail === 'available' ||
+        detAvail === "available" ||
         (navigator.userActivation && navigator.userActivation.isActive)
       ) {
         let detector = null;
         try {
           detector = await self.LanguageDetector.create({
             monitor(m) {
-              m.addEventListener('downloadprogress', () => {});
+              m.addEventListener("downloadprogress", () => {});
             },
           });
           const detections = await detector.detect(text);
           if (Array.isArray(detections) && detections.length > 0) {
-            sourceLanguage = detections[0].detectedLanguage || 'fr';
+            sourceLanguage = detections[0].detectedLanguage || "fr";
             confidence = Number(detections[0].confidence) || 0;
           }
         } catch {
-          sourceLanguage = 'fr';
+          sourceLanguage = "fr";
         } finally {
-          if (detector && typeof detector.destroy === 'function') {
+          if (detector && typeof detector.destroy === "function") {
             detector.destroy();
           }
         }
@@ -338,23 +339,24 @@
     }
 
     if (!sourceLanguage) {
-      sourceLanguage = 'fr';
+      sourceLanguage = "fr";
     }
     const targetLanguage =
-      langConfig.targetLanguage || (sourceLanguage === 'fr' ? 'en' : 'fr');
+      langConfig.targetLanguage || (sourceLanguage === "fr" ? "en" : "fr");
 
-    if (!('Translator' in self)) {
+    if (!("Translator" in self)) {
       return {
         ok: true,
         detectedLanguage: sourceLanguage,
         confidence,
-        error: 'Translator API is not supported; returning detected language only.',
+        error:
+          "Translator API is not supported; returning detected language only.",
       };
     }
 
     const options = { sourceLanguage, targetLanguage };
     const availability = await self.Translator.availability(options);
-    if (availability === 'unavailable') {
+    if (availability === "unavailable") {
       return {
         ok: false,
         detectedLanguage: sourceLanguage,
@@ -363,8 +365,8 @@
       };
     }
     if (
-      (availability === 'downloadable' || availability === 'downloading') &&
-      typeof navigator !== 'undefined' &&
+      (availability === "downloadable" || availability === "downloading") &&
+      typeof navigator !== "undefined" &&
       navigator.userActivation &&
       !navigator.userActivation.isActive
     ) {
@@ -372,7 +374,7 @@
         ok: false,
         detectedLanguage: sourceLanguage,
         confidence,
-        error: 'User gesture required to download the Translator pack.',
+        error: "User gesture required to download the Translator pack.",
       };
     }
 
@@ -381,7 +383,7 @@
       translator = await self.Translator.create({
         ...options,
         monitor(m) {
-          m.addEventListener('downloadprogress', () => {});
+          m.addEventListener("downloadprogress", () => {});
         },
       });
       const translatedText = await translator.translate(text);
@@ -399,7 +401,7 @@
         error: err instanceof Error ? err.message : String(err),
       };
     } finally {
-      if (translator && typeof translator.destroy === 'function') {
+      if (translator && typeof translator.destroy === "function") {
         translator.destroy();
       }
     }
@@ -420,46 +422,46 @@
     const { signal } = webMcpRegistrationController;
 
     // Bind WebMCP lifecycle events using feature-detected event target
-    if (typeof document !== 'undefined') {
+    if (typeof document !== "undefined") {
       const eventTarget =
-        'ontoolactivated' in (document.modelContext ?? {})
+        "ontoolactivated" in (document.modelContext ?? {})
           ? document.modelContext
           : window;
 
       eventTarget.addEventListener(
-        'toolactivated',
+        "toolactivated",
         (event) => {
           const detail = /** @type {any} */ (event);
           document.documentElement.dataset.activeWebmcpTool =
-            detail.toolName || 'active';
+            detail.toolName || "active";
         },
-        { signal }
+        { signal },
       );
 
       eventTarget.addEventListener(
-        'toolcancel',
+        "toolcancel",
         () => {
           delete document.documentElement.dataset.activeWebmcpTool;
         },
-        { signal }
+        { signal },
       );
 
       // Bind declarative WebMCP form if present on the page
-      const voiceForm = document.getElementById('webmcp-voice-form');
+      const voiceForm = document.getElementById("webmcp-voice-form");
       if (voiceForm) {
         voiceForm.addEventListener(
-          'submit',
+          "submit",
           (event) => {
             const submitEvent = /** @type {any} */ (event);
             const formData = new FormData(
-              /** @type {HTMLFormElement} */ (voiceForm)
+              /** @type {HTMLFormElement} */ (voiceForm),
             );
-            const promptValue = String(formData.get('prompt') || '').trim();
+            const promptValue = String(formData.get("prompt") || "").trim();
             if (!promptValue) {
               if (submitEvent.agentInvoked && submitEvent.respondWith) {
                 event.preventDefault();
                 submitEvent.respondWith(
-                  Promise.resolve({ error: 'Prompt cannot be empty.' })
+                  Promise.resolve({ error: "Prompt cannot be empty." }),
                 );
               }
               return;
@@ -468,12 +470,12 @@
             const executionPromise = (async () => {
               try {
                 const res = await fetch(`${BRIDGE_HTTP_URL}/prompt`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     prompt: promptValue,
                     speak: true,
-                    voice: 'Aoede',
+                    voice: "Aoede",
                   }),
                 });
                 if (!res.ok) {
@@ -489,18 +491,18 @@
 
             if (
               submitEvent.agentInvoked &&
-              typeof submitEvent.respondWith === 'function'
+              typeof submitEvent.respondWith === "function"
             ) {
               submitEvent.respondWith(executionPromise);
             }
           },
-          { signal }
+          { signal },
         );
       }
     }
 
     const modelContext = getDocumentModelContext();
-    if (!modelContext || typeof modelContext.registerTool !== 'function') {
+    if (!modelContext || typeof modelContext.registerTool !== "function") {
       return {
         registered: false,
         toolCount: 0,
@@ -510,11 +512,11 @@
 
     const tools = [
       {
-        name: 'get_realtime_clock_and_date',
+        name: "get_realtime_clock_and_date",
         description:
-          'Returns the exact current local time, date, weekday, timezone, and Unix timestamp from the host PC with zero latency.',
+          "Returns the exact current local time, date, weekday, timezone, and Unix timestamp from the host PC with zero latency.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {},
         },
         annotations: {
@@ -523,19 +525,22 @@
         },
         async execute(_input, { signal: execSignal } = {}) {
           try {
-            const res = await fetch(`${BRIDGE_HTTP_URL}/api/antigravity/clock`, {
-              signal: execSignal,
-            });
+            const res = await fetch(
+              `${BRIDGE_HTTP_URL}/api/antigravity/clock`,
+              {
+                signal: execSignal,
+              },
+            );
             if (!res.ok) {
               const now = new Date();
               return {
                 iso: now.toISOString(),
-                localTime: now.toLocaleTimeString('fr-FR'),
-                localDate: now.toLocaleDateString('fr-FR', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
+                localTime: now.toLocaleTimeString("fr-FR"),
+                localDate: now.toLocaleDateString("fr-FR", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
                 }),
               };
             }
@@ -547,29 +552,29 @@
             const now = new Date();
             return {
               iso: now.toISOString(),
-              localTime: now.toLocaleTimeString('fr-FR'),
-              localDate: now.toLocaleDateString('fr-FR'),
+              localTime: now.toLocaleTimeString("fr-FR"),
+              localDate: now.toLocaleDateString("fr-FR"),
             };
           }
         },
       },
       {
-        name: 'speak_with_gemini_live',
+        name: "speak_with_gemini_live",
         description:
-          'Sends a spoken instruction or question to the full-duplex Gemini Live Voice Hub and synthesizes the response using Aoede HD audio.',
+          "Sends a spoken instruction or question to the full-duplex Gemini Live Voice Hub and synthesizes the response using Aoede HD audio.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
             prompt: {
-              type: 'string',
-              description: 'The spoken message or question to send to Gemini.',
+              type: "string",
+              description: "The spoken message or question to send to Gemini.",
             },
             speak: {
-              type: 'boolean',
-              description: 'Whether to play the spoken TTS response aloud.',
+              type: "boolean",
+              description: "Whether to play the spoken TTS response aloud.",
             },
           },
-          required: ['prompt'],
+          required: ["prompt"],
         },
         annotations: {
           readOnlyHint: false,
@@ -578,12 +583,12 @@
         async execute(input, { signal: execSignal } = {}) {
           try {
             const res = await fetch(`${BRIDGE_HTTP_URL}/prompt`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 prompt: input.prompt,
                 speak: input.speak !== false,
-                voice: 'Aoede',
+                voice: "Aoede",
               }),
               signal: execSignal,
             });
@@ -602,23 +607,23 @@
         },
       },
       {
-        name: 'read_pc_filesystem',
+        name: "read_pc_filesystem",
         description:
-          'Lists directory entries or reads file contents on the local Windows PC via the Antigravity FileSystem bridge.',
+          "Lists directory entries or reads file contents on the local Windows PC via the Antigravity FileSystem bridge.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
             action: {
-              type: 'string',
-              enum: ['list', 'read', 'stat'],
-              description: 'Filesystem operation to perform.',
+              type: "string",
+              enum: ["list", "read", "stat"],
+              description: "Filesystem operation to perform.",
             },
             path: {
-              type: 'string',
-              description: 'Absolute or workspace-relative path on the PC.',
+              type: "string",
+              description: "Absolute or workspace-relative path on the PC.",
             },
           },
-          required: ['action', 'path'],
+          required: ["action", "path"],
         },
         annotations: {
           readOnlyHint: true,
@@ -629,8 +634,8 @@
           try {
             const endpoint = `${BRIDGE_HTTP_URL}/api/fs/${encodeURIComponent(input.action)}`;
             const res = await fetch(endpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ path: input.path }),
               signal: execSignal,
             });
@@ -649,22 +654,22 @@
         },
       },
       {
-        name: 'execute_pc_command',
+        name: "execute_pc_command",
         description:
-          'Executes a shell command or Antigravity CLI skill on the local PC and returns stdout, stderr, and exit code.',
+          "Executes a shell command or Antigravity CLI skill on the local PC and returns stdout, stderr, and exit code.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
             command: {
-              type: 'string',
-              description: 'Command line to run in the workspace.',
+              type: "string",
+              description: "Command line to run in the workspace.",
             },
             cwd: {
-              type: 'string',
-              description: 'Working directory for the command.',
+              type: "string",
+              description: "Working directory for the command.",
             },
           },
-          required: ['command'],
+          required: ["command"],
         },
         annotations: {
           readOnlyHint: false,
@@ -673,11 +678,11 @@
         async execute(input, { signal: execSignal } = {}) {
           try {
             const res = await fetch(`${BRIDGE_HTTP_URL}/api/fs/exec`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 command: input.command,
-                cwd: input.cwd || 'C:\\Users\\aphro\\google',
+                cwd: input.cwd || "C:\\Users\\aphro\\google",
               }),
               signal: execSignal,
             });
@@ -696,27 +701,27 @@
         },
       },
       {
-        name: 'run_chrome_builtin_ai',
+        name: "run_chrome_builtin_ai",
         description:
-          'Runs on-device Chrome Built-in AI tasks including Gemini Nano prompting, key-point summarization, language detection, or translation.',
+          "Runs on-device Chrome Built-in AI tasks including Gemini Nano prompting, key-point summarization, language detection, or translation.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
             task: {
-              type: 'string',
-              enum: ['prompt', 'summarize', 'translate', 'capabilities'],
-              description: 'Built-in Chrome AI capability to invoke.',
+              type: "string",
+              enum: ["prompt", "summarize", "translate", "capabilities"],
+              description: "Built-in Chrome AI capability to invoke.",
             },
             text: {
-              type: 'string',
-              description: 'Input text to process.',
+              type: "string",
+              description: "Input text to process.",
             },
             targetLanguage: {
-              type: 'string',
-              description: 'BCP-47 target language code when translating.',
+              type: "string",
+              description: "BCP-47 target language code when translating.",
             },
           },
-          required: ['task'],
+          required: ["task"],
         },
         annotations: {
           readOnlyHint: true,
@@ -724,17 +729,17 @@
         },
         async execute(input, { signal: execSignal } = {}) {
           try {
-            if (input.task === 'capabilities') {
+            if (input.task === "capabilities") {
               return await probeChromeAiCapabilities();
             }
-            const text = String(input.text || '').trim();
+            const text = String(input.text || "").trim();
             if (!text) {
-              return { error: 'Input text is required for this AI task.' };
+              return { error: "Input text is required for this AI task." };
             }
-            if (input.task === 'summarize') {
+            if (input.task === "summarize") {
               return await runOnDeviceSummarizer(text);
             }
-            if (input.task === 'translate') {
+            if (input.task === "translate") {
               return await runOnDeviceLanguageAndTranslator(text, {
                 targetLanguage: input.targetLanguage,
               });
@@ -751,11 +756,11 @@
         },
       },
       {
-        name: 'inspect_gemini_in_chrome_glic',
+        name: "inspect_gemini_in_chrome_glic",
         description:
-          'Retrieves the extracted native Gemini in Chrome (Glic) WebUI manifest, Mojom resources, and active Chrome AI experiments.',
+          "Retrieves the extracted native Gemini in Chrome (Glic) WebUI manifest, Mojom resources, and active Chrome AI experiments.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {},
         },
         annotations: {
@@ -815,14 +820,14 @@
   /** @type {any} */ (globalThis).GeminiWebMcpChromeAi = runtimeApi;
 
   // Auto-register WebMCP tools when loaded in a Document context
-  if (typeof document !== 'undefined') {
-    if (document.readyState === 'loading') {
+  if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
       document.addEventListener(
-        'DOMContentLoaded',
+        "DOMContentLoaded",
         () => {
           registerGeminiWebMcpTools();
         },
-        { once: true }
+        { once: true },
       );
     } else {
       registerGeminiWebMcpTools();

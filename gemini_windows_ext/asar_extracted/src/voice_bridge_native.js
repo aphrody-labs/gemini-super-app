@@ -460,7 +460,9 @@ function readJsonBody(req) {
 }
 
 function sendJson(res, statusCode, payload) {
-  res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+  });
   res.end(JSON.stringify(payload));
 }
 
@@ -470,7 +472,10 @@ function startDirectNativeControlServer() {
     directControlServer = http.createServer(async (req, res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Mcp-Session-Id");
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, Mcp-Session-Id",
+      );
       if (req.method === "OPTIONS") {
         res.writeHead(204);
         res.end();
@@ -479,7 +484,10 @@ function startDirectNativeControlServer() {
 
       const urlPath = (req.url || "/").split("?")[0];
 
-      if (req.method === "GET" && (urlPath === "/api/status" || urlPath === "/")) {
+      if (
+        req.method === "GET" &&
+        (urlPath === "/api/status" || urlPath === "/")
+      ) {
         sendJson(res, 200, {
           ...getNativeStateSnapshot(),
           mcpEndpoint: `http://${HUB_HOST}:${DIRECT_NATIVE_PORT}/mcp`,
@@ -496,7 +504,8 @@ function startDirectNativeControlServer() {
           serverInfo: {
             name: "gemini-app-runtime",
             version: "2026.11.2",
-            description: "Native Gemini Web App & Windows Desktop Runtime MCP Server inside Gemini.exe",
+            description:
+              "Native Gemini Web App & Windows Desktop Runtime MCP Server inside Gemini.exe",
           },
           tools: runtimeEngine.getMcpToolDefinitions(),
         });
@@ -529,7 +538,10 @@ function startDirectNativeControlServer() {
       }
 
       if (req.method === "GET" && urlPath === "/api/runtime/status") {
-        const status = await runtimeEngine.getRuntimeStatus(mainHooks, getNativeStateSnapshot);
+        const status = await runtimeEngine.getRuntimeStatus(
+          mainHooks,
+          getNativeStateSnapshot,
+        );
         sendJson(res, 200, status);
         return;
       }
@@ -581,7 +593,10 @@ function startDirectNativeControlServer() {
       if (req.method === "POST" && urlPath === "/api/runtime/memory/import") {
         try {
           const body = await readJsonBody(req);
-          const out = await runtimeEngine.importGeminiWebMemory(mainHooks, body);
+          const out = await runtimeEngine.importGeminiWebMemory(
+            mainHooks,
+            body,
+          );
           sendJson(res, 200, out);
         } catch (err) {
           sendJson(res, 400, { status: "error", message: String(err) });
@@ -592,7 +607,10 @@ function startDirectNativeControlServer() {
       if (req.method === "POST" && urlPath === "/api/runtime/memory/save") {
         try {
           const body = await readJsonBody(req);
-          const out = await runtimeEngine.saveGeminiWebMemoryItem(mainHooks, body);
+          const out = await runtimeEngine.saveGeminiWebMemoryItem(
+            mainHooks,
+            body,
+          );
           sendJson(res, 200, out);
         } catch (err) {
           sendJson(res, 400, { status: "error", message: String(err) });
@@ -611,7 +629,10 @@ function startDirectNativeControlServer() {
         return;
       }
 
-      if (req.method === "POST" && (urlPath === "/api/pilot" || urlPath === "/api/voice")) {
+      if (
+        req.method === "POST" &&
+        (urlPath === "/api/pilot" || urlPath === "/api/voice")
+      ) {
         try {
           const body = await readJsonBody(req);
           const out = await executeLocalPilotCommand(body);
@@ -638,7 +659,10 @@ function startStatusPollingAndPilotLoop() {
     const status = await httpGetJson("/api/status", 1500);
     if (!status || status.status !== "ok") return;
 
-    if (Array.isArray(status.pending_pilot_commands) && status.pending_pilot_commands.length > 0) {
+    if (
+      Array.isArray(status.pending_pilot_commands) &&
+      status.pending_pilot_commands.length > 0
+    ) {
       for (const cmdObj of status.pending_pilot_commands) {
         await executeLocalPilotCommand(cmdObj);
       }
@@ -796,7 +820,11 @@ async function executeLocalPilotCommand(payload) {
   const cmd = payload?.command || "";
   try {
     if (cmd === "status") {
-      return { status: "ok", command: cmd, nativeState: getNativeStateSnapshot() };
+      return {
+        status: "ok",
+        command: cmd,
+        nativeState: getNativeStateSnapshot(),
+      };
     }
     if (cmd === "show") {
       mainHooks?.showMainWindow?.();
@@ -898,7 +926,10 @@ async function executeLocalPilotCommand(payload) {
       return await runtimeEngine.navigateGeminiWeb(mainHooks, payload);
     }
     if (cmd === "runtime_status") {
-      return await runtimeEngine.getRuntimeStatus(mainHooks, getNativeStateSnapshot);
+      return await runtimeEngine.getRuntimeStatus(
+        mainHooks,
+        getNativeStateSnapshot,
+      );
     }
   } catch (err) {
     return { status: "error", message: String(err) };

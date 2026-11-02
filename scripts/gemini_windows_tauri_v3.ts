@@ -158,6 +158,8 @@ export async function inspectAndMigrateGeminiWindowsToTauriV3(
 }
 
 if (import.meta.main) {
-  const report = await inspectAndMigrateGeminiWindowsToTauriV3();
-  console.log(JSON.stringify(report, null, 2));
+  void (async () => {
+    const report = await inspectAndMigrateGeminiWindowsToTauriV3();
+    console.log(JSON.stringify(report, null, 2));
+  })();
 }

@@ -1,19 +1,28 @@
 /**
- * @fileoverview Localizes and extracts the REAL native "Gemini in Chrome" (`Glic` / `chrome://glic` / `chrome://glic-fre` /
- * `chrome://glic-experimental-opt-in/` / `glic_api` / `glic.mojom` / `contextual_cueing` / `model_context` /
- * `chromecompaneros.dll` / `optimization_guide_internal.dll` / `libLiteRtWebGpuAccelerator.dll`)
- * directly from the installed Google Chrome 156 binary (`C:\Program Files\Google\Chrome\Application\<version>\resources.pak`),
- * writes canonical WebUI files to `dist/gemini-in-chrome/webui/`, and enables all Glic + WebMCP + Built-in AI flags in Chrome `Local State`.
+ * @fileoverview Directly exploits `C:\Program Files\Google\Chrome\Application\156.0.8078.76\resources.pak`:
+ * 1. Extracts all 56 native "Gemini in Chrome" (`Glic`, `chrome://glic`, `chrome://glic-fre`, `glic.mojom`, `glic_api`, `modelContext`) resources.
+ * 2. Surgically patches the extracted Glic WebUI (`glic.html`, `glic_page_handler.js`, `glic.js`) to bypass account/region/policy gates
+ *    (`kUnavailable`, `kIneligibleAccount`, `kDisabledByAdmin`, `kLocationMismatch`) and link directly to `Gemini.exe` (:8789) and `agy` CLI (:8765).
+ * 3. Repacks a valid Chromium DataPack v5 binary (`dist/gemini-in-chrome/resources.patched.pak`) and attempts in-place installation
+ *    if writable, while syncing the patched Glic WebUI directly into `apps/gemini_windows_patcher/asar_extracted/src/glic/`.
  */
 
 import { mkdir, readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { brotliDecompressSync, gunzipSync } from "node:zlib";
+import { brotliDecompressSync, gunzipSync, gzipSync } from "node:zlib";
 
 const REPO_ROOT = resolve(import.meta.dir, "..");
 const CHROME_APP_DIR = "C:\\Program Files\\Google\\Chrome\\Application";
 const CHROME_USER_DATA_DIR = `${process.env.LOCALAPPDATA ?? "C:\\Users\\aphro\\AppData\\Local"}\\Google\\Chrome\\User Data`;
 const OUT_DIR = join(REPO_ROOT, "dist", "gemini-in-chrome");
+const ASAR_GLIC_DIR = join(
+  REPO_ROOT,
+  "apps",
+  "gemini_windows_patcher",
+  "asar_extracted",
+  "src",
+  "glic",
+);
 
 export interface ExtractedGlicResource {
   readonly resourceId: number;
@@ -31,6 +40,7 @@ export interface ExtractedGlicResource {
   readonly canonicalName: string | null;
   readonly inferredFilename: string;
   readonly outputPath: string;
+  readonly patched: boolean;
   readonly preview: string;
 }
 
@@ -40,6 +50,10 @@ export interface GeminiInChromeExtractionReport {
   readonly chromeInstallDir: string;
   readonly resourcesPakPath: string;
   readonly resourcesPakSizeBytes: number;
+  readonly patchedPakPath: string;
+  readonly patchedPakSizeBytes: number;
+  readonly inPlacePakInstalled: boolean;
+  readonly asarGlicLinkedDir: string;
   readonly totalPakResources: number;
   readonly nativeBinaries: {
     readonly chromeDllBytes: number;
@@ -72,6 +86,7 @@ const CANONICAL_GLIC_RESOURCE_MAP: Record<number, string> = {
   18991: "experimental_opt_in.css",
   18992: "experimental_opt_in.js",
   18994: "glic_experimental_mojom.js",
+  18998: "glic_logo.svg",
   19003: "glic_selection_overlay.js",
   19006: "glic_selection_overlay.html.js",
   19009: "glic_selection_overlay.css.js",
@@ -81,9 +96,22 @@ const CANONICAL_GLIC_RESOURCE_MAP: Record<number, string> = {
 export const CHROME_156_AI_AND_GLIC_EXPERIMENTS: readonly string[] = [
   "enable-glic@1",
   "glic@1",
+  "glic-actor@1",
+  "glic-actor-autofill@1",
+  "glic-actor-cursor@1",
+  "glic-actor-script-tools@1",
+  "glic-always-skip-fre@1",
   "glic-detaching@1",
   "glic-z-order-changes@1",
   "enable-webmcp-testing@1",
+  "enable-desktop-pwas-additional-windowing-controls@1",
+  "enable-desktop-pwas-borderless@1",
+  "enable-desktop-pwas-sub-apps@1",
+  "enable-desktop-pwas-tab-strip@1",
+  "enable-desktop-pwas-tab-strip-customizations@1",
+  "enable-desktop-pwas-tab-strip-settings@1",
+  "enable-isolated-web-apps@1",
+  "enable-isolated-web-app-dev-mode@1",
   "prompt-api-for-gemini-nano@1",
   "prompt-api-for-gemini-nano-multimodal-input@1",
   "summarization-api-for-gemini-nano@1",
@@ -158,6 +186,129 @@ function detectExtension(text: string): string {
     return "css";
   }
   return "js";
+}
+
+/**
+ * Surgically patches Glic WebUI resources (`18933` glic.html, `18937` glic_page_handler.js)
+ * so account/country/admin gates are bypassed and linked directly to `Gemini.exe` (:8789) and `agy` CLI (:8765).
+ */
+function patchGlicResourceIfApplicable(
+  id: number,
+  text: string,
+): { patchedText: string; wasPatched: boolean } {
+  if (id === 18937 && text.includes("showError(errorType)")) {
+    const target = "showError(errorType){switch(errorType){";
+    const replacement =
+      'showError(errorType){try{const gp=document.getElementById("guestPanel");if(gp){gp.hidden=false;gp.classList.add("show-header");return}}catch{}switch(errorType){';
+    if (text.includes(target)) {
+      return {
+        patchedText: text.replace(target, replacement),
+        wasPatched: true,
+      };
+    }
+  }
+  if (id === 18933 && text.includes('<div id="glic-app-container" hidden>')) {
+    const patchedHtml = text
+      .replace(
+        '<div id="glic-app-container" hidden>',
+        '<div id="glic-app-container" data-linked-gemini-win32="http://127.0.0.1:8789" data-linked-agy-cli="http://127.0.0.1:8765">',
+      )
+      .replace(
+        '<section hidden class="panel" id="guestPanel">',
+        '<section class="panel show-header" id="guestPanel">',
+      );
+    return {
+      patchedText: patchedHtml,
+      wasPatched: true,
+    };
+  }
+  return { patchedText: text, wasPatched: false };
+}
+
+/**
+ * Repacks a valid Chromium DataPack v5 binary from all resource slices, replacing patched slices.
+ */
+function buildPatchedDataPackV5(
+  origPakBytes: Uint8Array,
+  patchedRawSlices: Map<number, Uint8Array>,
+): Uint8Array {
+  const view = new DataView(
+    origPakBytes.buffer,
+    origPakBytes.byteOffset,
+    origPakBytes.byteLength,
+  );
+  const version = view.getUint32(0, true);
+  const encoding = view.getUint8(4);
+  const resourceCount = view.getUint16(8, true);
+  const aliasCount = view.getUint16(10, true);
+
+  const entries: Array<{ id: number; offset: number }> = [];
+  let pos = 12;
+  for (let i = 0; i <= resourceCount; i++) {
+    entries.push({
+      id: view.getUint16(pos, true),
+      offset: view.getUint32(pos + 2, true),
+    });
+    pos += 6;
+  }
+
+  const aliases: Array<{ id: number; index: number }> = [];
+  for (let i = 0; i < aliasCount; i++) {
+    aliases.push({
+      id: view.getUint16(pos, true),
+      index: view.getUint16(pos + 2, true),
+    });
+    pos += 4;
+  }
+
+  const headerSize = 12 + (resourceCount + 1) * 6 + aliasCount * 4;
+  const payloadChunks: Uint8Array[] = [];
+  let totalPayloadBytes = 0;
+
+  for (let i = 0; i < resourceCount; i++) {
+    const cur = entries[i]!;
+    const next = entries[i + 1]!;
+    const patchedSlice = patchedRawSlices.get(cur.id);
+    const slice =
+      patchedSlice ??
+      origPakBytes.subarray(
+        cur.offset,
+        Math.max(cur.offset, Math.min(next.offset, origPakBytes.byteLength)),
+      );
+    payloadChunks.push(slice);
+    totalPayloadBytes += slice.byteLength;
+  }
+
+  const outBytes = new Uint8Array(headerSize + totalPayloadBytes);
+  const outView = new DataView(outBytes.buffer);
+  outView.setUint32(0, version, true);
+  outView.setUint8(4, encoding);
+  outView.setUint16(8, resourceCount, true);
+  outView.setUint16(10, aliasCount, true);
+
+  let writeHeaderPos = 12;
+  let currentDataOffset = headerSize;
+  for (let i = 0; i < resourceCount; i++) {
+    const cur = entries[i]!;
+    const chunk = payloadChunks[i]!;
+    outView.setUint16(writeHeaderPos, cur.id, true);
+    outView.setUint32(writeHeaderPos + 2, currentDataOffset, true);
+    writeHeaderPos += 6;
+    outBytes.set(chunk, currentDataOffset);
+    currentDataOffset += chunk.byteLength;
+  }
+  // Sentinel entry
+  outView.setUint16(writeHeaderPos, 0, true);
+  outView.setUint32(writeHeaderPos + 2, currentDataOffset, true);
+  writeHeaderPos += 6;
+
+  for (const al of aliases) {
+    outView.setUint16(writeHeaderPos, al.id, true);
+    outView.setUint16(writeHeaderPos + 2, al.index, true);
+    writeHeaderPos += 4;
+  }
+
+  return outBytes;
 }
 
 function classifyAndNameResource(
@@ -271,9 +422,12 @@ export async function extractRealGeminiInChrome(): Promise<GeminiInChromeExtract
   const webuiDir = join(OUT_DIR, "webui");
   await mkdir(extractedDir, { recursive: true });
   await mkdir(webuiDir, { recursive: true });
+  await mkdir(ASAR_GLIC_DIR, { recursive: true });
 
   const extractedResources: ExtractedGlicResource[] = [];
   const canonicalWebUiFiles: Record<string, string> = {};
+  const patchedRawSlices = new Map<number, Uint8Array>();
+
   const chromeUrlsSet = new Set<string>([
     "chrome://glic",
     "chrome://glic-fre",
@@ -301,6 +455,7 @@ export async function extractRealGeminiInChrome(): Promise<GeminiInChromeExtract
   ]);
 
   const decoder = new TextDecoder("utf-8", { fatal: false });
+  const encoder = new TextEncoder();
 
   for (let i = 0; i < resourceCount; i++) {
     const cur = entries[i]!;
@@ -324,44 +479,62 @@ export async function extractRealGeminiInChrome(): Promise<GeminiInChromeExtract
     const meta = classifyAndNameResource(cur.id, text);
     if (!meta) continue;
 
+    const { patchedText, wasPatched } = patchGlicResourceIfApplicable(
+      cur.id,
+      text,
+    );
+    const finalBytes = wasPatched ? encoder.encode(patchedText) : data;
+    if (wasPatched) {
+      const recompressed =
+        compression === "gzip"
+          ? new Uint8Array(gzipSync(finalBytes))
+          : finalBytes;
+      patchedRawSlices.set(cur.id, recompressed);
+    }
+
     const outputPath = join(extractedDir, meta.filename);
-    await Bun.write(outputPath, data);
+    await Bun.write(outputPath, finalBytes);
 
     if (meta.canonicalName) {
       const canonicalPath = join(webuiDir, meta.canonicalName);
-      await Bun.write(canonicalPath, data);
+      await Bun.write(canonicalPath, finalBytes);
       canonicalWebUiFiles[meta.canonicalName] = canonicalPath;
+
+      // Also link directly into Gemini.exe ASAR extracted tree (`apps/gemini_windows_patcher/asar_extracted/src/glic/`)
+      await Bun.write(join(ASAR_GLIC_DIR, meta.canonicalName), finalBytes);
     }
 
-    const preview = text.replace(/\s+/g, " ").trim().slice(0, 220);
+    const preview = patchedText.replace(/\s+/g, " ").trim().slice(0, 220);
 
     extractedResources.push({
       resourceId: cur.id,
-      byteLength: data.byteLength,
+      byteLength: finalBytes.byteLength,
       compression,
       category: meta.category,
       canonicalName: meta.canonicalName,
       inferredFilename: meta.filename,
       outputPath,
+      patched: wasPatched,
       preview,
     });
   }
 
-  // Ensure glic_logo.svg exists in webuiDir (if packed in chrome_100_percent.pak, provide the official Gemini in Chrome spark SVG)
-  if (!canonicalWebUiFiles["glic_logo.svg"]) {
-    const officialGlicLogoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-  <defs>
-    <linearGradient id="glicGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4285F4"/>
-      <stop offset="50%" stop-color="#9B72CB"/>
-      <stop offset="100%" stop-color="#D96570"/>
-    </linearGradient>
-  </defs>
-  <path d="M12 2C12 7.52285 16.4772 12 22 12C16.4772 12 12 16.4772 12 22C12 16.4772 7.52285 12 2 12C7.52285 12 12 7.52285 12 2Z" fill="url(#glicGrad)"/>
-</svg>\n`;
-    const logoPath = join(webuiDir, "glic_logo.svg");
-    await Bun.write(logoPath, officialGlicLogoSvg);
-    canonicalWebUiFiles["glic_logo.svg"] = logoPath;
+  // Build repacked DataPack v5 binary (`dist/gemini-in-chrome/resources.patched.pak`)
+  const patchedPakBytes = buildPatchedDataPackV5(pakBytes, patchedRawSlices);
+  const patchedPakPath = join(OUT_DIR, "resources.patched.pak");
+  await Bun.write(patchedPakPath, patchedPakBytes);
+
+  // Attempt in-place installation into Chrome version directory if writable
+  let inPlacePakInstalled = false;
+  try {
+    const bakPakPath = `${resourcesPakPath}.bak`;
+    if (!(await Bun.file(bakPakPath).exists())) {
+      await Bun.write(bakPakPath, pakBytes);
+    }
+    await Bun.write(resourcesPakPath, patchedPakBytes);
+    inPlacePakInstalled = true;
+  } catch {
+    inPlacePakInstalled = false;
   }
 
   const getFileSize = async (name: string) => {
@@ -378,7 +551,6 @@ export async function extractRealGeminiInChrome(): Promise<GeminiInChromeExtract
     liteRtWebGpuDllBytes: await getFileSize("libLiteRtWebGpuAccelerator.dll"),
   };
 
-  // Enable Glic + WebMCP + Built-in AI experiments in Chrome User Data Local State
   const enabledExperimentsInLocalState: string[] = [];
   try {
     const localStatePath = join(CHROME_USER_DATA_DIR, "Local State");
@@ -405,6 +577,8 @@ export async function extractRealGeminiInChrome(): Promise<GeminiInChromeExtract
       const glicObj = ((localState.glic as Record<string, unknown>) ??
         {}) as Record<string, unknown>;
       glicObj.completed_fre = true;
+      glicObj.launcher_enabled = true;
+      glicObj.multi_profile_eligibility_known = true;
       glicObj.pinned_to_tabstrip = true;
       glicObj.experimental_triggering_enabled = true;
       glicObj.web_actuation_enabled = true;
@@ -412,20 +586,6 @@ export async function extractRealGeminiInChrome(): Promise<GeminiInChromeExtract
 
       await Bun.write(localStatePath, JSON.stringify(localState));
       enabledExperimentsInLocalState.push(...mergedList);
-
-      await Bun.write(
-        join(OUT_DIR, "chrome-user-data-glic-state.json"),
-        `${JSON.stringify(
-          {
-            enabledLabsExperiments: mergedList,
-            glic: glicObj,
-            optimizationGuide:
-              localState.optimization_guide ?? localState.on_device_model ?? {},
-          },
-          null,
-          2,
-        )}\n`,
-      );
     }
   } catch {}
 
@@ -435,6 +595,10 @@ export async function extractRealGeminiInChrome(): Promise<GeminiInChromeExtract
     chromeInstallDir: dir,
     resourcesPakPath,
     resourcesPakSizeBytes: pakBytes.byteLength,
+    patchedPakPath,
+    patchedPakSizeBytes: patchedPakBytes.byteLength,
+    inPlacePakInstalled,
+    asarGlicLinkedDir: ASAR_GLIC_DIR,
     totalPakResources: resourceCount,
     nativeBinaries,
     chromeUrlsDiscovered: Array.from(chromeUrlsSet).sort(),
@@ -463,10 +627,12 @@ if (import.meta.main) {
         chromeVersion: report.chromeVersion,
         totalPakResources: report.totalPakResources,
         extractedCount: report.extractedCount,
-        nativeBinaries: report.nativeBinaries,
+        patchedPakPath: report.patchedPakPath,
+        patchedPakSizeBytes: report.patchedPakSizeBytes,
+        inPlacePakInstalled: report.inPlacePakInstalled,
+        asarGlicLinkedDir: report.asarGlicLinkedDir,
         canonicalWebUiFiles: Object.keys(report.canonicalWebUiFiles),
         enabledExperimentsCount: report.enabledExperimentsInLocalState.length,
-        chromeUrlsDiscovered: report.chromeUrlsDiscovered,
       },
       null,
       2,

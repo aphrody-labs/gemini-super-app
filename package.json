@@ -44,4 +44,24 @@
     "@gemini-live/openpets-gemini": "workspace:*",
     "@google/genai": "^2.32.0",
     "@tauri-apps/api": "^3.0.0-alpha.3",
-    "@tauri-apps
+    "@tauri-apps/plugin-dialog": "^3.0.0-alpha.4",
+    "@tauri-apps/plugin-fs": "^3.0.0-alpha.3",
+    "@tauri-apps/plugin-shell": "^3.0.0-alpha.3",
+    "@tauri-apps/plugin-store": "^3.0.0-alpha.3",
+    "google-auth-library": "^11.3.2",
+    "lucide-react": "^1.66.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.3",
+    "wavesurfer.js": "^8.0.4",
+    "zod": "^4.6.7",
+    "zustand": "^5.0.16"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^3.0.0-alpha.5",
+    "@types/bun": "^1.4.4",
+    "@types/chrome": "^0.3.7",
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}

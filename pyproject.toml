@@ -44,7 +44,9 @@ packages = ["backend", "scripts"]
 [tool.uv]
 managed = true
 package = true
-required-environments = ["sys_platform == 'win32' and platform_machine == 'AMD64'"]
+required-environments = [
+  "sys_platform == 'win32' and platform_machine == 'AMD64'",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

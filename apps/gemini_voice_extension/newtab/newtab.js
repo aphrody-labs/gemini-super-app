@@ -15,6 +15,22 @@ let audioRms = 0.05;
 let is3dPet = true;
 let petCharacterIndex = 0; // 0: Mochi, 1: Gemini Sparkle, 2: Hoodie Cat
 let petBounce = 0;
+let petCurrentReaction = "idle";
+let petCurrentMochiAnim = "idle_breathe";
+let petCustomStyle = {
+  customName: "Gemini Sparkle ✦",
+  primaryColor: "#4E82EE",
+  secondaryColor: "#8B5CF6",
+  accentColor: "#D96570",
+  eyeColor: "#0F172A",
+  auraColor: "#38BDF8",
+  scale: 1.0,
+  animationSpeed: 1.0,
+  accessory: "none",
+  particleEffect: "sparkles",
+  voiceName: "Aoede",
+  is3dMode: true,
+};
 let cursorX = 0;
 let cursorY = 0;
 let useAgyCliBackend = false;
@@ -228,15 +244,30 @@ function renderCompanionPet() {
     const cy = h / 2;
     petCtx.clearRect(0, 0, w, h);
 
-    const activeMotion = isLiveActive || liveState === "SPEAKING";
-    petPhase += activeMotion ? 0.08 : 0.035;
+    const speedMul = Number(petCustomStyle.animationSpeed) || 1.0;
+    const scaleMul = Math.max(
+      0.6,
+      Math.min(1.65, Number(petCustomStyle.scale) || 1.0),
+    );
+    const activeMotion =
+      isLiveActive ||
+      liveState === "SPEAKING" ||
+      petCurrentReaction === "celebrating" ||
+      petCurrentReaction === "running" ||
+      petCurrentReaction === "working";
+    petPhase += (activeMotion ? 0.08 : 0.035) * speedMul;
     if (petBounce > 0.01) petBounce *= 0.9;
 
     const bobY =
-      Math.sin(petPhase * 1.5) * (activeMotion ? 6 + audioRms * 14 : 3.5) -
+      Math.sin(petPhase * 1.5) * (activeMotion ? 7 + audioRms * 14 : 3.5) -
       petBounce * 18;
     const tiltX = cursorX * 0.35 + Math.sin(petPhase * 0.7) * 0.12;
     const tiltY = cursorY * 0.25;
+
+    const primaryCol = petCustomStyle.primaryColor || "#4285F4";
+    const secondaryCol = petCustomStyle.secondaryColor || "#9B72CB";
+    const accentCol = petCustomStyle.accentColor || "#D96570";
+    const auraCol = petCustomStyle.auraColor || "#38BDF8";
 
     // Ground shadow
     petCtx.fillStyle = "rgba(0, 0, 0, 0.28)";
@@ -244,8 +275,8 @@ function renderCompanionPet() {
     petCtx.ellipse(
       cx,
       cy + 52,
-      Math.max(16, 34 - Math.abs(bobY) * 0.3),
-      9,
+      Math.max(16, (34 - Math.abs(bobY) * 0.3) * scaleMul),
+      9 * scaleMul,
       0,
       0,
       Math.PI * 2,
@@ -254,6 +285,7 @@ function renderCompanionPet() {
 
     petCtx.save();
     petCtx.translate(cx + tiltX * 10, cy + bobY);
+    petCtx.scale(scaleMul, scaleMul);
 
     if (is3dPet) {
       // 3D Volumetric Extruded Voxel / Shaded Companion
@@ -279,15 +311,15 @@ function renderCompanionPet() {
         } else if (petCharacterIndex === 1) {
           // 3D Gemini Sparkle Crystal Companion
           const grad = petCtx.createLinearGradient(-38, -38, 38, 38);
-          grad.addColorStop(0, isFront ? "#4285F4" : "#1b56b5");
-          grad.addColorStop(0.5, isFront ? "#9B72CB" : "#674394");
-          grad.addColorStop(1, isFront ? "#D96570" : "#963c45");
+          grad.addColorStop(0, isFront ? primaryCol : "#1b56b5");
+          grad.addColorStop(0.5, isFront ? secondaryCol : "#674394");
+          grad.addColorStop(1, isFront ? accentCol : "#963c45");
           petCtx.fillStyle = grad;
           drawStarSparklePath(petCtx, ox, oy, 44);
           petCtx.fill();
         } else {
           // 3D Hoodie Cat Companion
-          petCtx.fillStyle = isFront ? "#a8c7fa" : "#6892d6";
+          petCtx.fillStyle = isFront ? primaryCol : "#6892d6";
           petCtx.beginPath();
           petCtx.roundRect(-34 + ox, -26 + oy, 68, 60, 24);
           petCtx.fill();
@@ -323,16 +355,16 @@ function renderCompanionPet() {
       } else if (petCharacterIndex === 1) {
         // 2D Gemini Sparkle Star
         const grad = petCtx.createLinearGradient(-38, -38, 38, 38);
-        grad.addColorStop(0, "#4285F4");
-        grad.addColorStop(0.5, "#9B72CB");
-        grad.addColorStop(1, "#D96570");
+        grad.addColorStop(0, primaryCol);
+        grad.addColorStop(0.5, secondaryCol);
+        grad.addColorStop(1, accentCol);
         petCtx.fillStyle = grad;
         drawStarSparklePath(petCtx, 0, 0, 44);
         petCtx.fill();
         petCtx.stroke();
       } else {
         // 2D Hoodie Cat
-        petCtx.fillStyle = "#a8c7fa";
+        petCtx.fillStyle = primaryCol;
         petCtx.beginPath();
         petCtx.moveTo(-28, -22);
         petCtx.lineTo(-18, -42);
@@ -354,7 +386,10 @@ function renderCompanionPet() {
     const eyeX = cursorX * 5;
     const eyeY = cursorY * 4;
     const blink = Math.sin(petPhase * 0.9) > 0.97;
-    petCtx.fillStyle = petCharacterIndex === 1 ? "#ffffff" : "#1f1f1f";
+    petCtx.fillStyle =
+      petCharacterIndex === 1
+        ? "#ffffff"
+        : petCustomStyle.eyeColor || "#1f1f1f";
 
     if (blink) {
       petCtx.fillRect(-18 + eyeX, -6 + eyeY, 8, 2);
@@ -374,17 +409,97 @@ function renderCompanionPet() {
     petCtx.fill();
 
     // Mouth reacts to live voice speaking/listening
-    petCtx.strokeStyle = petCharacterIndex === 1 ? "#ffffff" : "#1f1f1f";
+    petCtx.strokeStyle =
+      petCharacterIndex === 1
+        ? "#ffffff"
+        : petCustomStyle.eyeColor || "#1f1f1f";
     petCtx.lineWidth = 2.4;
     petCtx.lineCap = "round";
     petCtx.beginPath();
-    if (liveState === "SPEAKING" || audioRms > 0.14) {
-      const mouthOpen = Math.min(10, 2 + audioRms * 18);
+    if (
+      liveState === "SPEAKING" ||
+      audioRms > 0.14 ||
+      petCurrentReaction === "celebrating"
+    ) {
+      const mouthOpen = Math.min(10, 3 + audioRms * 18);
       petCtx.ellipse(eyeX, 6 + eyeY, 5, mouthOpen, 0, 0, Math.PI * 2);
       petCtx.stroke();
     } else {
       petCtx.arc(eyeX, 4 + eyeY, 5, 0.15 * Math.PI, 0.85 * Math.PI);
       petCtx.stroke();
+    }
+
+    // Real-Time Accessory Overlay (crown, headphones, sunglasses, wizard-hat, halo, bowtie)
+    const acc = petCustomStyle.accessory || "none";
+    if (acc === "crown") {
+      petCtx.fillStyle = "#FBBF24";
+      petCtx.strokeStyle = "#F59E0B";
+      petCtx.lineWidth = 1.8;
+      petCtx.beginPath();
+      petCtx.moveTo(-18, -32);
+      petCtx.lineTo(-14, -48);
+      petCtx.lineTo(-6, -38);
+      petCtx.lineTo(0, -52);
+      petCtx.lineTo(6, -38);
+      petCtx.lineTo(14, -48);
+      petCtx.lineTo(18, -32);
+      petCtx.closePath();
+      petCtx.fill();
+      petCtx.stroke();
+    } else if (acc === "sunglasses") {
+      petCtx.fillStyle = "#0F172A";
+      petCtx.strokeStyle = auraCol;
+      petCtx.lineWidth = 1.8;
+      petCtx.beginPath();
+      petCtx.roundRect(-22 + eyeX, -11 + eyeY, 17, 10, 3);
+      petCtx.roundRect(5 + eyeX, -11 + eyeY, 17, 10, 3);
+      petCtx.fill();
+      petCtx.stroke();
+      petCtx.beginPath();
+      petCtx.moveTo(-5 + eyeX, -6 + eyeY);
+      petCtx.lineTo(5 + eyeX, -6 + eyeY);
+      petCtx.stroke();
+    } else if (acc === "headphones") {
+      petCtx.strokeStyle = auraCol;
+      petCtx.lineWidth = 4;
+      petCtx.beginPath();
+      petCtx.arc(0, -4, 38, Math.PI, 0);
+      petCtx.stroke();
+      petCtx.fillStyle = primaryCol;
+      petCtx.beginPath();
+      petCtx.roundRect(-42, -12, 9, 18, 4);
+      petCtx.roundRect(33, -12, 9, 18, 4);
+      petCtx.fill();
+    } else if (acc === "halo" || petCurrentReaction === "thinking") {
+      petCtx.strokeStyle = auraCol;
+      petCtx.lineWidth = 2.5;
+      petCtx.beginPath();
+      petCtx.ellipse(0, -48, 22, 6, 0, 0, Math.PI * 2);
+      petCtx.stroke();
+    } else if (acc === "wizard-hat") {
+      petCtx.fillStyle = secondaryCol;
+      petCtx.beginPath();
+      petCtx.moveTo(0, -64);
+      petCtx.lineTo(-22, -32);
+      petCtx.lineTo(22, -32);
+      petCtx.closePath();
+      petCtx.fill();
+      petCtx.fillStyle = primaryCol;
+      petCtx.beginPath();
+      petCtx.ellipse(0, -32, 28, 5, 0, 0, Math.PI * 2);
+      petCtx.fill();
+    } else if (acc === "bowtie") {
+      petCtx.fillStyle = accentCol;
+      petCtx.beginPath();
+      petCtx.moveTo(-12, 18);
+      petCtx.lineTo(0, 24);
+      petCtx.lineTo(-12, 30);
+      petCtx.closePath();
+      petCtx.moveTo(12, 18);
+      petCtx.lineTo(0, 24);
+      petCtx.lineTo(12, 30);
+      petCtx.closePath();
+      petCtx.fill();
     }
 
     // Floating sparkle/heart particles
@@ -658,7 +773,9 @@ async function submitUtterance(chunks, textHint = "") {
   const cleanHint = (textHint || latestBrowserTranscript || "").trim();
   latestBrowserTranscript = "";
 
-  if (/^(stop|arrête|arrete|tais-toi|tais toi|silence|chut)\b/i.test(cleanHint)) {
+  if (
+    /^(stop|arrête|arrete|tais-toi|tais toi|silence|chut)\b/i.test(cleanHint)
+  ) {
     stopPlayback();
     liveState = isLiveActive ? "LISTENING" : "IDLE";
     return;
@@ -1354,18 +1471,66 @@ themeBtn?.addEventListener("click", () => {
   applyStoredColorScheme();
 });
 
+function applyRealtimePetSnapshot(pet, isLiveBroadcast = false) {
+  if (!pet) return;
+  const activeId = pet.activePetId;
+  const idx = PET_IDS.indexOf(activeId);
+  if (idx !== -1) petCharacterIndex = idx;
+  if (pet.reaction) petCurrentReaction = pet.reaction;
+  if (pet.mochiAnimation) petCurrentMochiAnim = pet.mochiAnimation;
+  if (pet.customStyle) {
+    petCustomStyle = {
+      ...petCustomStyle,
+      ...pet.customStyle,
+    };
+    if (typeof pet.customStyle.is3dMode === "boolean") {
+      is3dPet = pet.customStyle.is3dMode;
+      petDimBtn?.setAttribute("aria-pressed", String(is3dPet));
+    }
+  }
+  if (petInteractBtn && pet.speechText) {
+    petInteractBtn.title = `${petCustomStyle.customName || "Gemini Pet"} : ${pet.speechText}`;
+  }
+  if (surfaceStatusLabel && pet.speechText && isLiveBroadcast) {
+    surfaceStatusLabel.textContent = `${petCustomStyle.customName || "Pet"} (${pet.reaction}): ${pet.speechText.slice(0, 48)}`;
+  }
+  if (isLiveBroadcast) {
+    petBounce = 1.35;
+    spawnPetParticles(10);
+  }
+}
+
 // Load initial persisted pet character state from Super App SQLite
 (async () => {
   try {
     const r = await fetch(`${SUPER_APP_URL}/api/pet/state`);
     if (r.ok) {
       const data = await r.json();
-      const activeId = data?.pet?.activePetId;
-      const idx = PET_IDS.indexOf(activeId);
-      if (idx !== -1) petCharacterIndex = idx;
+      if (data?.pet) {
+        applyRealtimePetSnapshot(data.pet, false);
+      }
     }
   } catch {}
 })();
+
+// Real-Time Pet WebSocket Stream from Super App (ws://127.0.0.1:8787/ws)
+function connectSuperAppPetWs() {
+  try {
+    const ws = new WebSocket("ws://127.0.0.1:8787/ws?surface=pet-studio");
+    ws.addEventListener("message", (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+        if (msg.type === "pet:realtime-update" && msg.pet) {
+          applyRealtimePetSnapshot(msg.pet, true);
+        }
+      } catch {}
+    });
+    ws.addEventListener("close", () => setTimeout(connectSuperAppPetWs, 2500));
+  } catch {
+    setTimeout(connectSuperAppPetWs, 2500);
+  }
+}
+connectSuperAppPetWs();
 
 // 6. Real-Time Hardware Microphone Telemetry & Audio Bridge (ws://127.0.0.1:8765/ws/voice)
 function connectHardwareVoiceBridgeWs() {

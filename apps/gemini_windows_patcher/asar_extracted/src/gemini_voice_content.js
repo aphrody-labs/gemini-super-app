@@ -23,8 +23,6 @@
   let autoSubmitPrompt = false;
   let currentRms = 0.06;
   let angle = 0;
-  let lastTranscript = "";
-  let lastReply = "";
 
   // Audio capture & playback state
   let micStream = null;
@@ -34,7 +32,6 @@
   let pcmChunks = [];
   let speechDetectedInTurn = false;
   let silenceStartMs = 0;
-  let bargeInFrames = 0;
 
   let playbackAudioCtx = null;
   let activeAudioSource = null;
@@ -115,11 +112,14 @@
         });
         if (res?.data) return res.data;
       }
-      const resp = await fetch("http://127.0.0.1:8787/api/antigravity/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const resp = await fetch(
+        "http://127.0.0.1:8787/api/antigravity/session",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
       return await resp.json();
     } catch (err) {
       return { ok: false, error: String(err) };
@@ -226,7 +226,7 @@
         }
       };
       source.start(0);
-    } catch (err) {
+    } catch {
       // Fallback to HTML5 Audio element
       try {
         const audio = new Audio(`data:${mimeType};base64,${base64Audio}`);
@@ -280,7 +280,6 @@
       pcmChunks = [];
       speechDetectedInTurn = false;
       silenceStartMs = 0;
-      bargeInFrames = 0;
 
       micScriptNode.onaudioprocess = (event) => {
         if (!isLiveActive && !isRecordingPtt) return;
@@ -314,7 +313,11 @@
             pcmChunks.push(pcm16);
             speechDetectedInTurn = true;
             silenceStartMs = 0;
-            if (liveState !== "SPEAKING" && liveState !== "THINKING" && liveState !== "LISTENING") {
+            if (
+              liveState !== "SPEAKING" &&
+              liveState !== "THINKING" &&
+              liveState !== "LISTENING"
+            ) {
               liveState = "LISTENING";
               updateUiState();
             }
@@ -343,7 +346,7 @@
     }
   }
 
-  function stopMicrophoneCapture() {
+  async function stopMicrophoneCapture() {
     try {
       if (micScriptNode) {
         micScriptNode.disconnect();
@@ -354,8 +357,11 @@
         micStream = null;
       }
       if (micAudioCtx && micAudioCtx.state !== "closed") {
-        micAudioCtx.close().catch(() => {});
+        const ctxToClose = micAudioCtx;
         micAudioCtx = null;
+        try {
+          await ctxToClose.close();
+        } catch {}
       }
     } catch {}
   }
@@ -387,7 +393,6 @@
       return;
     }
 
-    lastTranscript = res.transcript;
     injectTranscriptIntoPage(res.transcript, autoSubmitPrompt);
 
     if (
@@ -395,10 +400,6 @@
       window.geminiVoiceExtensionBridge?.injectUnicodeText
     ) {
       await window.geminiVoiceExtensionBridge.injectUnicodeText(res.transcript);
-    }
-
-    if (res.reply_text) {
-      lastReply = res.reply_text;
     }
     updateUiState();
 
@@ -612,30 +613,42 @@
       if (!res?.ok || !entriesBox) return;
       if (pathInput) pathInput.value = res.path;
       entriesBox.innerHTML = "";
-      for (const item of res.entries || []) {
-        const row = document.createElement("button");
-        row.type = "button";
-        row.style.cssText =
-          "display:flex;align-items:center;justify-content:space-between;width:100%;border:none;background:transparent;color:#e3e3e3;padding:4px 6px;border-radius:6px;text-align:left;cursor:pointer;font-size:11px;";
-        row.innerHTML = `<span>${item.isDir ? "📁" : "📄"} ${item.name}</span><span style="opacity:0.55;">${item.isDir ? "DIR" : item.size + " B"}</span>`;
-        row.addEventListener("click", async () => {
-          if (item.isDir) {
-            await refreshPcDirectory(item.path);
-          } else {
-            activeFilePath = item.path;
-            if (pathInput) pathInput.value = item.path;
-            const fileRes = await callPcFs({
-              action: "read",
-              path: item.path,
-              startLine: 1,
-              endLine: 300,
-            });
-            if (fileRes?.ok && editorBox) {
-              editorBox.value = fileRes.content || "";
+      const entries = res.entries || [];
+      const BATCH = 20;
+      for (let i = 0; i < entries.length; i += BATCH) {
+        await new Promise((resolve) =>
+          requestAnimationFrame(() => {
+            for (const item of entries.slice(i, i + BATCH)) {
+              const row = document.createElement("button");
+              row.type = "button";
+              row.style.cssText =
+                "display:flex;align-items:center;justify-content:space-between;width:100%;border:none;background:transparent;color:#e3e3e3;padding:4px 6px;border-radius:6px;text-align:left;cursor:pointer;font-size:11px;";
+              row.innerHTML = `<span>${item.isDir ? "📁" : "📄"} ${item.name}</span><span style="opacity:0.55;">${item.isDir ? "DIR" : item.size + " B"}</span>`;
+              row.addEventListener("click", async () => {
+                if (item.isDir) {
+                  await refreshPcDirectory(item.path);
+                } else {
+                  activeFilePath = item.path;
+                  if (pathInput) pathInput.value = item.path;
+                  const fileRes = await callPcFs({
+                    action: "read",
+                    path: item.path,
+                    startLine: 1,
+                    endLine: 300,
+                  });
+                  if (fileRes?.ok && editorBox) {
+                    editorBox.value = fileRes.content || "";
+                  }
+                }
+              });
+              entriesBox.appendChild(row);
             }
-          }
-        });
-        entriesBox.appendChild(row);
+            resolve();
+          }),
+        );
+        if (globalThis.scheduler?.yield) {
+          await globalThis.scheduler.yield();
+        }
       }
     }
 
@@ -692,18 +705,25 @@
 
     injectBtn?.addEventListener("click", () => {
       if (!editorBox?.value) return;
-      const header = activeFilePath ? `[PC File: ${activeFilePath}]\n` : "[PC / Antigravity Context]\n";
+      const header = activeFilePath
+        ? `[PC File: ${activeFilePath}]\n`
+        : "[PC / Antigravity Context]\n";
       injectTranscriptIntoPage(`${header}${editorBox.value}`, false);
     });
 
     injectSendBtn?.addEventListener("click", () => {
       if (!editorBox?.value) return;
-      const header = activeFilePath ? `[PC File: ${activeFilePath}]\n` : "[PC / Antigravity Context]\n";
+      const header = activeFilePath
+        ? `[PC File: ${activeFilePath}]\n`
+        : "[PC / Antigravity Context]\n";
       injectTranscriptIntoPage(`${header}${editorBox.value}`, true);
     });
 
     compactNowBtn?.addEventListener("click", async () => {
-      const res = await callAgySession({ action: "compact", keepRecentTurns: 2 });
+      const res = await callAgySession({
+        action: "compact",
+        keepRecentTurns: 2,
+      });
       if (res?.ok) {
         if (compactBadge) {
           compactBadge.textContent = `gemini-3.8-flash (low) • Auto-Compact #${res.compactCount}`;
@@ -711,7 +731,9 @@
         if (editorBox) {
           editorBox.value = `[Auto-Compact #${res.compactCount} • gemini-3.8-flash (low)]\n${res.compactedSummary}`;
         }
-        showConfirmationToast(`Auto-Compact #${res.compactCount} exécuté (gemini-3.8-flash low)`);
+        showConfirmationToast(
+          `Auto-Compact #${res.compactCount} exécuté (gemini-3.8-flash low)`,
+        );
       }
     });
 
@@ -836,11 +858,7 @@
       document.getElementById("agy-gem-pc-btn")?.click();
     } else if (e.altKey && e.key === "Enter") {
       const activeEl = document.activeElement;
-      const text = (
-        activeEl?.value ||
-        activeEl?.textContent ||
-        ""
-      ).trim();
+      const text = (activeEl?.value || activeEl?.textContent || "").trim();
       if (text && /(\/fs|@fs|\/read|@read|\/cmd|@cmd|\/compact)/i.test(text)) {
         e.preventDefault();
         const res = await callAgySession({ action: "turn", prompt: text });
@@ -881,11 +899,9 @@
         if (isLiveActive) startMicrophoneCapture();
         updateUiState();
       } else if (msg.type === "transcript" && msg.turn?.text) {
-        lastTranscript = msg.turn.text;
         injectTranscriptIntoPage(msg.turn.text, autoSubmitPrompt);
         updateUiState();
       } else if (msg.type === "model_response" && msg.turn?.text) {
-        lastReply = msg.turn.text;
         updateUiState();
       } else if (
         msg.type === "audio_output" &&
@@ -961,8 +977,9 @@
 
   if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-      if (message?.type === "SHOW_TOAST" && message.text) {
-        showConfirmationToast(message.text);
+      const toastMsg = message?.text || message?.message;
+      if (message?.type === "SHOW_TOAST" && toastMsg) {
+        showConfirmationToast(toastMsg);
         sendResponse({ ok: true });
       }
       return false;

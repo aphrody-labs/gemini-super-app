@@ -17,7 +17,11 @@ const http = require("http");
 const electron = require("electron");
 
 const REPO_ROOT = "C:\\Users\\aphro\\google";
-const MEMORY_JSON_PATH = path.join(REPO_ROOT, "config", "gemini_web_memory.json");
+const MEMORY_JSON_PATH = path.join(
+  REPO_ROOT,
+  "config",
+  "gemini_web_memory.json",
+);
 const MEMORY_RULE_PATH = path.join(
   REPO_ROOT,
   ".agents",
@@ -526,9 +530,7 @@ async function getRuntimeStatus(mainHooks, nativeSnapshotFn) {
   if (domInspection?.dom?.authenticated) {
     store.account = {
       email:
-        domInspection.dom.email ||
-        store.account?.email ||
-        "aphro@google.com",
+        domInspection.dom.email || store.account?.email || "aphro@google.com",
       gaiaId: domInspection.dom.gaiaId || store.account?.gaiaId || "default",
       accountLabel: domInspection.dom.accountLabel || "",
       authenticated: true,
@@ -699,16 +701,18 @@ async function executeRuntimePrompt(mainHooks, payload = {}) {
   }
 
   if (domResult && domResult.text) {
-    store.recentTurns = (store.recentTurns || []).concat([
-      {
-        id: `turn-${Date.now()}`,
-        prompt: effectiveWebPrompt,
-        reply: domResult.text,
-        tool: toolId || "gemini_web_dom",
-        source: "gemini.google.com (DOM Live)",
-        timestamp: new Date().toISOString(),
-      },
-    ]).slice(-30);
+    store.recentTurns = (store.recentTurns || [])
+      .concat([
+        {
+          id: `turn-${Date.now()}`,
+          prompt: effectiveWebPrompt,
+          reply: domResult.text,
+          tool: toolId || "gemini_web_dom",
+          source: "gemini.google.com (DOM Live)",
+          timestamp: new Date().toISOString(),
+        },
+      ])
+      .slice(-30);
     saveMemoryStore(store);
 
     return {
@@ -755,16 +759,18 @@ async function executeRuntimePrompt(mainHooks, payload = {}) {
   const modelUsed =
     voiceHubRes?.model_turn?.model_used || "gemini-3.8-flash (Web Runtime)";
 
-  store.recentTurns = (store.recentTurns || []).concat([
-    {
-      id: `turn-${Date.now()}`,
-      prompt: effectiveWebPrompt,
-      reply: replyText,
-      tool: matchedTool ? matchedTool.id : toolId || "gemini_runtime",
-      source: modelUsed,
-      timestamp: new Date().toISOString(),
-    },
-  ]).slice(-30);
+  store.recentTurns = (store.recentTurns || [])
+    .concat([
+      {
+        id: `turn-${Date.now()}`,
+        prompt: effectiveWebPrompt,
+        reply: replyText,
+        tool: matchedTool ? matchedTool.id : toolId || "gemini_runtime",
+        source: modelUsed,
+        timestamp: new Date().toISOString(),
+      },
+    ])
+    .slice(-30);
   saveMemoryStore(store);
 
   return {
@@ -849,7 +855,7 @@ async function importGeminiWebMemory(mainHooks, options = {}) {
         const emailMatch = html.match(
           /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/,
         );
-        if (emailMatch && ! emailMatch[0].endsWith("google.com")) {
+        if (emailMatch && !emailMatch[0].endsWith("google.com")) {
           store.account.email = emailMatch[0];
           store.account.authenticated = true;
         }
@@ -1088,7 +1094,8 @@ const MCP_TOOL_DEFINITIONS = [
       properties: {
         prompt: {
           type: "string",
-          description: "Le prompt ou la requête à exécuter sur le runtime Gemini Web.",
+          description:
+            "Le prompt ou la requête à exécuter sur le runtime Gemini Web.",
         },
         tool: {
           type: "string",
@@ -1145,7 +1152,8 @@ const MCP_TOOL_DEFINITIONS = [
       properties: {
         fetchSavedInfoPage: {
           type: "boolean",
-          description: "Interroger également https://gemini.google.com/saved-info en arrière-plan.",
+          description:
+            "Interroger également https://gemini.google.com/saved-info en arrière-plan.",
         },
       },
     },
@@ -1163,7 +1171,8 @@ const MCP_TOOL_DEFINITIONS = [
         },
         category: {
           type: "string",
-          description: "Catégorie (ex: 'architecture', 'user_preference', 'project_context', 'web_fact').",
+          description:
+            "Catégorie (ex: 'architecture', 'user_preference', 'project_context', 'web_fact').",
         },
       },
       required: ["content"],
@@ -1187,7 +1196,8 @@ const MCP_TOOL_DEFINITIONS = [
       properties: {
         target: {
           type: "string",
-          description: "Chemin ou URL cible (ex: '/app', '/saved-info', '/gems/view').",
+          description:
+            "Chemin ou URL cible (ex: '/app', '/saved-info', '/gems/view').",
         },
       },
       required: ["target"],
@@ -1207,7 +1217,8 @@ const MCP_TOOL_DEFINITIONS = [
         },
         text: {
           type: "string",
-          description: "Texte optionnel pour inject_unicode ou voice_turn_sync.",
+          description:
+            "Texte optionnel pour inject_unicode ou voice_turn_sync.",
         },
         prompt: {
           type: "string",
@@ -1215,6 +1226,27 @@ const MCP_TOOL_DEFINITIONS = [
         },
       },
       required: ["command"],
+    },
+  },
+  {
+    name: "gemini_pet_customize_and_animate",
+    description:
+      "Personnalise et anime en temps réel le compagnon Gemini Pet ('gemini-sparkle', 'hoodie-cat' ou 'mochi' 🌱) sur le fond d'écran Windows 11 Live (/wallpaper), le Pet Studio (/pet) et Chrome Home (/chrome-home) via WebSockets et spritesheet SVG 8x11 dynamique.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        action: { type: "string" },
+        petId: { type: "string" },
+        outfitId: { type: "string" },
+        reaction: { type: "string" },
+        emoteId: { type: "string" },
+        mochiAnimation: { type: "string" },
+        speechText: { type: "string" },
+        position: { type: "object" },
+        gravityEnabled: { type: "boolean" },
+        customStyle: { type: "object" },
+        choreography: { type: "array" },
+      },
     },
   },
 ];
@@ -1328,7 +1360,8 @@ async function handleMcpJsonRpc(
             status: "ok",
             catalog: GEMINI_WEB_TOOLS_CATALOG,
             liveDomTools: dom?.dom?.domTools || [],
-            activeModel: dom?.dom?.activeModelLabel || "Gemini 3.8 Live / Flash",
+            activeModel:
+              dom?.dom?.activeModelLabel || "Gemini 3.8 Live / Flash",
             editorReady: Boolean(dom?.dom?.editorReady),
           };
           break;
@@ -1363,6 +1396,29 @@ async function handleMcpJsonRpc(
               ? await executePilotFn(args)
               : { status: "unavailable" };
           break;
+        case "gemini_pet_customize_and_animate": {
+          const petActionRes = await httpPostLocalJson(
+            "127.0.0.1",
+            8787,
+            "/api/pet/action",
+            {
+              action: args.action || "customize",
+              ...args,
+            },
+            5000,
+          );
+          toolResult = {
+            status: "ok",
+            tool: "gemini_pet_customize_and_animate",
+            surfacesUpdated: [
+              "http://127.0.0.1:8787/pet",
+              "http://127.0.0.1:8787/wallpaper",
+              "http://127.0.0.1:8787/chrome-home",
+            ],
+            ...(petActionRes || {}),
+          };
+          break;
+        }
         default:
           return {
             jsonrpc: "2.0",

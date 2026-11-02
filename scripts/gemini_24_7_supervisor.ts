@@ -332,28 +332,30 @@ export async function ensureAll24x7ServicesPass(
 }
 
 if (import.meta.main) {
-  const runOnce = process.argv.includes("--once");
-  if (runOnce) {
-    const report = await ensureAll24x7ServicesPass();
-    console.log(JSON.stringify(report, null, 2));
-    process.exit(report.allHealthy ? 0 : 1);
-  }
+  void (async () => {
+    const runOnce = process.argv.includes("--once");
+    if (runOnce) {
+      const report = await ensureAll24x7ServicesPass();
+      console.log(JSON.stringify(report, null, 2));
+      process.exit(report.allHealthy ? 0 : 1);
+    }
 
-  const acquired = await acquireSupervisorLock();
-  if (!acquired) {
+    const acquired = await acquireSupervisorLock();
+    if (!acquired) {
+      console.log(
+        `[Gemini 24/7 Supervisor] Active supervisor already running. Exiting duplicate instance gracefully.`,
+      );
+      process.exit(0);
+    }
+
     console.log(
-      `[Gemini 24/7 Supervisor] Active supervisor already running. Exiting duplicate instance gracefully.`,
+      `[Gemini 24/7 Supervisor] Headless daemon active (PID ${process.pid}) — zero terminal windows, monitoring :8787, :8788, :8765`,
     );
-    process.exit(0);
-  }
 
-  console.log(
-    `[Gemini 24/7 Supervisor] Headless daemon active (PID ${process.pid}) — zero terminal windows, monitoring :8787, :8788, :8765`,
-  );
-
-  let report = await ensureAll24x7ServicesPass();
-  while (true) {
-    await Bun.sleep(10_000);
-    report = await ensureAll24x7ServicesPass(report);
-  }
+    let report = await ensureAll24x7ServicesPass();
+    while (true) {
+      await Bun.sleep(10_000);
+      report = await ensureAll24x7ServicesPass(report);
+    }
+  })();
 }
