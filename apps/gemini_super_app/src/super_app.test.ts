@@ -470,5 +470,41 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     expect(agyTurnJson.autoCompacted).toBe(true);
     expect(agyTurnJson.compactCount).toBeGreaterThanOrEqual(1);
     expect(agyTurnJson.pcContextAttached.length).toBeGreaterThanOrEqual(1);
+
+    // 7. Verify Real-Time Clock/Date & Full Tools/Skills/MCP Registry (/api/antigravity/tools)
+    const toolsRes = await fetch(`${baseUrl}/api/antigravity/tools`);
+    expect(toolsRes.status).toBe(200);
+    const toolsJson = (await toolsRes.json()) as {
+      ok: boolean;
+      time_hm: string;
+      date_fr: string;
+      skills_count: number;
+      mcp_count: number;
+    };
+    expect(toolsJson.ok).toBe(true);
+    expect(toolsJson.time_hm).toMatch(/^\d{2}h\d{2}$/);
+    expect(toolsJson.date_fr.length).toBeGreaterThan(8);
+    expect(toolsJson.skills_count).toBeGreaterThanOrEqual(30);
+    expect(toolsJson.mcp_count).toBeGreaterThanOrEqual(10);
+
+    const clockTurnRes = await fetch(`${baseUrl}/api/antigravity/session`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "turn",
+        prompt: "Quelle heure est-il et quelle est la date du jour ?",
+      }),
+    });
+    expect(clockTurnRes.status).toBe(200);
+    const clockTurnJson = (await clockTurnRes.json()) as {
+      ok: boolean;
+      reply: string;
+      pcContextAttached: string[];
+    };
+    expect(clockTurnJson.ok).toBe(true);
+    expect(clockTurnJson.reply).toContain(toolsJson.date_fr);
+    expect(clockTurnJson.pcContextAttached).toContain(
+      "clock:realtime_datetime",
+    );
   }, 25000);
 });

@@ -65,6 +65,7 @@ import {
   PermanentAntigravitySessionManager,
   executePcCommand,
   executePcFilesystemAction,
+  getLiveClockAndToolsContext,
 } from "./pc_antigravity_bridge";
 
 export interface SuperAppSocketData {
@@ -226,6 +227,7 @@ export function startGeminiSuperAppServer(
 
   const server = Bun.serve<SuperAppSocketData>({
     port,
+    idleTimeout: 60,
     routes: {
       "/": async () => {
         const html = await Bun.file(indexHtmlPath).text();
@@ -473,6 +475,47 @@ export function startGeminiSuperAppServer(
               { ok: true, ...res, session: agySession.getState() },
               { headers: CORS_HEADERS },
             );
+          }
+          const turnRes = await agySession.runTurn(body);
+          return Response.json(turnRes, { headers: CORS_HEADERS });
+        },
+        OPTIONS: () =>
+          new Response(null, { status: 204, headers: CORS_HEADERS }),
+      },
+      "/api/antigravity/tools": {
+        GET: async () => {
+          const ctx = await getLiveClockAndToolsContext();
+          return Response.json(
+            {
+              ok: true,
+              status: "ok",
+              ...ctx,
+            },
+            { headers: CORS_HEADERS },
+          );
+        },
+        POST: async (req: Request) => {
+          const body = (await req.json()) as Record<string, unknown>;
+          const tool = String(body.tool || body.action || "clock");
+          const ctx = await getLiveClockAndToolsContext();
+          if (tool === "clock" || tool === "datetime" || tool === "time") {
+            return Response.json(
+              {
+                ok: true,
+                tool: "clock",
+                reply: `Il est exactement ${ctx.time_hm} (${ctx.time_hms}), nous sommes le ${ctx.date_fr}.`,
+                ...ctx,
+              },
+              { headers: CORS_HEADERS },
+            );
+          }
+          if (tool === "pc_fs" || tool === "fs") {
+            const res = await executePcFilesystemAction(body);
+            return Response.json(res, { headers: CORS_HEADERS });
+          }
+          if (tool === "pc_exec" || tool === "exec" || tool === "cmd") {
+            const res = await executePcCommand(body);
+            return Response.json(res, { headers: CORS_HEADERS });
           }
           const turnRes = await agySession.runTurn(body);
           return Response.json(turnRes, { headers: CORS_HEADERS });
@@ -1417,7 +1460,7 @@ export function startGeminiSuperAppServer(
                 method: "POST",
                 headers: { "content-type": "application/json" },
                 body: raw,
-                signal: AbortSignal.timeout(4500),
+                signal: AbortSignal.timeout(7500),
               },
             );
             if (r.ok) {
@@ -1612,12 +1655,13 @@ export function startGeminiSuperAppServer(
           }
           const apiKey = Bun.env.GEMINI_API_KEY ?? Bun.env.GOOGLE_API_KEY ?? "";
           const ai = new GoogleGenAI({ apiKey, vertexai: false });
+          const liveCtx = await getLiveClockAndToolsContext();
           const promptText =
             parsed.text?.trim() ||
             "Dis bonjour en une courte phrase naturelle et chaleureuse.";
           const resp = await ai.models.generateContent({
             model: "gemini-3.8-flash",
-            contents: `Tu es Gemini Live. Réponds naturellement à l'oral en 1 à 2 phrases courtes sans markdown : ${promptText}`,
+            contents: `${liveCtx.system_prompt_block}\nTu es Gemini Live en full-duplex simultané zéro latence. Réponds naturellement à l'oral en 1 à 2 phrases courtes sans markdown : ${promptText}`,
           });
           const replyText =
             resp.text?.trim() ||

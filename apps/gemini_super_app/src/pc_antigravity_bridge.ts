@@ -59,6 +59,142 @@ export const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+const WEEKDAYS_FR = [
+  "dimanche",
+  "lundi",
+  "mardi",
+  "mercredi",
+  "jeudi",
+  "vendredi",
+  "samedi",
+];
+const MONTHS_FR = [
+  "janvier",
+  "février",
+  "mars",
+  "avril",
+  "mai",
+  "juin",
+  "juillet",
+  "août",
+  "septembre",
+  "octobre",
+  "novembre",
+  "décembre",
+];
+
+let cachedSkillsList: string[] | null = null;
+let cachedMcpList: string[] | null = null;
+
+export async function discoverAntigravitySkillsAndMcp(): Promise<{
+  skills: string[];
+  mcpServers: string[];
+}> {
+  if (!cachedSkillsList) {
+    const skills = new Set<string>();
+    const roots = [
+      path.join(DEFAULT_WORKSPACE_ROOT, ".agents", "skills"),
+      path.join(os.homedir(), ".gemini", "config", "skills"),
+      path.join(
+        os.homedir(),
+        ".gemini",
+        "antigravity-cli",
+        "builtin",
+        "skills",
+      ),
+    ];
+    for (const r of roots) {
+      try {
+        const items = await readdir(r, { withFileTypes: true });
+        for (const it of items) {
+          if (it.isDirectory()) skills.add(it.name);
+        }
+      } catch {}
+    }
+    try {
+      const pluginsRoot = path.join(
+        os.homedir(),
+        ".gemini",
+        "config",
+        "plugins",
+      );
+      const plugins = await readdir(pluginsRoot, { withFileTypes: true });
+      for (const pl of plugins) {
+        if (!pl.isDirectory()) continue;
+        try {
+          const skDir = path.join(pluginsRoot, pl.name, "skills");
+          const sub = await readdir(skDir, { withFileTypes: true });
+          for (const s of sub) {
+            if (s.isDirectory()) skills.add(s.name);
+          }
+        } catch {}
+      }
+    } catch {}
+    cachedSkillsList = Array.from(skills).sort();
+  }
+
+  if (!cachedMcpList) {
+    const mcp = new Set<string>();
+    try {
+      const mcpRoot = path.join(
+        os.homedir(),
+        ".gemini",
+        "antigravity-cli",
+        "mcp",
+      );
+      const items = await readdir(mcpRoot, { withFileTypes: true });
+      for (const it of items) {
+        if (it.isDirectory()) mcp.add(it.name);
+      }
+    } catch {}
+    cachedMcpList = Array.from(mcp).sort();
+  }
+
+  return {
+    skills: cachedSkillsList,
+    mcpServers: cachedMcpList,
+  };
+}
+
+export async function getLiveClockAndToolsContext() {
+  const now = new Date();
+  const weekdayFr = WEEKDAYS_FR[now.getDay()] ?? "lundi";
+  const monthFr = MONTHS_FR[now.getMonth()] ?? "janvier";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const timeHm = `${pad(now.getHours())}h${pad(now.getMinutes())}`;
+  const timeHms = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const dateFr = `${weekdayFr} ${now.getDate()} ${monthFr} ${now.getFullYear()}`;
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
+  const { skills, mcpServers } = await discoverAntigravitySkillsAndMcp();
+
+  return {
+    iso: now.toISOString(),
+    time_hm: timeHm,
+    time_hms: timeHms,
+    date_fr: dateFr,
+    weekday_fr: weekdayFr,
+    timezone: tz,
+    workspace_root: DEFAULT_WORKSPACE_ROOT,
+    skills_count: skills.length,
+    skills,
+    mcp_count: mcpServers.length,
+    mcp_servers: mcpServers,
+    endpoints: {
+      voice_bridge: "http://127.0.0.1:8765/api/voice",
+      super_app: "http://127.0.0.1:8787/api/voice",
+      pc_fs: "http://127.0.0.1:8787/api/pc/fs",
+      pc_exec: "http://127.0.0.1:8787/api/pc/exec",
+      antigravity_session: "http://127.0.0.1:8787/api/antigravity/session",
+      antigravity_tools: "http://127.0.0.1:8787/api/antigravity/tools",
+      gemini_web_app: "https://gemini.google.com/app",
+      agy_cli: "http://127.0.0.1:8787/api/agy/cli",
+    },
+    system_prompt_block:
+      `[HORLOGE TEMPS RÉEL EXACTE : Il est exactement ${timeHm} (${timeHms}), nous sommes le ${dateFr} (${tz}). ` +
+      `OUTILS ACTIFS : PC Filesystem (${DEFAULT_WORKSPACE_ROOT}), PC Shell, ${skills.length} Skills Antigravity, ${mcpServers.length} serveurs MCP (${mcpServers.slice(0, 8).join(", ")}), Gemini Web App (gemini.google.com/app) et agy CLI (gemini-3.8-flash low).]`,
+  };
+}
+
 function resolvePcPath(inputPath?: string, baseDir?: string): string {
   const root = baseDir || DEFAULT_WORKSPACE_ROOT;
   if (!inputPath || inputPath.trim() === "" || inputPath === ".") {
@@ -609,8 +745,40 @@ export class PermanentAntigravitySessionManager {
     };
     this.state.turns.push(userTurn);
 
-    // 2. Call `gemini-3.8-flash` with `thinkingLevel: "low"`
+    // 2. Call `gemini-3.8-flash` with `thinkingLevel: "low"` (or instant <1ms local tool fast-path)
+    const liveCtx = await getLiveClockAndToolsContext();
     let replyText = "";
+    const lowPrompt = rawPrompt.toLowerCase();
+
+    const asksTime = [
+      "quelle heure",
+      "l'heure",
+      "dis l'heure",
+      "donne l'heure",
+      "heure est-il",
+      "heure il est",
+      "what time",
+    ].some((k) => lowPrompt.includes(k));
+    const asksDate = [
+      "quelle date",
+      "date du jour",
+      "quel jour",
+      "aujourd'hui",
+      "what date",
+      "what day",
+    ].some((k) => lowPrompt.includes(k));
+
+    if (asksTime && asksDate) {
+      replyText = `Il est exactement ${liveCtx.time_hm} et nous sommes le ${liveCtx.date_fr}.`;
+      pcContextLabels.push("clock:realtime_datetime");
+    } else if (asksTime) {
+      replyText = `Il est exactement ${liveCtx.time_hm} et ${liveCtx.time_hms.split(":")[2]} secondes, nous sommes le ${liveCtx.date_fr}.`;
+      pcContextLabels.push("clock:realtime_time");
+    } else if (asksDate && rawPrompt.split(/\s+/).length <= 12) {
+      replyText = `Nous sommes le ${liveCtx.date_fr} et il est ${liveCtx.time_hm}.`;
+      pcContextLabels.push("clock:realtime_date");
+    }
+
     const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     const recentHistory = this.state.turns
       .slice(-6)
@@ -622,18 +790,19 @@ export class PermanentAntigravitySessionManager {
 
     const fullContextPrompt = [
       "Tu es l'agent permanent Antigravity branché en direct dans Gemini Web App et sur le PC Windows de l'utilisateur.",
+      liveCtx.system_prompt_block,
       `Workspace PC actif : ${this.state.workspaceRoot}`,
       `Mémoire Auto-Compactée (#${this.state.compactCount}) :\n${this.state.compactedSummary}`,
       pcContextSnippets.length > 0
         ? `Données temps réel lues sur le PC :\n${pcContextSnippets.join("\n\n")}`
         : "",
       `Historique récent :\n${recentHistory}`,
-      "Réponds de façon directe, précise et exploite les fichiers/commandes du PC.",
+      "Réponds de façon directe, précise et exploite l'horloge temps réel ainsi que les fichiers, skills, MCP, Gemini Web et agy CLI du PC.",
     ]
       .filter(Boolean)
       .join("\n\n");
 
-    if (apiKey) {
+    if (!replyText && apiKey) {
       try {
         const ai = new GoogleGenAI({ apiKey, vertexai: false });
         const resp = await ai.models.generateContent({

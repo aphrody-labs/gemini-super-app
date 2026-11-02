@@ -90,6 +90,7 @@
     },
     "sidecar_config_path": "C:\\Users\\aphro\\.gemini\\config\\sidecars\\gemini-live-voice\\sidecar.json",
     "session_start_hook_path": "C:\\Users\\aphro\\google\\.agents\\hooks.json",
-    "persistent_scheduled_task": "\\Aphrody\\Aphrody Gemini Assistant 24x7"
+    "persistent_scheduled_task": "\\Aphrody\\Aphrody Gemini Assistant 24x7",
+    "use_agy_cli_backend": false
   }
 }

@@ -650,35 +650,47 @@ async function postVoiceApi(payload) {
 }
 
 async function submitUtterance(chunks, textHint = "") {
-  if (isSubmittingUtterance) return;
   const merged = mergeInt16Chunks(chunks);
   const cleanHint = (textHint || latestBrowserTranscript || "").trim();
   latestBrowserTranscript = "";
 
-  if (merged.byteLength < 3200 && !cleanHint) {
+  if (/^(stop|arrête|arrete|tais-toi|tais toi|silence|chut)\b/i.test(cleanHint)) {
+    stopPlayback();
     liveState = isLiveActive ? "LISTENING" : "IDLE";
     return;
   }
 
+  if (merged.byteLength < 1600 && !cleanHint) {
+    if (liveState !== "SPEAKING") {
+      liveState = isLiveActive ? "LISTENING" : "IDLE";
+    }
+    return;
+  }
+
   isSubmittingUtterance = true;
-  liveState = "THINKING";
+  if (liveState !== "SPEAKING") {
+    liveState = "THINKING";
+  }
   try {
     const data = await postVoiceApi({
       action: "voice_to_voice",
       pcm16_base64: merged.byteLength > 0 ? arrayBufferToBase64(merged) : "",
       text: cleanHint,
       auto_reply: true,
+      simultaneous_full_duplex: true,
       use_agy_cli: useAgyCliBackend,
       surface: useAgyCliBackend ? "agy_cli" : "gemini_minimal_voice",
     });
     const turnId = data?.model_turn?.id || "";
     if (data?.audio_base64) {
       await playAudioBase64(data.audio_base64, turnId);
-    } else {
+    } else if (liveState !== "SPEAKING") {
       liveState = isLiveActive ? "LISTENING" : "IDLE";
     }
   } catch {
-    liveState = isLiveActive ? "LISTENING" : "IDLE";
+    if (liveState !== "SPEAKING") {
+      liveState = isLiveActive ? "LISTENING" : "IDLE";
+    }
   } finally {
     isSubmittingUtterance = false;
   }
@@ -749,11 +761,23 @@ function startBrowserSpeechRecognitionAssist() {
     rec.interimResults = true;
     rec.onresult = (ev) => {
       let transcript = "";
+      let finalSegment = "";
       for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        transcript += ev.results[i][0].transcript;
+        const piece = ev.results[i][0].transcript;
+        transcript += piece;
+        if (ev.results[i].isFinal) {
+          finalSegment += piece;
+        }
       }
       if (transcript.trim()) {
         latestBrowserTranscript = transcript.trim();
+      }
+      if (finalSegment.trim() && isLiveActive) {
+        const turnChunks = pcmChunks.splice(0);
+        speechDetected = false;
+        silenceStartMs = 0;
+        latestBrowserTranscript = "";
+        submitUtterance(turnChunks, finalSegment.trim());
       }
     };
     rec.onend = () => {
@@ -829,39 +853,28 @@ async function startMic() {
 
       if (liveState !== "SPEAKING") {
         audioRms = Math.max(0.05, Math.min(0.95, rms * 5.4));
+      } else if (rms > 0.015) {
+        audioRms = Math.max(audioRms, Math.min(0.98, rms * 5.8));
       }
 
-      // Barge-in when user talks while Gemini speaks
-      if (liveState === "SPEAKING" && rms > 0.065) {
-        stopPlayback();
-        liveState = "LISTENING";
-        pcmChunks = [pcm16];
+      // True Simultaneous Full-Duplex: user and Gemini can speak at the exact same time
+      if (rms > 0.012) {
+        pcmChunks.push(pcm16);
         speechDetected = true;
         silenceStartMs = 0;
-        return;
-      }
-
-      if (
-        liveState !== "THINKING" &&
-        liveState !== "SPEAKING" &&
-        !isSubmittingUtterance
-      ) {
-        if (rms > 0.012) {
-          pcmChunks.push(pcm16);
-          speechDetected = true;
-          silenceStartMs = 0;
+        if (liveState !== "SPEAKING" && liveState !== "THINKING") {
           liveState = "LISTENING";
-        } else if (speechDetected) {
-          pcmChunks.push(pcm16);
-          if (!silenceStartMs) {
-            silenceStartMs = performance.now();
-          } else if (performance.now() - silenceStartMs >= 650) {
-            const turn = pcmChunks.slice();
-            pcmChunks = [];
-            speechDetected = false;
-            silenceStartMs = 0;
-            submitUtterance(turn, latestBrowserTranscript);
-          }
+        }
+      } else if (speechDetected) {
+        pcmChunks.push(pcm16);
+        if (!silenceStartMs) {
+          silenceStartMs = performance.now();
+        } else if (performance.now() - silenceStartMs >= 240) {
+          const turn = pcmChunks.slice();
+          pcmChunks = [];
+          speechDetected = false;
+          silenceStartMs = 0;
+          submitUtterance(turn, latestBrowserTranscript);
         }
       }
     };

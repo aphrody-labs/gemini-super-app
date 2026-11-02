@@ -305,38 +305,16 @@
           window.geminiVoiceExtensionBridge.sendPcmChunk(pcm16.buffer);
         }
 
-        // Barge-in check: user speaks while Gemini is speaking
-        if (liveState === "SPEAKING" && rms > 0.065) {
-          bargeInFrames++;
-          if (bargeInFrames >= 2) {
-            stopPlaybackForBargeIn();
-            sendVoiceAction({ action: "interrupt" });
-            liveState = "LISTENING";
-            pcmChunks = [pcm16];
-            speechDetectedInTurn = true;
-            silenceStartMs = 0;
-            bargeInFrames = 0;
-            updateUiState();
-            return;
-          }
-        } else {
-          bargeInFrames = 0;
-        }
-
-        // Accumulate PCM during PTT or Hybrid VAD speech
+        // True Simultaneous Full-Duplex: user and Gemini can speak at the exact same time
         if (isRecordingPtt) {
           pcmChunks.push(pcm16);
           speechDetectedInTurn = true;
-        } else if (
-          isLiveActive &&
-          liveState !== "THINKING" &&
-          liveState !== "SPEAKING"
-        ) {
-          if (rms > 0.024) {
+        } else if (isLiveActive) {
+          if (rms > 0.016) {
             pcmChunks.push(pcm16);
             speechDetectedInTurn = true;
             silenceStartMs = 0;
-            if (liveState !== "LISTENING") {
+            if (liveState !== "SPEAKING" && liveState !== "THINKING" && liveState !== "LISTENING") {
               liveState = "LISTENING";
               updateUiState();
             }
@@ -344,8 +322,8 @@
             pcmChunks.push(pcm16);
             if (!silenceStartMs) {
               silenceStartMs = performance.now();
-            } else if (performance.now() - silenceStartMs >= 880) {
-              // 880ms of silence after speech -> finalize utterance!
+            } else if (performance.now() - silenceStartMs >= 240) {
+              // 240ms of silence after speech -> zero-latency dispatch in simultaneous full-duplex!
               const capturedChunks = pcmChunks.slice();
               pcmChunks = [];
               speechDetectedInTurn = false;
@@ -385,11 +363,13 @@
   async function submitCapturedPcmUtterance(chunks) {
     if (!chunks || chunks.length === 0) return;
     const mergedBuffer = mergeInt16Chunks(chunks);
-    // Avoid sending tiny clicks (< 0.25s)
-    if (mergedBuffer.byteLength < 8000) return;
+    // Avoid sending tiny clicks (< 0.075s)
+    if (mergedBuffer.byteLength < 2400) return;
 
-    liveState = "THINKING";
-    updateUiState();
+    if (liveState !== "SPEAKING") {
+      liveState = "THINKING";
+      updateUiState();
+    }
 
     const pcm16Base64 = arrayBufferToBase64(mergedBuffer);
     const autoReply = voiceMode === "voice_to_voice";
@@ -398,6 +378,7 @@
       action: autoReply ? "voice_to_voice" : "stt_pcm16",
       pcm16_base64: pcm16Base64,
       auto_reply: autoReply,
+      simultaneous_full_duplex: true,
     });
 
     if (!res || res.status === "empty" || !res.transcript) {
