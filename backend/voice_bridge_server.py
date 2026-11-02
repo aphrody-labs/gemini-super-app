@@ -2338,4 +2338,8 @@ def main() -> None:
         HTTP_WS_HOST,
         HTTP_WS_PORT,
     )
-    web.run
+    web.run_app(app, host=HTTP_WS_HOST, port=HTTP_WS_PORT, print=None)
+
+
+if __name__ == "__main__":
+    main()

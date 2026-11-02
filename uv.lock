@@ -732,7 +732,7 @@ wheels = [
 [[package]]
 name = "gemini-live-voice-super-app"
 version = "2026.11.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
     { name = "av" },
