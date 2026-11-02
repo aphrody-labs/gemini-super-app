@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="fr" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Gemini</title>
+    <style>
+      :root {
+        --md-sys-color-surface-light: #ffffff;
+        --md-sys-color-surface-dark: #131314;
+        --md-sys-color-surface-container-light: #f0f4f9;
+        --md-sys-color-surface-container-dark: #1e1f20;
+        --md-sys-color-surface-container-high-light: #e3e8ef;
+        --md-sys-color-surface-container-high-dark: #282a2c;
+        --md-sys-color-on-surface-light: #1f1f1f;
+        --md-sys-color-on-surface-dark: #e3e3e3;
+        --md-sys-color-primary-light: #0b57d0;
+        --md-sys-color-primary-dark: #a8c7fa;
+        --md-sys-color-on-primary-light: #ffffff;
+        --md-sys-color-on-primary-dark: #042c6c;
+        --md-sys-color-outline-variant-light: #c4c7c5;
+        --md-sys-color-outline-variant-dark: #333537;
+
+        --md-sys-color-surface: var(--md-sys-color-surface-dark);
+        --md-sys-color-surface-container: var(
+          --md-sys-color-surface-container-dark
+        );
+        --md-sys-color-surface-container-high: var(
+          --md-sys-color-surface-container-high-dark
+        );
+        --md-sys-color-on-surface: var(--md-sys-color-on-surface-dark);
+        --md-sys-color-primary: var(--md-sys-color-primary-dark);
+        --md-sys-color-on-primary: var(--md-sys-color-on-primary-dark);
+        --md-sys-color-outline-variant: var(
+          --md-sys-color-outline-variant-dark
+        );
+
+        @media (prefers-color-scheme: light) {
+          --md-sys-color-surface: var(--md-sys-color-surface-light);
+          --md-sys-color-surface-container: var(
+            --md-sys-color-surface-container-light
+          );
+          --md-sys-color-surface-container-high: var(
+            --md-sys-color-surface-container-high-light
+          );
+          --md-sys-color-on-surface: var(--md-sys-color-on-surface-light);
+          --md-sys-color-primary: var(--md-sys-color-primary-light);
+          --md-sys-color-on-primary: var(--md-sys-color-on-primary-light);
+          --md-sys-color-outline-variant: var(
+            --md-sys-color-outline-variant-light
+          );
+        }
+
+        @supports (color: light-dark(white, black)) {
+          --md-sys-color-surface: light-dark(
+            var(--md-sys-color-surface-light),
+            var(--md-sys-color-surface-dark)
+          );
+          --md-sys-color-surface-container: light-dark(
+            var(--md-sys-color-surface-container-light),
+            var(--md-sys-color-surface-container-dark)
+          );
+          --md-sys-color-surface-container-high: light-dark(
+            var(--md-sys-color-surface-container-high-light),
+            var(--md-sys-color-surface-container-high-dark)
+          );
+          --md-sys-color-on-surface: light-dark(
+            var(--md-sys-color-on-surface-light),
+            var(--md-sys-color-on-surface-dark)
+          );
+          --md-sys-color-primary: light-dark(
+            var(--md-sys-color-primary-light),
+            var(--md-sys-color-primary-dark)
+          );
+          --md-sys-color-on-primary: light-dark(
+            var(--md-sys-color-on-primary-light),
+            var(--md-sys-color-on-primary-dark)
+          );
+          --md-sys-color-outline-variant: light-dark(
+            var(--md-sys-color-outline-variant-light),
+            var(--md-sys-color-outline-variant-dark)
+          );
+        }
+
+        color-scheme: light dark;
+
+        &:has(> head > meta[name="color-scheme"][content="dark"]) {
+          color-scheme: dark;
+        }
+        &:has(> head > meta[name="color-scheme"][content="light"]) {
+          color-scheme: light;
+        }
+
+        accent-color: var(--md-sys-color-primary);
+      }
+
+      html.dark {
+        color-scheme: dark;
+      }
+
+      html.light {
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
+        height: 100dvh;
+        width: 100vw;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        user-select: none;
+      }
+
+      /* Center Stage: Gemini Orb + 2D/3D Companion Pet */
+      .stage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 64px;
+        position: relative;
+      }
+
+      .gemini-orb-button {
+        position: relative;
+        width: 240px;
+        height: 240px;
+        border: none;
+        background: transparent;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        outline: none;
+        touch-action: manipulation;
+      }
+
+      .gemini-orb-button:focus-visible {
+        outline: 2px solid var(--md-sys-color-primary);
+        outline-offset: 8px;
+      }
+
+      #orbSpectrumCanvas {
+        position: absolute;
+        inset: 0;
+        width: 240px;
+        height: 240px;
+        pointer-events: none;
+      }
+
+      #AnimatedGeminiSvgOrb {
+        width: 84px;
+        height: 84px;
+        filter: drop-shadow(0 0 28px rgba(168, 199, 250, 0.35));
+        transition: transform 120ms cubic-bezier(0.2, 0, 0, 1);
+        will-change: transform;
+      }
+
+      /* 2D / 3D Pet Stage */
+      .pet-button {
+        position: relative;
+        width: 180px;
+        height: 180px;
+        border: none;
+        background: transparent;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+        outline: none;
+        touch-action: none;
+        will-change: transform;
+      }
+
+      .pet-button:active {
+        cursor: grabbing;
+      }
+
+      .pet-button:focus-visible {
+        outline: 2px solid var(--md-sys-color-primary);
+        outline-offset: 8px;
+      }
+
+      #petCanvas {
+        width: 164px;
+        height: 164px;
+        image-rendering: auto;
+        pointer-events: none;
+      }
+
+      /* Minimalist Bottom Google Gemini Pill Dock (Icon-only, zero text) */
+      .dock {
+        position: fixed;
+        bottom: 36px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        border-radius: 9999px;
+        background-color: var(--md-sys-color-surface-container);
+        border: 1px solid var(--md-sys-color-outline-variant);
+      }
+
+      .icon-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 9999px;
+        border: none;
+        background-color: transparent;
+        color: var(--md-sys-color-on-surface);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition:
+          background-color 120ms ease,
+          color 120ms ease,
+          transform 120ms ease;
+      }
+
+      .icon-btn:hover {
+        background-color: var(--md-sys-color-surface-container-high);
+      }
+
+      .icon-btn:active {
+        transform: scale(0.92);
+      }
+
+      .icon-btn:focus-visible {
+        outline: 2px solid var(--md-sys-color-primary);
+        outline-offset: 2px;
+      }
+
+      .icon-btn[aria-pressed="true"] {
+        background-color: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary);
+      }
+
+      /* On-demand Hardware Audio, Gemini Web & Antigravity Settings Dialog (Hidden by default) */
+      dialog#settingsDialog {
+        margin: auto;
+        width: min(440px, 92vw);
+        border-radius: 24px;
+        border: 1px solid var(--md-sys-color-outline-variant);
+        background-color: var(--md-sys-color-surface-container);
+        color: var(--md-sys-color-on-surface);
+        padding: 20px;
+        font-family:
+          "Google Sans",
+          "Roboto",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+      }
+
+      dialog#settingsDialog::backdrop {
+        background: rgba(0, 0, 0, 0.58);
+        backdrop-filter: blur(6px);
+      }
+
+      .cfg-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+
+      .cfg-title {
+        font-size: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .cfg-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .cfg-row {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .cfg-label {
+        font-size: 12px;
+        opacity: 0.78;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .cfg-select {
+        width: 100%;
+        height: 38px;
+        border-radius: 12px;
+        border: 1px solid var(--md-sys-color-outline-variant);
+        background-color: var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
+        padding: 0 10px;
+        font-size: 13px;
+        outline: none;
+      }
+
+      .cfg-inline {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .cfg-btn {
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid var(--md-sys-color-outline-variant);
+        background-color: var(--md-sys-color-surface-container-high);
+        color: var(--md-sys-color-on-surface);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .cfg-btn:hover {
+        border-color: var(--md-sys-color-primary);
+      }
+
+      .rms-meter {
+        width: 100%;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--md-sys-color-surface);
+        overflow: hidden;
+      }
+
+      .rms-fill {
+        height: 100%;
+        width: 8%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #4285f4, #81c995, #d96570);
+        transition: width 80ms linear;
+      }
+
+      .cfg-toggles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 4px;
+      }
+
+      .cfg-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        background-color: var(--md-sys-color-surface);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        cursor: pointer;
+      }
+
+      @media (max-width: 640px) {
+        .stage {
+          flex-direction: column;
+          gap: 32px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #AnimatedGeminiSvgOrb {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <!-- Official Google Gemini Pixel-Perfect Orb & Live Waveform -->
+      <button
+        type="button"
+        class="gemini-orb-button"
+        id="orbVoiceTrigger"
+        aria-label="Activer ou désactiver Gemini Live Voice"
+        aria-pressed="false"
+      >
+        <canvas id="orbSpectrumCanvas" width="240" height="240"></canvas>
+        <svg
+          id="AnimatedGeminiSvgOrb"
+          viewBox="0 0 64 64"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient
+              id="geminiOfficialGrad"
+              x1="6"
+              y1="6"
+              x2="58"
+              y2="58"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stop-color="#4285F4" />
+              <stop offset="50%" stop-color="#9B72CB" />
+              <stop offset="100%" stop-color="#D96570" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z"
+            fill="url(#geminiOfficialGrad)"
+          />
+        </svg>
+      </button>
+
+      <!-- Interactive 2D / 3D Companion Pet -->
+      <button
+        type="button"
+        class="pet-button"
+        id="petInteractBtn"
+        aria-label="Interagir avec le compagnon 2D/3D"
+      >
+        <canvas id="petCanvas" width="164" height="164"></canvas>
+      </button>
+    </main>
+
+    <!-- Minimalist Google Gemini Live Control Dock (Vector Icons Only) -->
+    <nav class="dock" aria-label="Contrôles Gemini Live">
+      <button
+        type="button"
+        class="icon-btn"
+        id="micLiveBtn"
+        aria-label="Microphone Voice-to-Voice"
+        aria-pressed="false"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          <line x1="12" x2="12" y1="19" y2="22" />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="icon-btn"
+        id="petVoiceBtn"
+        aria-label="Faire parler le compagnon Gemini Live"
+        aria-pressed="false"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M2 10v3" />
+          <path d="M6 6v11" />
+          <path d="M10 3v18" />
+          <path d="M14 8v7" />
+          <path d="M18 5v13" />
+          <path d="M22 10v3" />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="icon-btn"
+        id="petDimensionBtn"
+        aria-label="Basculer le compagnon entre 2D et 3D"
+        aria-pressed="true"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+          />
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+          <line x1="12" y1="22.08" x2="12" y2="12" />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="icon-btn"
+        id="petCharacterBtn"
+        aria-label="Changer de compagnon"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"
+          />
+          <path
+            d="M17 4a2 2 0 0 0 2 2a2 2 0 0 0 -2 2a2 2 0 0 0 -2 -2a2 2 0 0 0 2 -2"
+          />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="icon-btn"
+        id="themeBtn"
+        aria-label="Basculer le thème clair ou sombre"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2" />
+          <path d="M12 20v2" />
+          <path d="m4.93 4.93 1.41 1.41" />
+          <path d="m17.66 17.66 1.41 1.41" />
+          <path d="M2 12h2" />
+          <path d="M20 12h2" />
+          <path d="m6.34 17.66-1.41 1.41" />
+          <path d="m19.07 4.93-1.41 1.41" />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="icon-btn"
+        id="settingsBtn"
+        aria-label="Paramètres Audio, Micro, Sortie, Gemini Web et Antigravity"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+          />
+        </svg>
+      </button>
+    </nav>
+
+    <!-- On-demand Audio, Microphone, Speaker, Gemini Web & Antigravity Settings -->
+    <dialog id="settingsDialog" aria-label="Paramètres Audio et Surfaces">
+      <div class="cfg-header">
+        <div class="cfg-title">
+          <span>Audio • Gemini Web • Antigravity</span>
+        </div>
+        <button type="button" class="cfg-btn" id="closeSettingsBtn">OK</button>
+      </div>
+      <div class="cfg-grid">
+        <div class="cfg-row">
+          <div class="cfg-label">
+            <span>Microphone (16 kHz PCM16)</span>
+            <span id="micRmsLabel">Actif</span>
+          </div>
+          <select id="micDeviceSelect" class="cfg-select">
+            <option value="1">Microphone sur casque (Xbox Controller)</option>
+          </select>
+          <div class="rms-meter">
+            <div id="micRmsBar" class="rms-fill"></div>
+          </div>
+        </div>
+
+        <div class="cfg-row">
+          <div class="cfg-label">
+            <span>Sortie Audio / Casque (24 kHz)</span>
+          </div>
+          <div class="cfg-inline">
+            <select id="speakerDeviceSelect" class="cfg-select">
+              <option value="5">Casque (Xbox Controller)</option>
+            </select>
+            <button type="button" class="cfg-btn" id="testSpeakerBtn">
+              Tester 🔊
+            </button>
+          </div>
+        </div>
+
+        <div class="cfg-row">
+          <div class="cfg-label">
+            <span>Voix Gemini Live &amp; Détection VAD</span>
+          </div>
+          <div class="cfg-inline">
+            <select id="voiceNameSelect" class="cfg-select">
+              <option value="Aoede">Aoede (Chaleureuse)</option>
+              <option value="Puck">Puck (Dynamique)</option>
+              <option value="Kore">Kore (Claire)</option>
+              <option value="Zephyr">Zephyr (Douce)</option>
+              <option value="Fenrir">Fenrir (Profonde)</option>
+              <option value="Charon">Charon (Calme)</option>
+            </select>
+            <select id="vadModeSelect" class="cfg-select">
+              <option value="hybrid_auto">VAD Hybride Auto</option>
+              <option value="manual_ptt">Push-to-Talk</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="cfg-toggles">
+          <label class="cfg-check">
+            <input type="checkbox" id="webAutoSyncToggle" checked />
+            <span>Gemini Web Auto-Sync</span>
+          </label>
+          <label class="cfg-check">
+            <input type="checkbox" id="agyBridgeToggle" checked />
+            <span>Antigravity (:24713)</span>
+          </label>
+          <label class="cfg-check">
+            <input type="checkbox" id="bargeInToggle" checked />
+            <span>Barge-In Duplex</span>
+          </label>
+          <label class="cfg-check">
+            <input type="checkbox" id="ytmDuckingToggle" checked />
+            <span>YouTube Music Ducking</span>
+          </label>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="newtab.js"></script>
+  </body>
+</html>

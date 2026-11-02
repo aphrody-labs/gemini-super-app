@@ -1,0 +1,95 @@
+{
+  "version": "2026.11.2",
+  "updated_at": "2026-11-02T03:25:00+01:00",
+  "audio": {
+    "input_device_index": 1,
+    "input_wasapi_device_index": 32,
+    "input_device_name": "Microphone sur casque (Xbox Controller)",
+    "input_fallback_devices": [
+      "AI Noise-cancelling Input (ASUS Utility)",
+      "Microphone (Realtek USB Audio)",
+      "CABLE Output (VB-Audio Virtual Cable)"
+    ],
+    "output_device_index": 5,
+    "output_wasapi_device_index": 28,
+    "output_device_name": "Casque (Xbox Controller)",
+    "output_fallback_devices": [
+      "Realtek Digital Output (Realtek USB Audio)",
+      "PL2770QS (NVIDIA High Definition Audio)",
+      "AI Noise-cancelling Output (ASUS Utility)"
+    ],
+    "input_sample_rate_hz": 16000,
+    "output_sample_rate_hz": 24000,
+    "channels": 1,
+    "high_pass_cutoff_hz": 85,
+    "vad_mode": "hybrid_auto",
+    "silence_duration_ms": 120,
+    "min_silence_duration_ms": 250,
+    "vad_rms_threshold": 0.015,
+    "barge_in_enabled": true,
+    "youtube_music_ducking": true,
+    "duck_volume_ratio": 0.25,
+    "stt": {
+      "engine": "faster-whisper",
+      "model_size": "large-v3-turbo",
+      "compute_type": "int8",
+      "language": "fr",
+      "cloud_model": "gemini-3.5-transcribe-live"
+    },
+    "tts": {
+      "engine": "gemini-3.8-flash-tts",
+      "fallback_engine": "edge-tts",
+      "voice_name": "Aoede",
+      "edge_voice_name": "fr-FR-VivienneMultilingualNeural",
+      "speech_style": "warm, expressive, conversational, natural",
+      "available_voices": [
+        "Aoede",
+        "Puck",
+        "Kore",
+        "Zephyr",
+        "Fenrir",
+        "Charon"
+      ]
+    }
+  },
+  "gemini_web_app": {
+    "enabled": true,
+    "target_origins": [
+      "https://gemini.google.com",
+      "https://aistudio.google.com",
+      "https://antigravity.google.com",
+      "https://music.youtube.com"
+    ],
+    "inject_minimal_orb_pill": true,
+    "auto_sync_prompt_input": true,
+    "auto_submit_voice_prompt": true,
+    "intercept_native_mic_button": true,
+    "companion_pet_mode": "2d",
+    "theme_color": "#131314",
+    "color_scheme": "dark"
+  },
+  "antigravity": {
+    "cli_enabled": true,
+    "cli_binary": "agy",
+    "mic_tcp_host": "127.0.0.1",
+    "mic_tcp_port": 24713,
+    "mic_env_var": "ANTIGRAVITY_MIC=127.0.0.1:24713",
+    "voice_bridge_url": "http://127.0.0.1:8765",
+    "voice_bridge_ws": "ws://127.0.0.1:8765/ws/voice",
+    "super_app_url": "http://127.0.0.1:8787",
+    "tauri_shell_url": "http://127.0.0.1:8788",
+    "agentapi_bridge": true,
+    "hotkeys": {
+      "toggle_voice": "F5",
+      "push_to_talk": "Ctrl+Shift+V",
+      "slash_commands": [
+        "/voice",
+        "/record",
+        "/voice-live"
+      ]
+    },
+    "sidecar_config_path": "C:\\Users\\aphro\\.gemini\\config\\sidecars\\gemini-live-voice\\sidecar.json",
+    "session_start_hook_path": "C:\\Users\\aphro\\google\\.agents\\hooks.json",
+    "persistent_scheduled_task": "\\Aphrody\\Aphrody Gemini Assistant 24x7"
+  }
+}

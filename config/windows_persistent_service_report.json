@@ -1,0 +1,51 @@
+{
+  "ok": true,
+  "timestamp": "2026-11-02T01:04:03.247Z",
+  "taskName": "\\Aphrody\\Aphrody Gemini Assistant 24x7",
+  "taskConfigured": true,
+  "sidecarConfigPath": "C:\\Users\\aphro\\.gemini\\config\\sidecars\\gemini-live-voice\\sidecar.json",
+  "sidecarConfigured": true,
+  "sessionHookPath": "C:\\Users\\aphro\\google\\.agents\\hooks.json",
+  "sessionHookConfigured": true,
+  "liveStatus": {
+    "supervisorPid": 64064,
+    "startedAt": "2026-11-02T01:04:02.630Z",
+    "updatedAt": "2026-11-02T01:04:03.247Z",
+    "allHealthy": true,
+    "services": {
+      "super_app": {
+        "id": "super_app",
+        "name": "The One Big Gemini Super App + Gemini Pet & Mochi Studio (:8787)",
+        "url": "http://127.0.0.1:8787",
+        "healthEndpoint": "http://127.0.0.1:8787/api/health",
+        "healthy": true,
+        "pid": 63588,
+        "restartCount": 1,
+        "lastCheckedAt": "2026-11-02T01:04:03.247Z",
+        "lastStartedAt": "2026-11-02T01:04:02.635Z"
+      },
+      "tauri_v3": {
+        "id": "tauri_v3",
+        "name": "Gemini Windows Native Tauri v3 Host (:8788)",
+        "url": "http://127.0.0.1:8788",
+        "healthEndpoint": "http://127.0.0.1:8788/api/tauri/snapshot",
+        "healthy": true,
+        "pid": 62056,
+        "restartCount": 1,
+        "lastCheckedAt": "2026-11-02T01:04:03.247Z",
+        "lastStartedAt": "2026-11-02T01:04:02.640Z"
+      },
+      "voice_bridge": {
+        "id": "voice_bridge",
+        "name": "Gemini Live Voice Bridge & TCP Mic Hub (:8765 / :24713)",
+        "url": "http://127.0.0.1:8765",
+        "healthEndpoint": "http://127.0.0.1:8765/api/status",
+        "healthy": true,
+        "pid": null,
+        "restartCount": 0,
+        "lastCheckedAt": "2026-11-02T01:04:03.247Z",
+        "lastStartedAt": null
+      }
+    }
+  }
+}

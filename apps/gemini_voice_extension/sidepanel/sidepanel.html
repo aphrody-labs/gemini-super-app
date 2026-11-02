@@ -1,183 +1,194 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="color-scheme" content="light dark" />
-    <title>Gemini Live Side Panel</title>
+    <title>Gemini</title>
     <style>
       :root {
-        --bg-light: #f8f9fa;
-        --bg-dark: #0b0d14;
-        --panel-light: #ffffff;
-        --panel-dark: #151928;
-        --text-light: #1f1f1f;
-        --text-dark: #e8eaed;
-        --accent-light: #1769e0;
-        --accent-dark: #8ab4f8;
-        --scrollbar-track-light: #e8eaed;
-        --scrollbar-track-dark: #151928;
-        --scrollbar-thumb-light: #9aa0a6;
-        --scrollbar-thumb-dark: #5f6368;
-
-        --bg-color: var(--bg-light);
-        --panel-color: var(--panel-light);
-        --text-color: var(--text-light);
-        --accent-color: var(--accent-light);
-        --scrollbar-track: var(--scrollbar-track-light);
-        --scrollbar-thumb: var(--scrollbar-thumb-light);
-
-        @media (prefers-color-scheme: dark) {
-          --bg-color: var(--bg-dark);
-          --panel-color: var(--panel-dark);
-          --text-color: var(--text-dark);
-          --accent-color: var(--accent-dark);
-          --scrollbar-track: var(--scrollbar-track-dark);
-          --scrollbar-thumb: var(--scrollbar-thumb-dark);
-        }
-
-        @supports (color: light-dark(white, black)) {
-          --bg-color: light-dark(var(--bg-light), var(--bg-dark));
-          --panel-color: light-dark(var(--panel-light), var(--panel-dark));
-          --text-color: light-dark(var(--text-light), var(--text-dark));
-          --accent-color: light-dark(var(--accent-light), var(--accent-dark));
-          --scrollbar-track: light-dark(
-            var(--scrollbar-track-light),
-            var(--scrollbar-track-dark)
-          );
-          --scrollbar-thumb: light-dark(
-            var(--scrollbar-thumb-light),
-            var(--scrollbar-thumb-dark)
-          );
-        }
-
+        --md-sys-color-surface: light-dark(#ffffff, #131314);
+        --md-sys-color-surface-container: light-dark(#f0f4f9, #1e1f20);
+        --md-sys-color-surface-container-high: light-dark(#e3e8ef, #282a2c);
+        --md-sys-color-on-surface: light-dark(#1f1f1f, #e3e3e3);
+        --md-sys-color-primary: light-dark(#0b57d0, #a8c7fa);
+        --md-sys-color-on-primary: light-dark(#ffffff, #042c6c);
+        --md-sys-color-outline-variant: light-dark(#c4c7c5, #333537);
         color-scheme: light dark;
-        accent-color: var(--accent-color);
-        scrollbar-width: thin;
-        scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-      }
-
-      @supports not (scrollbar-color: auto) {
-        #transcript-log::-webkit-scrollbar {
-          width: 10px;
-          height: 10px;
-        }
-        #transcript-log::-webkit-scrollbar-thumb {
-          background: var(--scrollbar-thumb);
-        }
-        #transcript-log::-webkit-scrollbar-track {
-          background: var(--scrollbar-track);
-        }
+        accent-color: var(--md-sys-color-primary);
       }
 
       body {
         margin: 0;
-        padding: 18px;
-        background: var(--bg-color);
-        color: var(--text-color);
-        font-family: "Google Sans", Roboto, system-ui, sans-serif;
+        height: 100dvh;
+        background: var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        padding: 36px 18px;
+        user-select: none;
+        overflow: hidden;
       }
 
-      .orb-wrap {
+      .stage {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 20px 0;
+        gap: 36px;
+        flex: 1;
       }
 
-      .switch-row {
+      .orb-btn {
+        width: 140px;
+        height: 140px;
+        border-radius: 9999px;
+        border: none;
+        background: radial-gradient(
+          circle,
+          rgba(66, 133, 244, 0.24) 0%,
+          rgba(155, 114, 203, 0.08) 65%,
+          transparent 100%
+        );
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 10px 12px;
-        margin-bottom: 10px;
-        border-radius: 12px;
-        background: var(--panel-color);
-        font-size: 13px;
+        justify-content: center;
         cursor: pointer;
       }
 
-      input[type="checkbox"][switch] {
-        accent-color: var(--accent-color);
-        margin: 0;
-        cursor: pointer;
+      #sidePetCanvas {
+        width: 120px;
+        height: 120px;
       }
 
-      input[type="checkbox"][switch]:focus-visible {
-        outline: 3px solid #ff8c00;
-        outline-offset: 4px;
+      .dock {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-radius: 9999px;
+        background: var(--md-sys-color-surface-container);
+        border: 1px solid var(--md-sys-color-outline-variant);
       }
 
-      .btn {
-        width: 100%;
-        padding: 12px;
-        margin-top: 8px;
-        border-radius: 999px;
+      .icon-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 9999px;
         border: none;
-        font-weight: 600;
+        background: transparent;
+        color: var(--md-sys-color-on-surface);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
-        color: #fff;
-        background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
       }
 
-      #transcript-log {
-        margin-top: 16px;
-        padding: 12px;
-        border-radius: 12px;
-        background: var(--panel-color);
-        min-height: 180px;
-        max-height: 360px;
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-gutter: stable;
-        font-size: 13px;
-        line-height: 1.45;
+      .icon-btn:hover {
+        background: var(--md-sys-color-surface-container-high);
+      }
+
+      .icon-btn[aria-pressed="true"] {
+        background: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary);
       }
     </style>
   </head>
   <body>
-    <div class="orb-wrap">
-      <svg
-        id="side-orb"
-        viewBox="0 0 64 64"
-        width="76"
-        height="76"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+    <div class="stage">
+      <button
+        id="side-orb-btn"
+        class="orb-btn"
+        type="button"
+        aria-label="Activer ou désactiver Gemini Live Voice"
+        aria-pressed="false"
       >
-        <defs>
-          <linearGradient
-            id="sideGrad"
-            x1="4"
-            y1="4"
-            x2="60"
-            y2="60"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0%" stop-color="#4285F4" />
-            <stop offset="45%" stop-color="#9B72CB" />
-            <stop offset="100%" stop-color="#F49C46" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z"
-          fill="url(#sideGrad)"
-        />
-      </svg>
-      <div id="side-state" style="margin-top: 10px; font-weight: 600">
-        Gemini 3.8 Live Ready
-      </div>
+        <svg
+          id="side-orb"
+          viewBox="0 0 64 64"
+          width="76"
+          height="76"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient
+              id="sideGrad"
+              x1="4"
+              y1="4"
+              x2="60"
+              y2="60"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stop-color="#4285F4" />
+              <stop offset="50%" stop-color="#9B72CB" />
+              <stop offset="100%" stop-color="#D96570" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z"
+            fill="url(#sideGrad)"
+          />
+        </svg>
+      </button>
+
+      <canvas id="sidePetCanvas" width="120" height="120"></canvas>
     </div>
 
-    <label class="switch-row" for="side-live-switch">
-      <span>Activer le flux vocal continu</span>
-      <input id="side-live-switch" type="checkbox" switch />
-    </label>
+    <nav class="dock" aria-label="Contrôles Gemini Live">
+      <button
+        id="side-live-btn"
+        class="icon-btn"
+        type="button"
+        aria-label="Microphone Voice-to-Voice"
+        aria-pressed="false"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          <line x1="12" x2="12" y1="19" y2="22" />
+        </svg>
+      </button>
 
-    <button id="side-live-btn" class="btn" type="button">
-      Toggle /voice Live Mode
-    </button>
-    <div id="transcript-log">En attente de conversation vocale...</div>
+      <button
+        id="side-pet-dim-btn"
+        class="icon-btn"
+        type="button"
+        aria-label="Basculer 2D / 3D"
+        aria-pressed="true"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+          />
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+          <line x1="12" y1="22.08" x2="12" y2="12" />
+        </svg>
+      </button>
+    </nav>
+
     <script src="sidepanel.js" type="module"></script>
   </body>
 </html>

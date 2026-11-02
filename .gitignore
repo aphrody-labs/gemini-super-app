@@ -47,6 +47,7 @@ Thumbs.db
 .env.*.local
 *.secret.json
 config/secrets/
+config/*.lock
 media/*.mp4
 media/*.mp3
 media/*.wav

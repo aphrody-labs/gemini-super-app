@@ -306,4 +306,108 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     expect(petVoiceJson.wav_base64.length).toBeGreaterThan(500);
     expect(petVoiceJson.pet.reaction).toBe("celebrating");
   }, 45000);
+
+  test("serves clean-room Gemini Web App Replica (/app, S01-S05) and SQLite WAL conversation thread CRUD", async () => {
+    using srvObj = {
+      ...startGeminiSuperAppServer(0),
+      [Symbol.dispose]() {
+        this.cookieManager.stopAutoRefreshDaemon();
+        this.server.stop(true);
+        this.db.close();
+      },
+    };
+    const baseUrl = `http://127.0.0.1:${srvObj.server.port}`;
+
+    // 1. Verify /app serves all S01-S05 screens and semantic tokens
+    const appRes = await fetch(`${baseUrl}/app`);
+    expect(appRes.status).toBe(200);
+    const appHtml = await appRes.text();
+    expect(appHtml).toContain("zeroStateSection");
+    expect(appHtml).toContain("threadSection");
+    expect(appHtml).toContain("promptForm");
+    expect(appHtml).toContain("voiceOverlay");
+
+    // 2. List pre-seeded SQLite WAL conversations
+    const listRes = await fetch(`${baseUrl}/api/app/conversations`);
+    expect(listRes.status).toBe(200);
+    const listJson = (await listRes.json()) as {
+      conversations: Array<{ id: string; is_pinned: boolean }>;
+    };
+    expect(listJson.conversations.length).toBeGreaterThanOrEqual(1);
+    expect(listJson.conversations[0]?.id).toBe("seed-arch-bun");
+
+    // 3. Create new conversation & send message (vertical slice S01 -> S04 -> S02)
+    const createRes = await fetch(`${baseUrl}/api/app/conversations`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: "Test WCAG 2.2 AA & Bun SQLite",
+        model_id: "gemini-4-argon",
+      }),
+    });
+    expect(createRes.status).toBe(200);
+    const createJson = (await createRes.json()) as {
+      conversation: { id: string; title: string };
+    };
+    const chatId = createJson.conversation.id;
+
+    const msgRes = await fetch(
+      `${baseUrl}/api/app/conversations/${chatId}/messages`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          content: "Vérifie la persistance SQLite WAL et les citations.",
+          model: "gemini-4-argon",
+          attachments: [{ name: "spec.md", mimeType: "text/markdown" }],
+        }),
+      },
+    );
+    expect(msgRes.status).toBe(200);
+    const msgJson = (await msgRes.json()) as {
+      messages: Array<{
+        role: string;
+        content: string;
+        thought_process: string | null;
+        citations: Array<{ title: string; url: string }>;
+      }>;
+    };
+    expect(msgJson.messages.length).toBe(2);
+    expect(msgJson.messages[0]?.role).toBe("user");
+    expect(msgJson.messages[1]?.role).toBe("assistant");
+    expect(msgJson.messages[1]?.thought_process).toContain("gemini-4-argon");
+    expect(msgJson.messages[1]?.citations.length).toBeGreaterThan(0);
+
+    // 4. Pin and delete conversation
+    const patchRes = await fetch(`${baseUrl}/api/app/conversations/${chatId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ is_pinned: true }),
+    });
+    expect(patchRes.status).toBe(200);
+
+    const delRes = await fetch(`${baseUrl}/api/app/conversations/${chatId}`, {
+      method: "DELETE",
+    });
+    expect(delRes.status).toBe(200);
+
+    // 5. Verify Hardware Audio Auto-Detection + 11 Vendor Engines + Minimalist Voice Routes
+    const voiceRes = await fetch(`${baseUrl}/voice`);
+    expect(voiceRes.status).toBe(200);
+    const voiceHtml = await voiceRes.text();
+    expect(voiceHtml).toContain("AnimatedGeminiSvgOrb");
+    expect(voiceHtml).toContain("petCanvas");
+
+    const hwRes = await fetch(`${baseUrl}/api/audio/hardware`);
+    expect(hwRes.status).toBe(200);
+    const hwJson = (await hwRes.json()) as {
+      ok: boolean;
+      dspVerification: { sampleRateHz: number; spectrumBands32Count: number };
+      vendorEnginesActive: string[];
+    };
+    expect(hwJson.ok).toBe(true);
+    expect(hwJson.dspVerification.sampleRateHz).toBe(16000);
+    expect(hwJson.dspVerification.spectrumBands32Count).toBe(32);
+    expect(hwJson.vendorEnginesActive.length).toBe(11);
+  });
 });

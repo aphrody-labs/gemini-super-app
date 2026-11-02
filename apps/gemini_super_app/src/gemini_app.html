@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="fr" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Gemini</title>
+    <style>
+      :root {
+        --md-sys-color-surface: light-dark(#ffffff, #131314);
+        --md-sys-color-surface-container: light-dark(#f0f4f9, #1e1f20);
+        --md-sys-color-surface-container-high: light-dark(#e3e8ef, #282a2c);
+        --md-sys-color-on-surface: light-dark(#1f1f1f, #e3e3e3);
+        --md-sys-color-primary: light-dark(#0b57d0, #a8c7fa);
+        --md-sys-color-on-primary: light-dark(#ffffff, #042c6c);
+        --md-sys-color-outline-variant: light-dark(#c4c7c5, #333537);
+        color-scheme: light dark;
+        accent-color: var(--md-sys-color-primary);
+      }
+      html.dark {
+        color-scheme: dark;
+      }
+      html.light {
+        color-scheme: light;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
+        height: 100dvh;
+        width: 100vw;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+      }
+      .stage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 64px;
+      }
+      .gemini-orb-button,
+      .pet-button {
+        position: relative;
+        border: none;
+        background: transparent;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .gemini-orb-button {
+        width: 240px;
+        height: 240px;
+      }
+      .pet-button {
+        width: 180px;
+        height: 180px;
+      }
+      #orbSpectrumCanvas {
+        position: absolute;
+        inset: 0;
+        width: 240px;
+        height: 240px;
+        pointer-events: none;
+      }
+      #AnimatedGeminiSvgOrb {
+        width: 84px;
+        height: 84px;
+        filter: drop-shadow(0 0 28px rgba(168, 199, 250, 0.35));
+      }
+      #petCanvas {
+        width: 164px;
+        height: 164px;
+        pointer-events: none;
+      }
+      .dock {
+        position: fixed;
+        bottom: 36px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        border-radius: 9999px;
+        background-color: var(--md-sys-color-surface-container);
+        border: 1px solid var(--md-sys-color-outline-variant);
+      }
+      .icon-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 9999px;
+        border: none;
+        background: transparent;
+        color: var(--md-sys-color-on-surface);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .icon-btn:hover {
+        background-color: var(--md-sys-color-surface-container-high);
+      }
+      .icon-btn[aria-pressed="true"] {
+        background-color: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage" id="voiceOverlay">
+      <button
+        type="button"
+        class="gemini-orb-button"
+        id="orbVoiceTrigger"
+        aria-label="Gemini Live Voice"
+        aria-pressed="false"
+      >
+        <canvas id="orbSpectrumCanvas" width="240" height="240"></canvas>
+        <svg
+          id="AnimatedGeminiSvgOrb"
+          viewBox="0 0 64 64"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient
+              id="geminiOfficialGrad"
+              x1="6"
+              y1="6"
+              x2="58"
+              y2="58"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stop-color="#4285F4" />
+              <stop offset="50%" stop-color="#9B72CB" />
+              <stop offset="100%" stop-color="#D96570" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z"
+            fill="url(#geminiOfficialGrad)"
+          />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="pet-button"
+        id="petInteractBtn"
+        aria-label="Compagnon 2D/3D"
+      >
+        <canvas id="petCanvas" width="164" height="164"></canvas>
+      </button>
+    </main>
+
+    <!-- Hidden state containers for background API integration -->
+    <div id="zeroStateSection" hidden></div>
+    <div id="threadSection" hidden></div>
+    <form id="promptForm" hidden></form>
+
+    <nav class="dock" aria-label="Contrôles">
+      <button
+        type="button"
+        class="icon-btn"
+        id="micLiveBtn"
+        aria-label="Microphone Voice-to-Voice"
+        aria-pressed="false"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          <line x1="12" x2="12" y1="19" y2="22" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        id="petDimensionBtn"
+        aria-label="2D / 3D"
+        aria-pressed="true"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+          />
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+          <line x1="12" y1="22.08" x2="12" y2="12" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        id="petCharacterBtn"
+        aria-label="Changer de compagnon"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"
+          />
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        id="themeBtn"
+        aria-label="Thème clair ou sombre"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2" />
+          <path d="M12 20v2" />
+          <path d="M2 12h2" />
+          <path d="M20 12h2" />
+        </svg>
+      </button>
+    </nav>
+    <script src="/newtab.js"></script>
+  </body>
+</html>

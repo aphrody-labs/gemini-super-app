@@ -22,7 +22,9 @@ from pathlib import Path
 
 BASE_URL = "http://127.0.0.1:8765"
 ROOT_DIR = Path(r"C:\Users\aphro\google")
-PYTHON_EXE = ROOT_DIR / ".venv" / "Scripts" / "python.exe"
+PYTHON_EXE = ROOT_DIR / ".venv" / "Scripts" / "pythonw.exe"
+if not PYTHON_EXE.exists():
+    PYTHON_EXE = ROOT_DIR / ".venv" / "Scripts" / "python.exe"
 SERVER_SCRIPT = ROOT_DIR / "backend" / "voice_bridge_server.py"
 FLUTTER_WINDOWS_EXE = (
     ROOT_DIR
@@ -48,6 +50,23 @@ def ensure_server_running() -> bool:
     if is_server_running():
         return True
     creationflags = 0x08000000 if sys.platform == "win32" else 0  # CREATE_NO_WINDOW
+    # 1. Try triggering the persistent headless scheduled task
+    try:
+        res = subprocess.run(
+            ["schtasks.exe", "/run", "/tn", r"Aphrody\Aphrody Gemini Assistant 24x7"],
+            capture_output=True,
+            creationflags=creationflags,
+            timeout=3,
+        )
+        if res.returncode == 0:
+            for _ in range(15):
+                time.sleep(0.2)
+                if is_server_running():
+                    return True
+    except Exception:
+        pass
+
+    # 2. Fallback: run pythonw.exe (completely windowless)
     subprocess.Popen(
         [str(PYTHON_EXE), str(SERVER_SCRIPT)],
         cwd=str(ROOT_DIR),

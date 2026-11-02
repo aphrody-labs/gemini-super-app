@@ -1,27 +1,52 @@
 {
   "manifest_version": 3,
-  "name": "Gemini Live Voice & Antigravity Bridge",
-  "version": "1.1.0",
-  "description": "Real-time full-duplex voice conversations, speech dictation, and animated Gemini orb for Gemini Web, AI Studio, and Antigravity.",
+  "name": "Gemini Live Voice & Pet",
+  "short_name": "GeminiVoice",
+  "version": "1.2.0",
+  "description": "Minimalist Google Gemini Voice-to-Voice & 2D/3D Companion Pet for Chromium.",
+  "default_locale": "fr",
+  "minimum_chrome_version": "116",
+  "homepage_url": "https://github.com/aphrody-labs/gemini-super-app",
   "icons": {
     "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["storage", "tabs", "sidePanel", "contextMenus", "alarms", "cookies"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "sidePanel",
+    "contextMenus",
+    "alarms",
+    "cookies"
+  ],
   "host_permissions": [
     "https://*.google.com/*",
     "https://gemini.google.com/*",
     "https://aistudio.google.com/*",
     "https://antigravity.google.com/*",
+    "https://music.youtube.com/*",
     "http://127.0.0.1:8765/*",
-    "http://127.0.0.1:8787/*"
+    "http://127.0.0.1:8787/*",
+    "http://127.0.0.1:8788/*"
   ],
+  "options_ui": {
+    "page": "newtab/newtab.html",
+    "open_in_tab": true
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab/newtab.html"
+  },
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "Gemini Live Voice Hub",
+    "default_title": "Gemini",
     "default_icon": {
       "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
       "48": "icons/icon-48.png",
       "128": "icons/icon-128.png"
     }

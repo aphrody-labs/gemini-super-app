@@ -1,1310 +1,263 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gemini Pet Companion Studio — OpenPets × Gemini 3.8 Live</title>
+    <meta name="color-scheme" content="light dark" />
+    <title>Gemini Pet Companion Studio</title>
     <style>
       :root {
-        --bg: #0b0f19;
-        --surface: rgba(20, 26, 42, 0.88);
-        --surface-high: rgba(30, 39, 62, 0.94);
-        --border: rgba(148, 163, 184, 0.16);
-        --text: #f8fafc;
-        --muted: #94a3b8;
-        --accent: #60a5fa;
-        --purple: #a855f7;
-        --rose: #f472b6;
-        --emerald: #34d399;
-        --amber: #fbbf24;
+        --md-sys-color-surface: light-dark(#ffffff, #131314);
+        --md-sys-color-surface-container: light-dark(#f0f4f9, #1e1f20);
+        --md-sys-color-surface-container-high: light-dark(#e3e8ef, #282a2c);
+        --md-sys-color-on-surface: light-dark(#1f1f1f, #e3e3e3);
+        --md-sys-color-primary: light-dark(#0b57d0, #a8c7fa);
+        --md-sys-color-on-primary: light-dark(#ffffff, #042c6c);
+        --md-sys-color-outline-variant: light-dark(#c4c7c5, #333537);
+        color-scheme: light dark;
+        accent-color: var(--md-sys-color-primary);
+      }
+      html.dark {
+        color-scheme: dark;
+      }
+      html.light {
+        color-scheme: light;
       }
       * {
         box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
       body {
-        margin: 0;
-        font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-        background:
-          radial-gradient(
-            circle at 20% 10%,
-            rgba(78, 130, 238, 0.16),
-            transparent 45%
-          ),
-          radial-gradient(
-            circle at 80% 85%,
-            rgba(217, 101, 112, 0.15),
-            transparent 45%
-          ),
-          var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-        overflow-x: hidden;
+        background-color: var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
+        height: 100dvh;
+        width: 100vw;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
       }
-      header {
+      .stage {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 14px 24px;
-        border-bottom: 1px solid var(--border);
-        background: rgba(11, 15, 25, 0.82);
-        backdrop-filter: blur(16px);
-        position: sticky;
-        top: 0;
-        z-index: 40;
+        justify-content: center;
+        gap: 64px;
       }
-      .brand {
+      .gemini-orb-button,
+      .pet-button {
+        position: relative;
+        border: none;
+        background: transparent;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .gemini-orb-button {
+        width: 240px;
+        height: 240px;
+      }
+      .pet-button {
+        width: 180px;
+        height: 180px;
+      }
+      #orbSpectrumCanvas {
+        position: absolute;
+        inset: 0;
+        width: 240px;
+        height: 240px;
+        pointer-events: none;
+      }
+      #AnimatedGeminiSvgOrb {
+        width: 84px;
+        height: 84px;
+        filter: drop-shadow(0 0 28px rgba(168, 199, 250, 0.35));
+      }
+      #petCanvas {
+        width: 164px;
+        height: 164px;
+        pointer-events: none;
+      }
+      .dock {
+        position: fixed;
+        bottom: 36px;
         display: flex;
         align-items: center;
         gap: 12px;
-        font-weight: 700;
-        font-size: 16px;
+        padding: 8px 12px;
+        border-radius: 9999px;
+        background-color: var(--md-sys-color-surface-container);
+        border: 1px solid var(--md-sys-color-outline-variant);
       }
-      .badge {
-        font-size: 11px;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background: rgba(96, 165, 250, 0.15);
-        border: 1px solid rgba(96, 165, 250, 0.35);
-        color: #93c5fd;
-        font-weight: 600;
-      }
-      .nav-links {
-        display: flex;
-        gap: 10px;
-      }
-      .nav-links a {
-        color: var(--text);
-        text-decoration: none;
-        font-size: 13px;
-        padding: 7px 14px;
-        border-radius: 999px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        transition: all 0.18s ease;
-      }
-      .nav-links a:hover {
-        border-color: var(--accent);
-        background: var(--surface-high);
-      }
-      .layout {
-        display: grid;
-        grid-template-columns: 1fr 410px;
-        gap: 20px;
-        padding: 20px 24px;
-        max-width: 1560px;
-        margin: 0 auto;
-      }
-      @media (max-width: 1080px) {
-        .layout {
-          grid-template-columns: 1fr;
-        }
-      }
-      /* Interactive Pet Playground Arena */
-      .arena {
-        position: relative;
-        min-height: 640px;
-        border-radius: 24px;
-        background:
-          radial-gradient(
-            circle at 50% 35%,
-            rgba(99, 102, 241, 0.14),
-            rgba(15, 23, 42, 0.92)
-          ),
-          linear-gradient(
-            180deg,
-            rgba(30, 41, 59, 0.5) 0%,
-            rgba(15, 23, 42, 0.95) 100%
-          );
-        border: 1px solid var(--border);
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-        overflow: hidden;
-        user-select: none;
-      }
-      .arena-grid {
-        position: absolute;
-        inset: 0;
-        background-image: radial-gradient(
-          rgba(148, 163, 184, 0.12) 1px,
-          transparent 1px
-        );
-        background-size: 28px 28px;
-        pointer-events: none;
-      }
-      .arena-floor {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 46px;
-        background: linear-gradient(
-          180deg,
-          rgba(56, 189, 248, 0.08),
-          rgba(99, 102, 241, 0.22)
-        );
-        border-top: 1px solid rgba(96, 165, 250, 0.28);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 20px;
-        font-size: 12px;
-        color: var(--muted);
-        pointer-events: none;
-      }
-      /* Top HUD inside Arena */
-      .arena-hud {
-        position: absolute;
-        top: 16px;
-        left: 16px;
-        right: 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        pointer-events: none;
-        z-index: 10;
-      }
-      .tamagotchi-card {
-        pointer-events: auto;
-        background: rgba(15, 23, 42, 0.86);
-        backdrop-filter: blur(14px);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 12px 16px;
-        min-width: 280px;
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-      }
-      .tama-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 8px;
-      }
-      .tama-title {
-        font-weight: 700;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .level-pill {
-        font-size: 11px;
-        padding: 2px 8px;
-        border-radius: 999px;
-        background: linear-gradient(135deg, #4e82ee, #d96570);
-        color: #fff;
-        font-weight: 700;
-      }
-      .stat-row {
-        display: grid;
-        grid-template-columns: 66px 1fr 34px;
-        align-items: center;
-        gap: 8px;
-        font-size: 11.5px;
-        margin: 5px 0;
-      }
-      .stat-bar {
-        height: 7px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.09);
-        overflow: hidden;
-      }
-      .stat-fill {
-        height: 100%;
-        border-radius: 999px;
-        transition: width 0.3s ease;
-      }
-      /* Draggable & Throwable Pet Stage */
-      .pet-actor {
-        position: absolute;
-        width: 192px;
-        height: 208px;
-        cursor: grab;
-        z-index: 20;
-        touch-action: none;
-        will-change: transform, left, top;
-      }
-      .pet-actor:active {
-        cursor: grabbing;
-      }
-      .pet-speech-bubble {
-        position: absolute;
-        bottom: 206px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: max-content;
-        max-width: 270px;
-        padding: 10px 14px;
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.96);
-        color: #0f172a;
-        font-size: 12.5px;
-        font-weight: 600;
-        line-height: 1.38;
-        text-align: center;
-        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
-        pointer-events: none;
-        transition:
-          opacity 0.2s ease,
-          transform 0.2s ease;
-      }
-      .pet-speech-bubble::after {
-        content: "";
-        position: absolute;
-        bottom: -7px;
-        left: 50%;
-        transform: translateX(-50%);
-        border-width: 7px 7px 0;
-        border-style: solid;
-        border-color: rgba(255, 255, 255, 0.96) transparent transparent;
-      }
-      .pet-sprite-canvas {
-        width: 192px;
-        height: 208px;
-        background-image: url("/assets/openpets/gemini-pet-spritesheet.svg");
-        background-size: 1536px 2288px;
-        background-repeat: no-repeat;
-        filter: drop-shadow(0 12px 24px rgba(78, 130, 238, 0.32));
-        image-rendering: pixelated;
-      }
-      .pet-talk-fab {
-        position: absolute;
-        bottom: 8px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 5px 14px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        background: linear-gradient(135deg, #4e82ee, #9b72cb, #d96570);
-        color: #fff;
-        font-size: 11px;
-        font-weight: 700;
-        cursor: pointer;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-      }
-      /* Right Control Panel */
-      .sidebar {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 18px;
-      }
-      .card h2 {
-        margin: 0 0 12px;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #cbd5e1;
-      }
-      .btn-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-      }
-      .btn-grid-3 {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-      }
-      button.ctrl-btn {
-        padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        background: rgba(30, 41, 59, 0.8);
-        color: var(--text);
-        font-size: 12.5px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      button.ctrl-btn:hover {
-        border-color: var(--accent);
-        background: rgba(51, 65, 85, 0.9);
-      }
-      button.ctrl-btn.active {
-        border-color: #60a5fa;
-        background: linear-gradient(
-          135deg,
-          rgba(78, 130, 238, 0.32),
-          rgba(168, 85, 247, 0.32)
-        );
-      }
-      .voice-box {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .voice-input-row {
-        display: flex;
-        gap: 8px;
-      }
-      .voice-input-row input {
-        flex: 1;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        background: rgba(15, 23, 42, 0.85);
-        color: var(--text);
-        font-size: 13px;
-      }
-      .primary-btn {
-        padding: 11px 16px;
-        border-radius: 12px;
+      .icon-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 9999px;
         border: none;
-        background: linear-gradient(135deg, #4e82ee, #9b72cb, #d96570);
-        color: #fff;
-        font-weight: 700;
-        font-size: 13px;
+        background: transparent;
+        color: var(--md-sys-color-on-surface);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
       }
-      .fft-bars {
-        display: flex;
-        align-items: flex-end;
-        gap: 3px;
-        height: 44px;
-        padding: 6px;
-        border-radius: 10px;
-        background: rgba(15, 23, 42, 0.65);
+      .icon-btn:hover {
+        background-color: var(--md-sys-color-surface-container-high);
       }
-      .fft-bar {
-        flex: 1;
-        background: linear-gradient(180deg, #60a5fa, #d96570);
-        border-radius: 3px;
-        min-height: 4px;
-        transition: height 0.08s ease;
+      .icon-btn[aria-pressed="true"] {
+        background-color: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary);
       }
     </style>
   </head>
   <body>
-    <header>
-      <div class="brand">
-        <svg width="28" height="28" viewBox="0 0 100 100">
+    <main class="stage">
+      <button
+        type="button"
+        class="gemini-orb-button"
+        id="orbVoiceTrigger"
+        aria-label="Gemini Live Voice"
+        aria-pressed="false"
+      >
+        <canvas id="orbSpectrumCanvas" width="240" height="240"></canvas>
+        <svg
+          id="AnimatedGeminiSvgOrb"
+          viewBox="0 0 64 64"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
           <defs>
-            <linearGradient id="hdrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#4E82EE" />
+            <linearGradient
+              id="geminiOfficialGrad"
+              x1="6"
+              y1="6"
+              x2="58"
+              y2="58"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stop-color="#4285F4" />
               <stop offset="50%" stop-color="#9B72CB" />
               <stop offset="100%" stop-color="#D96570" />
             </linearGradient>
           </defs>
           <path
-            d="M50 4 C54 33, 67 46, 96 50 C67 54, 54 67, 50 96 C46 67, 33 54, 4 50 C33 46, 46 33, 50 4 Z"
-            fill="url(#hdrGrad)"
+            d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z"
+            fill="url(#geminiOfficialGrad)"
           />
         </svg>
-        <span>Gemini Pet Companion Studio</span>
-        <span class="badge">OpenPets Full Bun v1.4.5 × Gemini 3.8 Live</span>
-      </div>
-      <nav class="nav-links">
-        <a href="/">✦ Super App</a>
-        <a href="/windows-tauri">🪟 Windows Tauri v3</a>
-        <a href="/pet">🐾 Gemini Pet</a>
-      </nav>
-    </header>
+      </button>
 
-    <main class="layout">
-      <!-- Interactive Physics & Cursor-Gaze Pet Playground -->
-      <section class="arena" id="pet-arena">
-        <div class="arena-grid"></div>
-
-        <div class="arena-hud">
-          <div class="tamagotchi-card">
-            <div class="tama-header">
-              <span class="tama-title" id="hud-pet-name"
-                >Gemini Sparkle Pet ✦</span
-              >
-              <span class="level-pill" id="hud-level">LVL 2 · 45 XP</span>
-            </div>
-            <div class="stat-row">
-              <span>🍖 Food</span>
-              <div class="stat-bar">
-                <div
-                  class="stat-fill"
-                  id="bar-hunger"
-                  style="width: 86%; background: #34d399"
-                ></div>
-              </div>
-              <span id="val-hunger">86%</span>
-            </div>
-            <div class="stat-row">
-              <span>⚡ Energy</span>
-              <div class="stat-bar">
-                <div
-                  class="stat-fill"
-                  id="bar-energy"
-                  style="width: 92%; background: #60a5fa"
-                ></div>
-              </div>
-              <span id="val-energy">92%</span>
-            </div>
-            <div class="stat-row">
-              <span>🎾 Play</span>
-              <div class="stat-bar">
-                <div
-                  class="stat-fill"
-                  id="bar-happiness"
-                  style="width: 88%; background: #fbbf24"
-                ></div>
-              </div>
-              <span id="val-happiness">88%</span>
-            </div>
-            <div class="stat-row">
-              <span>💛 Bond</span>
-              <div class="stat-bar">
-                <div
-                  class="stat-fill"
-                  id="bar-affection"
-                  style="width: 78%; background: #f472b6"
-                ></div>
-              </div>
-              <span id="val-affection">78%</span>
-            </div>
-          </div>
-
-          <div class="tamagotchi-card" style="min-width: 220px">
-            <div class="tama-header">
-              <span class="tama-title">État & Physique</span>
-              <span class="badge" id="hud-mood">HAPPY</span>
-            </div>
-            <div style="font-size: 12px; color: var(--muted); line-height: 1.5">
-              <div>
-                Animation :
-                <strong style="color: #fff" id="hud-sprite-state"
-                  >idle (row 0)</strong
-                >
-              </div>
-              <div>
-                Regard 16-secteurs :
-                <strong style="color: #93c5fd" id="hud-gaze">Centre</strong>
-              </div>
-              <div>
-                Astuce : <em>Glisse et lance le compagnon avec la souris !</em>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Draggable & Throwable Pet Actor -->
-        <div class="pet-actor" id="pet-actor" style="left: 260px; top: 340px">
-          <div class="pet-speech-bubble" id="pet-bubble">
-            Bonjour ! Je suis ton Gemini Pet ✦ Clique sur moi, lance-moi ou
-            parle-moi en Live !
-          </div>
-          <div class="pet-sprite-canvas" id="pet-sprite"></div>
-          <button
-            class="pet-talk-fab"
-            id="pet-talk-fab"
-            type="button"
-            data-openpets-talk-button="true"
-          >
-            🎙️ Parler Live
-          </button>
-        </div>
-
-        <div class="arena-floor">
-          <span
-            >Sol Physique OpenPets (`stepThrow` · Gravité 2200 px/s² · Rebond
-            0.72)</span
-          >
-          <span id="physics-coords">x: 260, y: 340 | vx: 0, vy: 0</span>
-        </div>
-      </section>
-
-      <!-- Control Sidebar -->
-      <aside class="sidebar">
-        <div class="card">
-          <h2>1. Choix du Compagnon & Garde-Robe</h2>
-          <div class="btn-grid-3" style="margin-bottom: 10px">
-            <button
-              class="ctrl-btn active"
-              id="btn-pet-gemini"
-              onclick="switchPetCharacter('gemini-sparkle')"
-            >
-              ✦ Gemini Sparkle
-            </button>
-            <button
-              class="ctrl-btn"
-              id="btn-pet-cat"
-              onclick="switchPetCharacter('hoodie-cat')"
-            >
-              🐾 Hoodie Cat
-            </button>
-            <button
-              class="ctrl-btn"
-              id="btn-pet-mochi"
-              onclick="switchPetCharacter('mochi')"
-            >
-              🌱 Mochi Deskling
-            </button>
-          </div>
-          <div class="btn-grid-3" id="outfit-buttons">
-            <button class="ctrl-btn active" onclick="selectOutfit('default')">
-              Classique
-            </button>
-            <button class="ctrl-btn" onclick="selectOutfit('pajamas')">
-              Pyjama
-            </button>
-            <button class="ctrl-btn" onclick="selectOutfit('weekend')">
-              Week-end
-            </button>
-            <button class="ctrl-btn" onclick="selectOutfit('summer')">
-              Été
-            </button>
-            <button class="ctrl-btn" onclick="selectOutfit('halloween')">
-              Halloween
-            </button>
-            <button class="ctrl-btn" onclick="selectOutfit('holidays')">
-              Hiver
-            </button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>1b. Mochi 🌱 Cross-Platform (12 Emotes Bond, Focus & Pocket)</h2>
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              font-size: 11.5px;
-              color: #93c5fd;
-              margin-bottom: 8px;
-            "
-          >
-            <span id="mochi-bond-label">Bond LVL 12 · 180/779 XP</span>
-            <span id="mochi-focus-label">Focus : IDLE</span>
-          </div>
-          <div class="btn-grid-3" style="margin-bottom: 8px">
-            <button class="ctrl-btn" onclick="triggerMochiEmote('heart')">
-              💚 Heart
-            </button>
-            <button class="ctrl-btn" onclick="triggerMochiEmote('bounce')">
-              🌱 Bounce
-            </button>
-            <button class="ctrl-btn" onclick="triggerMochiEmote('squish')">
-              🍡 Squish
-            </button>
-            <button class="ctrl-btn" onclick="triggerMochiEmote('coffee')">
-              ☕ Coffee
-            </button>
-            <button class="ctrl-btn" onclick="triggerMochiEmote('side-eye')">
-              👀 Side-Eye
-            </button>
-            <button class="ctrl-btn" onclick="triggerMochiEmote('table-flip')">
-              ╯°□°╯ Flip
-            </button>
-            <button
-              class="ctrl-btn"
-              onclick="triggerMochiEmote('this-is-fine')"
-            >
-              🔥 Fine
-            </button>
-            <button class="ctrl-btn" onclick="triggerMochiEmote('dance')">
-              💃 Dance
-            </button>
-            <button class="ctrl-btn" onclick="triggerMochiEmote('mochi-exe')">
-              ⚡ mochi.exe
-            </button>
-          </div>
-          <div class="btn-grid">
-            <button class="ctrl-btn" onclick="startMochiFocusSession()">
-              ⏱️ Focus 25m
-            </button>
-            <button class="ctrl-btn" onclick="stashMochiPocketNote()">
-              🎒 Pocket Stash
-            </button>
-          </div>
-          <div class="btn-grid" style="margin-top: 8px">
-            <button class="ctrl-btn" onclick="generateAndDownload3dGlb()">
-              🧊 Export 2D PNG → 3D .GLB (wgpu)
-            </button>
-            <button
-              class="ctrl-btn"
-              id="btn-3d-tilt"
-              onclick="toggle3dWgpuMode()"
-            >
-              ✨ Mode 3D Relief : OFF
-            </button>
-          </div>
-          <div
-            id="glb-3d-stats"
-            style="font-size: 11px; color: #34d399; margin-top: 6px"
-          ></div>
-        </div>
-
-        <div class="card">
-          <h2>2. Soins Tamagotchi (`openpets.virtual-pet`)</h2>
-          <div class="btn-grid">
-            <button class="ctrl-btn" onclick="triggerPetAction('feed')">
-              🍖 Nourrir (+Food)
-            </button>
-            <button class="ctrl-btn" onclick="triggerPetAction('play')">
-              🎾 Jouer (+Play)
-            </button>
-            <button class="ctrl-btn" onclick="triggerPetAction('pet')">
-              💛 Caresser (+Bond)
-            </button>
-            <button class="ctrl-btn" onclick="triggerPetAction('nap')">
-              ☾ Sieste (+Energy)
-            </button>
-          </div>
-          <div class="btn-grid" style="margin-top: 8px">
-            <button class="ctrl-btn" onclick="flingPetRandom()">
-              🚀 Lancer Acrobate
-            </button>
-            <button class="ctrl-btn" id="btn-gravity" onclick="toggleGravity()">
-              🌍 Gravité : ON
-            </button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>3. Réactions Agent & Animations (9 Rows)</h2>
-          <div class="btn-grid-3">
-            <button class="ctrl-btn" onclick="triggerReaction('idle')">
-              Idle
-            </button>
-            <button class="ctrl-btn" onclick="triggerReaction('thinking')">
-              Thinking
-            </button>
-            <button class="ctrl-btn" onclick="triggerReaction('working')">
-              Working
-            </button>
-            <button class="ctrl-btn" onclick="triggerReaction('editing')">
-              Editing
-            </button>
-            <button class="ctrl-btn" onclick="triggerReaction('running')">
-              Running
-            </button>
-            <button class="ctrl-btn" onclick="triggerReaction('testing')">
-              Testing
-            </button>
-            <button class="ctrl-btn" onclick="triggerReaction('waiting')">
-              Waiting
-            </button>
-            <button class="ctrl-btn" onclick="triggerReaction('waving')">
-              Waving
-            </button>
-            <button class="ctrl-btn" onclick="triggerReaction('celebrating')">
-              Celebrate 🎉
-            </button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>4. Dialogue Vocal Gemini 3.8 Live (`BidiGenerateContent`)</h2>
-          <div class="voice-box">
-            <div class="voice-input-row">
-              <input
-                type="text"
-                id="pet-voice-prompt"
-                value="Coucou Gemini Pet ! Dis-moi une phrase rigolote en français."
-                placeholder="Parle à ton compagnon Gemini Pet..."
-              />
-            </div>
-            <button
-              class="primary-btn"
-              id="btn-live-talk"
-              onclick="talkToGeminiPetLive()"
-            >
-              🎙️ Parler au Gemini Pet (Gemini 3.8 Live 24 kHz)
-            </button>
-            <div class="fft-bars" id="fft-bars"></div>
-            <audio
-              id="pet-audio-player"
-              controls
-              style="width: 100%; height: 34px"
-            ></audio>
-          </div>
-        </div>
-      </aside>
+      <button
+        type="button"
+        class="pet-button"
+        id="petInteractBtn"
+        aria-label="Compagnon 2D/3D"
+      >
+        <canvas id="petCanvas" width="164" height="164"></canvas>
+      </button>
     </main>
 
-    <script>
-      const arena = document.getElementById("pet-arena");
-      const actor = document.getElementById("pet-actor");
-      const spriteEl = document.getElementById("pet-sprite");
-      const bubbleEl = document.getElementById("pet-bubble");
-      const fftContainer = document.getElementById("fft-bars");
-
-      for (let i = 0; i < 32; i++) {
-        const bar = document.createElement("div");
-        bar.className = "fft-bar";
-        bar.style.height = "6px";
-        fftContainer.appendChild(bar);
-      }
-
-      const ROW_BY_STATE = {
-        idle: 0,
-        "running-right": 1,
-        "running-left": 2,
-        waving: 3,
-        jumping: 4,
-        failed: 5,
-        waiting: 6,
-        running: 7,
-        review: 8,
-      };
-
-      let currentPetId = "gemini-sparkle";
-      let currentOutfitId = "default";
-      let currentSpriteState = "idle";
-      let currentMochiAnimation = "idle_breathe";
-      let currentFrameCol = 0;
-      let gazeDirection = null;
-      let gravityEnabled = true;
-
-      const MOCHI_ANIM_MAP = {
-        idle_breathe: {
-          frames: [
-            "idle/idle_01.png",
-            "idle/idle_02.png",
-            "idle/idle_03.png",
-            "idle/idle_04.png",
-            "idle/idle_05.png",
-            "idle/idle_06.png",
-          ],
-        },
-        bounce: {
-          frames: [
-            "bounce/bounce_01.png",
-            "bounce/bounce_02.png",
-            "bounce/bounce_03.png",
-            "bounce/bounce_04.png",
-            "bounce/bounce_05.png",
-            "bounce/bounce_06.png",
-            "bounce/bounce_07.png",
-          ],
-        },
-        wave: { sheet: "wave/wave.png", count: 8 },
-        squish: {
-          frames: [
-            "squish/squish_01.png",
-            "squish/squish_02.png",
-            "squish/squish_03.png",
-            "squish/squish_04.png",
-            "squish/squish_05.png",
-            "squish/squish_06.png",
-          ],
-        },
-        look: {
-          frames: [
-            "look/look_01.png",
-            "look/look_02.png",
-            "look/look_03.png",
-            "look/look_04.png",
-            "look/look_05.png",
-            "look/look_06.png",
-            "look/look_07.png",
-            "look/look_08.png",
-            "look/look_09.png",
-            "look/look_10.png",
-          ],
-        },
-        dance: {
-          frames: [
-            "dance/dance_01.png",
-            "dance/dance_02.png",
-            "dance/dance_03.png",
-            "dance/dance_04.png",
-            "dance/dance_05.png",
-            "dance/dance_06.png",
-            "dance/dance_07.png",
-            "dance/dance_08.png",
-          ],
-        },
-        eat: {
-          frames: Array.from(
-            { length: 16 },
-            (_, i) => `eat/mochi_eat_${String(i + 1).padStart(4, "0")}.png`,
-          ),
-        },
-        sleep: {
-          frames: [
-            "sleeping/sleeping_01.png",
-            "sleeping/sleeping_02.png",
-            "sleeping/sleeping_03.png",
-          ],
-        },
-        coworking: {
-          frames: Array.from(
-            { length: 11 },
-            (_, i) => `terminal/terminal_${String(i + 1).padStart(2, "0")}.png`,
-          ),
-        },
-        agent_cowork: {
-          frames: Array.from(
-            { length: 18 },
-            (_, i) => `agent/agent_loop_${String(i + 1).padStart(2, "0")}.png`,
-          ),
-        },
-        headphones: {
-          frames: Array.from(
-            { length: 10 },
-            (_, i) =>
-              `sway_idle/sway_idle_${String(i + 1).padStart(2, "0")}.png`,
-          ),
-        },
-        focus: { sheet: "focus/focus_loop.png", count: 24 },
-        focus_celebrate: {
-          sheet: "level_up_default/level_up_default.png",
-          count: 16,
-        },
-        pocket_receive: {
-          frames: Array.from(
-            { length: 8 },
-            (_, i) =>
-              `pocket_grab/mochi_pocket_grab_${String(i + 1).padStart(4, "0")}.png`,
-          ),
-        },
-        emote_heart: {
-          frames: Array.from(
-            { length: 16 },
-            (_, i) => `heart/heart_${String(i + 1).padStart(2, "0")}.png`,
-          ),
-        },
-        emote_coffee: {
-          frames: Array.from(
-            { length: 21 },
-            (_, i) =>
-              `coffee/mochi_coffee_${String(i + 1).padStart(4, "0")}.png`,
-          ),
-        },
-        emote_side_eye: { sheet: "side_eye/side_eye.png", count: 13 },
-        emote_table_flip: { sheet: "table_flip/table_flip.png", count: 16 },
-        emote_this_is_fine: {
-          sheet: "this_is_fine/this_is_fine.png",
-          count: 16,
-        },
-        emote_vs_code: { sheet: "vs_code/vs_code.png", count: 14 },
-        emote_mochi_exe: { sheet: "mochi_exe/mochi_exe.png", count: 16 },
-      };
-
-      // Physics state (`stepThrow`)
-      let phys = {
-        x: 260,
-        y: 340,
-        vx: 0,
-        vy: 0,
-        dragging: false,
-        dragOffsetX: 0,
-        dragOffsetY: 0,
-        samples: [],
-      };
-
-      function updateSpriteBackgroundUrl() {
-        if (currentPetId === "gemini-sparkle") {
-          spriteEl.style.backgroundImage =
-            'url("/assets/openpets/gemini-pet-spritesheet.svg")';
-          spriteEl.style.backgroundSize = "1536px 2288px";
-        } else if (currentPetId === "mochi") {
-          const anim = currentMochiAnimation || "idle_breathe";
-          const spec = MOCHI_ANIM_MAP[anim] || MOCHI_ANIM_MAP.idle_breathe;
-          if (spec.sheet) {
-            spriteEl.style.backgroundImage = `url("/assets/mochi/mochi/${spec.sheet}")`;
-            spriteEl.style.backgroundSize = `${spec.count * 192}px 192px`;
-          } else {
-            const firstFrame = spec.frames[0] || "master/mochi_default.png";
-            spriteEl.style.backgroundImage = `url("/assets/mochi/mochi/${firstFrame}")`;
-            spriteEl.style.backgroundSize = "192px 192px";
-          }
-        } else {
-          const url =
-            currentOutfitId === "default"
-              ? "/assets/openpets/default-pet-spritesheet.webp"
-              : `/assets/openpets/outfits/${currentOutfitId}.webp`;
-          spriteEl.style.backgroundImage = `url("${url}")`;
-          spriteEl.style.backgroundSize = "1536px 2288px";
-        }
-      }
-
-      function applyHudSnapshot(pet) {
-        if (!pet) return;
-        currentPetId = pet.activePetId;
-        currentOutfitId = pet.activeOutfitId;
-        currentSpriteState = pet.spriteState || "idle";
-        currentMochiAnimation = pet.mochiAnimation || "idle_breathe";
-        updateSpriteBackgroundUrl();
-
-        document.getElementById("hud-pet-name").textContent =
-          currentPetId === "gemini-sparkle"
-            ? "Gemini Sparkle Pet ✦"
-            : currentPetId === "mochi"
-              ? "Mochi 🌱 Cross-Platform Deskling"
-              : "OpenPets Hoodie Cat 🐾";
-        document.getElementById("hud-level").textContent =
-          `LVL ${pet.level} · ${pet.xp} XP`;
-        document.getElementById("hud-mood").textContent = String(
-          pet.mood || "happy",
-        ).toUpperCase();
-        document.getElementById("hud-sprite-state").textContent =
-          currentPetId === "mochi"
-            ? `mochi:${currentMochiAnimation}`
-            : `${currentSpriteState} (row ${ROW_BY_STATE[currentSpriteState] ?? 0})`;
-
-        if (pet.mochiBond) {
-          document.getElementById("mochi-bond-label").textContent =
-            `Bond LVL ${pet.mochiBond.level} · ${pet.mochiBond.xp}/${pet.mochiBond.xpNeeded} XP (${pet.mochiBond.phase})`;
-        }
-        if (pet.mochiFocus) {
-          document.getElementById("mochi-focus-label").textContent =
-            `Focus : ${String(pet.mochiFocus.phase).toUpperCase()}`;
-        }
-
-        for (const stat of ["hunger", "energy", "happiness", "affection"]) {
-          const v = Math.round(pet[stat] ?? 80);
-          document.getElementById(`bar-${stat}`).style.width = `${v}%`;
-          document.getElementById(`val-${stat}`).textContent = `${v}%`;
-        }
-        if (pet.speechText) {
-          bubbleEl.textContent = pet.speechText;
-        }
-        document
-          .getElementById("btn-pet-gemini")
-          .classList.toggle("active", currentPetId === "gemini-sparkle");
-        document
-          .getElementById("btn-pet-cat")
-          .classList.toggle("active", currentPetId === "hoodie-cat");
-        const mochiBtn = document.getElementById("btn-pet-mochi");
-        if (mochiBtn) {
-          mochiBtn.classList.toggle("active", currentPetId === "mochi");
-        }
-      }
-
-      // 8 FPS Sprite Frame Animator + 16-Direction Cursor Gaze + Mochi 256x256 Pixel-Art
-      setInterval(() => {
-        if (currentPetId === "mochi") {
-          const anim = currentMochiAnimation || "idle_breathe";
-          const spec = MOCHI_ANIM_MAP[anim] || MOCHI_ANIM_MAP.idle_breathe;
-          if (spec.sheet) {
-            currentFrameCol = (currentFrameCol + 1) % spec.count;
-            const bgX = -currentFrameCol * 192;
-            spriteEl.style.backgroundPosition = `${bgX}px 8px`;
-          } else {
-            currentFrameCol = (currentFrameCol + 1) % spec.frames.length;
-            const frameRel = spec.frames[currentFrameCol];
-            spriteEl.style.backgroundImage = `url("/assets/mochi/mochi/${frameRel}")`;
-            spriteEl.style.backgroundPosition = "0px 8px";
-          }
-          return;
-        }
-
-        currentFrameCol = (currentFrameCol + 1) % 8;
-        let row = ROW_BY_STATE[currentSpriteState] ?? 0;
-        let col = currentFrameCol;
-
-        if (Math.abs(phys.vx) > 90 && !phys.dragging) {
-          row = phys.vx > 0 ? 1 : 2;
-        } else if (currentSpriteState === "idle" && gazeDirection !== null) {
-          row = 9 + Math.floor(gazeDirection / 8);
-          col = gazeDirection % 8;
-        }
-
-        const bgX = -col * 192;
-        const bgY = -row * 208;
-        spriteEl.style.backgroundPosition = `${bgX}px ${bgY}px`;
-      }, 115);
-
-      // 60 FPS Physics Loop (`stepThrow`)
-      let lastTick = performance.now();
-      function stepPhysicsLoop(now) {
-        const dt = Math.min(0.04, Math.max(0.001, (now - lastTick) / 1000));
-        lastTick = now;
-
-        const maxX = Math.max(20, arena.clientWidth - 200);
-        const maxY = Math.max(40, arena.clientHeight - 254);
-
-        if (!phys.dragging) {
-          const gravity = gravityEnabled ? 2200 : 0;
-          const airDrag = Math.pow(0.992, dt * 60);
-          phys.vx *= airDrag;
-          phys.vy = (phys.vy + gravity * dt) * airDrag;
-          phys.x += phys.vx * dt;
-          phys.y += phys.vy * dt;
-
-          if (phys.x < 12) {
-            phys.x = 12;
-            phys.vx = -phys.vx * 0.72;
-          } else if (phys.x > maxX) {
-            phys.x = maxX;
-            phys.vx = -phys.vx * 0.72;
-          }
-
-          if (phys.y < 60) {
-            phys.y = 60;
-            phys.vy = -phys.vy * 0.58;
-          } else if (phys.y >= maxY) {
-            phys.y = maxY;
-            if (Math.abs(phys.vy) > 95) {
-              phys.vy = -phys.vy * 0.58;
-            } else {
-              phys.vy = 0;
-            }
-            phys.vx *= Math.pow(0.86, dt * 60);
-            if (Math.abs(phys.vx) < 18) phys.vx = 0;
-          }
-        }
-
-        actor.style.left = `${Math.round(phys.x)}px`;
-        actor.style.top = `${Math.round(phys.y)}px`;
-        document.getElementById("physics-coords").textContent =
-          `x: ${Math.round(phys.x)}, y: ${Math.round(phys.y)} | vx: ${Math.round(phys.vx)}, vy: ${Math.round(phys.vy)}`;
-
-        requestAnimationFrame(stepPhysicsLoop);
-      }
-      requestAnimationFrame(stepPhysicsLoop);
-
-      // Pointer drag & fling + 16-sector gaze tracking
-      arena.addEventListener("pointermove", (e) => {
-        const rect = arena.getBoundingClientRect();
-        const cx = phys.x + 96;
-        const cy = phys.y + 104;
-        const dx = e.clientX - rect.left - cx;
-        const dy = e.clientY - rect.top - cy;
-        if (Math.hypot(dx, dy) > 18) {
-          const angle = (Math.atan2(dx, -dy) + Math.PI * 2) % (Math.PI * 2);
-          const sector =
-            Math.floor((angle + Math.PI / 16) / (Math.PI / 8)) % 16;
-          gazeDirection = sector;
-          document.getElementById("hud-gaze").textContent =
-            `Secteur ${sector}/16`;
-        } else {
-          gazeDirection = null;
-          document.getElementById("hud-gaze").textContent = "Centre";
-        }
-
-        if (phys.dragging) {
-          phys.x = Math.max(
-            10,
-            Math.min(
-              arena.clientWidth - 200,
-              e.clientX - rect.left - phys.dragOffsetX,
-            ),
-          );
-          phys.y = Math.max(
-            50,
-            Math.min(
-              arena.clientHeight - 254,
-              e.clientY - rect.top - phys.dragOffsetY,
-            ),
-          );
-          const t = performance.now();
-          phys.samples.push({ x: phys.x, y: phys.y, t });
-          while (phys.samples.length > 8) phys.samples.shift();
-        }
-      });
-
-      actor.addEventListener("pointerdown", (e) => {
-        if (e.target.id === "pet-talk-fab") return;
-        const rect = arena.getBoundingClientRect();
-        phys.dragging = true;
-        phys.vx = 0;
-        phys.vy = 0;
-        phys.dragOffsetX = e.clientX - rect.left - phys.x;
-        phys.dragOffsetY = e.clientY - rect.top - phys.y;
-        phys.samples = [{ x: phys.x, y: phys.y, t: performance.now() }];
-        actor.setPointerCapture(e.pointerId);
-      });
-
-      actor.addEventListener("pointerup", (e) => {
-        if (!phys.dragging) return;
-        phys.dragging = false;
-        if (phys.samples.length >= 2) {
-          const first = phys.samples[0];
-          const last = phys.samples[phys.samples.length - 1];
-          const dtMs = Math.max(8, last.t - first.t);
-          phys.vx = Math.max(
-            -2400,
-            Math.min(2400, ((last.x - first.x) / dtMs) * 1000),
-          );
-          phys.vy = Math.max(
-            -2400,
-            Math.min(2400, ((last.y - first.y) / dtMs) * 1000),
-          );
-          if (Math.hypot(phys.vx, phys.vy) < 60) {
-            triggerPetAction("pet");
-          }
-        }
-      });
-
-      document.getElementById("pet-talk-fab").addEventListener("click", () => {
-        talkToGeminiPetLive();
-      });
-
-      async function triggerPetAction(action, extra = {}) {
-        const res = await fetch("/api/pet/action", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ action, ...extra }),
-        });
-        const data = await res.json();
-        applyHudSnapshot(data.pet);
-      }
-
-      function playMochiAudio(cue) {
-        const audio = new Audio(`/assets/mochi/audio/${cue}`);
-        audio.volume = 0.45;
-        audio.play().catch(() => {});
-      }
-
-      function switchPetCharacter(petId) {
-        if (petId === "mochi") {
-          playMochiAudio("mochi_chirp_01.ogg");
-        }
-        triggerPetAction("switchPet", { petId });
-      }
-
-      function triggerMochiEmote(emoteId) {
-        if (currentPetId !== "mochi") {
-          currentPetId = "mochi";
-          triggerPetAction("switchPet", { petId: "mochi" });
-        }
-        playMochiAudio("pet.wav");
-        triggerPetAction("mochi-emote", { emoteId });
-      }
-
-      function startMochiFocusSession() {
-        if (currentPetId !== "mochi") {
-          currentPetId = "mochi";
-          triggerPetAction("switchPet", { petId: "mochi" });
-        }
-        playMochiAudio("level_up.ogg");
-        triggerPetAction("mochi-focus-start", {
-          focusMinutes: 25,
-          breakMinutes: 5,
-          cycles: 1,
-        });
-      }
-
-      function stashMochiPocketNote() {
-        const val = document.getElementById("pet-voice-prompt").value;
-        if (currentPetId !== "mochi") {
-          currentPetId = "mochi";
-          triggerPetAction("switchPet", { petId: "mochi" });
-        }
-        playMochiAudio("drop.ogg");
-        triggerPetAction("mochi-pocket-add", {
-          pocketKind: "text",
-          pocketValue: val || "Note Mochi Cross-Platform 🌱",
-          pocketTitle: (val || "Note Mochi").slice(0, 36),
-        });
-      }
-
-      let is3dReliefEnabled = false;
-      function toggle3dWgpuMode() {
-        is3dReliefEnabled = !is3dReliefEnabled;
-        document.getElementById("btn-3d-tilt").textContent =
-          `✨ Mode 3D Relief : ${is3dReliefEnabled ? "ON" : "OFF"}`;
-        if (is3dReliefEnabled) {
-          spriteEl.style.transform =
-            "perspective(520px) rotateY(-18deg) rotateX(10deg) translateZ(16px)";
-          spriteEl.style.filter =
-            "drop-shadow(6px 10px 0px rgba(15, 23, 42, 0.75)) drop-shadow(0 18px 28px rgba(52, 211, 153, 0.45))";
-        } else {
-          spriteEl.style.transform = "none";
-          spriteEl.style.filter =
-            "drop-shadow(0 12px 24px rgba(78, 130, 238, 0.32))";
-        }
-      }
-
-      async function generateAndDownload3dGlb() {
-        const spriteParam =
-          currentPetId === "hoodie-cat"
-            ? "hoodie-cat"
-            : "mochi/master/mochi_default.png";
-        const statsEl = document.getElementById("glb-3d-stats");
-        statsEl.textContent =
-          "⏳ Extrusion 2D PNG → 3D Voxel Mesh & glTF 2.0 .GLB (gfx-rs/wgpu)...";
-        const res = await fetch(
-          `/api/pet/3d/glb?sprite=${encodeURIComponent(spriteParam)}&depth=0.16&step=6`,
-        );
-        const data = await res.json();
-        if (data.ok) {
-          statsEl.textContent = `✓ GLB 2.0 prêt : ${data.voxelCount} voxels · ${data.triangleCount} triangles · ${(data.glbByteLength / 1024).toFixed(1)} KB (WGSL wgpu inclus)`;
-          const binStr = atob(data.glbBase64);
-          const bytes = new Uint8Array(binStr.length);
-          for (let i = 0; i < binStr.length; i++) {
-            bytes[i] = binStr.charCodeAt(i);
-          }
-          const blob = new Blob([bytes], { type: "model/gltf-binary" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `${currentPetId}-3d-companion.glb`;
-          a.click();
-          URL.revokeObjectURL(url);
-        }
-      }
-
-      function selectOutfit(outfitId) {
-        if (currentPetId !== "hoodie-cat") {
-          currentPetId = "hoodie-cat";
-          triggerPetAction("switchPet", { petId: "hoodie-cat", outfitId });
-        } else {
-          triggerPetAction("outfit", { outfitId });
-        }
-      }
-
-      function triggerReaction(reaction) {
-        triggerPetAction("react", { reaction });
-      }
-
-      function flingPetRandom() {
-        phys.vy = -1150;
-        phys.vx = (Math.random() > 0.5 ? 1 : -1) * (650 + Math.random() * 550);
-        triggerPetAction("play");
-      }
-
-      function toggleGravity() {
-        gravityEnabled = !gravityEnabled;
-        document.getElementById("btn-gravity").textContent =
-          `🌍 Gravité : ${gravityEnabled ? "ON" : "OFF"}`;
-        triggerPetAction("physics", { gravityEnabled });
-      }
-
-      async function talkToGeminiPetLive() {
-        const btn = document.getElementById("btn-live-talk");
-        const prompt = document.getElementById("pet-voice-prompt").value;
-        btn.disabled = true;
-        btn.textContent = "⏳ Connexion Gemini 3.8 Live en cours...";
-        bubbleEl.textContent =
-          "J'écoute et je réfléchis en Gemini 3.8 Live... ✦";
-        currentSpriteState = "review";
-
-        try {
-          const res = await fetch("/api/pet/voice", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ prompt, voice: "Puck" }),
-          });
-          const data = await res.json();
-          applyHudSnapshot(data.pet);
-          phys.vy = -520;
-
-          if (data.orb_spectrum?.bands) {
-            const bars = fftContainer.querySelectorAll(".fft-bar");
-            data.orb_spectrum.bands.forEach((v, idx) => {
-              if (bars[idx]) {
-                bars[idx].style.height =
-                  `${Math.max(6, Math.min(40, Math.round(v * 38)))}px`;
-              }
-            });
-          }
-          if (data.wav_base64) {
-            const player = document.getElementById("pet-audio-player");
-            player.src = `data:audio/wav;base64,${data.wav_base64}`;
-            player.play().catch(() => {});
-          }
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "🎙️ Parler au Gemini Pet (Gemini 3.8 Live 24 kHz)";
-        }
-      }
-
-      fetch("/api/pet/state")
-        .then((r) => r.json())
-        .then((d) => applyHudSnapshot(d.pet));
-    </script>
+    <nav class="dock" aria-label="Contrôles">
+      <button
+        type="button"
+        class="icon-btn"
+        id="micLiveBtn"
+        aria-label="Microphone Voice-to-Voice"
+        aria-pressed="false"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          <line x1="12" x2="12" y1="19" y2="22" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        id="petDimensionBtn"
+        aria-label="2D / 3D"
+        aria-pressed="true"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+          />
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+          <line x1="12" y1="22.08" x2="12" y2="12" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        id="petCharacterBtn"
+        aria-label="Changer de compagnon"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"
+          />
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        id="themeBtn"
+        aria-label="Thème clair ou sombre"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2" />
+          <path d="M12 20v2" />
+          <path d="M2 12h2" />
+          <path d="M20 12h2" />
+        </svg>
+      </button>
+    </nav>
+    <script src="/newtab.js"></script>
   </body>
 </html>

@@ -37,9 +37,11 @@ ASAR_BAK_PATH = GEMINI_APP_DIR / "resources" / "app.asar.bak"
 ROAMING_SETTINGS = Path(r"C:\Users\aphro\AppData\Roaming\gemini\settings.json")
 
 WORKSPACE_ROOT = Path(r"C:\Users\aphro\google")
-EXTRACTED_DIR = WORKSPACE_ROOT / "gemini_windows_ext" / "asar_extracted"
-EXT_CONTENT_JS = WORKSPACE_ROOT / "extensions" / "gemini_voice_extension" / "content.js"
+EXTRACTED_DIR = WORKSPACE_ROOT / "apps" / "gemini_windows_patcher" / "asar_extracted"
+EXT_CONTENT_JS = WORKSPACE_ROOT / "apps" / "gemini_voice_extension" / "content.js"
 BRIDGE_HTTP = "http://127.0.0.1:8765"
+SUPER_APP_HTTP = "http://127.0.0.1:8787"
+TAURI_V3_HTTP = "http://127.0.0.1:8788"
 
 
 def read_asar_header(asar_file: Path) -> tuple[dict[str, Any], int, bytes]:

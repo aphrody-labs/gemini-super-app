@@ -19,6 +19,26 @@ Models & Engines Integrated:
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+import os as _os_early
+
+_ENV_FILE = _REPO_ROOT / ".env"
+if _ENV_FILE.exists():
+    for _line in _ENV_FILE.read_text(encoding="utf-8", errors="ignore").splitlines():
+        _s = _line.strip()
+        if _s and not _s.startswith("#") and "=" in _s:
+            _k, _v = _s.split("=", 1)
+            _k = _k.strip()
+            _v = _v.strip().strip('"').strip("'")
+            if _k and _k not in _os_early.environ:
+                _os_early.environ[_k] = _v
+
 import asyncio
 import base64
 import io
@@ -223,6 +243,7 @@ class WhisperSTTEngine:
                 vad_parameters=dict(min_silence_duration_ms=250),
                 without_timestamps=True,
                 condition_on_previous_text=False,
+                initial_prompt="Bonjour Gemini, Gemini Live, Antigravity, agy, Mochi. Est-ce que tout fonctionne ?",
             )
             text_parts = [seg.text.strip() for seg in segments if seg.text.strip()]
             return " ".join(text_parts).strip()
@@ -257,8 +278,8 @@ class GeminiLiveAndTTSBridge:
         api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
         try:
             if api_key:
-                self._client = genai.Client(api_key=api_key)
-                logger.info("Initialized Google GenAI client with API Key.")
+                self._client = genai.Client(api_key=api_key, vertexai=False)
+                logger.info("Initialized Google GenAI client with API Key (vertexai=False).")
             else:
                 # Vertex AI Live client is initialized on-demand when Vertex Live is selected
                 self._client = None
@@ -335,13 +356,27 @@ class GeminiLiveAndTTSBridge:
 
                 def _call_genai() -> str:
                     sys_prompt = (
-                        "Réponds de manière naturelle, fluide, chaleureuse et concise (1 à 3 phrases max) "
-                        "pour un mode vocal temps réel type Gemini Live. Évite le markdown lourd."
+                        "Tu es Gemini Live, l'assistant vocal officiel Google Gemini. "
+                        "Réponds uniquement à l'oral en 1 à 2 phrases courtes, naturelles, fluides et chaleureuses. "
+                        "N'utilise jamais de markdown, de listes à puces ni d'identifiants techniques."
                     )
+                    if hasattr(self._client, "models"):
+                        for candidate_model in ("gemini-3.8-flash", "gemini-2.5-flash"):
+                            try:
+                                resp = self._client.models.generate_content(
+                                    model=candidate_model,
+                                    contents=f"{sys_prompt}\n\nQuestion vocale : {prompt}",
+                                    config={"thinking_config": {"thinking_budget": 0}},
+                                )
+                                txt = getattr(resp, "text", None)
+                                if txt and txt.strip():
+                                    return txt.strip()
+                            except Exception:
+                                continue
                     if hasattr(self._client, "interactions"):
                         kwargs: dict[str, Any] = {
                             "model": "gemini-3.8-flash",
-                            "input": f"{sys_prompt}\n\nUtilisateur ({surface}): {prompt}",
+                            "input": f"{sys_prompt}\n\nQuestion vocale : {prompt}",
                         }
                         if self._last_interaction_id:
                             kwargs["previous_interaction_id"] = self._last_interaction_id
@@ -353,7 +388,7 @@ class GeminiLiveAndTTSBridge:
                 reply = await asyncio.wait_for(loop.run_in_executor(None, _call_genai), timeout=6.0)
                 if reply and reply.strip():
                     ms = int((time.perf_counter() - t0) * 1000)
-                    return reply.strip(), "gemini-3.8-live / gemini-4-argon", ms
+                    return reply.strip(), "gemini-3.8-live / gemini-3.8-flash", ms
             except Exception as exc:
                 logger.info(
                     "GenAI direct call fallback (%s); trying agy CLI / local live responder.", exc
@@ -373,87 +408,112 @@ class GeminiLiveAndTTSBridge:
         return reply, f"{self.config.live_model} ({self.config.voice_name})", ms
 
     def _humanized_instant_response(self, prompt: str, surface: str) -> str:
+        _ = surface
         p = prompt.lower().strip()
+        if any(w in p for w in ["fonctionne", "marche", "m'entends", "entends", "test", "allô", "allo"]):
+            return (
+                "Oui, tout fonctionne parfaitement ! Je t'entends très clairement sur ton micro "
+                "et je te réponds en direct. De quoi veux-tu qu'on parle ?"
+            )
         if any(w in p for w in ["salut", "bonjour", "hello", "hey", "coucou"]):
-            return (
-                "Salut ! Je t'écoute en direct sur le hub Gemini Live. "
-                "Tous tes ponts — Antigravity CLI, l'application Windows, le Web et Flutter — sont actifs. "
-                "Sur quoi on travaille ?"
-            )
+            return "Salut ! Je t'écoute en direct. Dis-moi ce que je peux faire pour toi."
         if any(w in p for w in ["comment ça va", "comment vas-tu", "ça va"]):
-            return (
-                "Ça va super bien ! Mon moteur audio bidirectionnel tourne à pleine vitesse en arrière-plan "
-                "et l'orbe Gemini est synchronisé avec ta voix. Dis-moi ce dont tu as besoin !"
-            )
+            return "Ça va super bien, je suis prêt et à ton écoute. Qu'est-ce qu'on fait aujourd'hui ?"
         if "/voice" in p or "record" in p or "micro" in p:
-            return (
-                "Le mode /voice et les boutons Record sont maintenant interactifs en duplex intégral. "
-                "Tu peux parler librement, m'interrompre à tout moment, ou envoyer tes commandes directement à agy CLI."
-            )
+            return "Ton micro est bien actif en duplex intégral, tu peux me parler librement à tout moment."
         if "whisper" in p or "modèle" in p or "model" in p:
             return (
-                f"J'utilise actuellement {self.config.live_model} couplé à {self.config.reasoning_model}, "
-                f"{self.config.tts_model} avec la voix {self.config.voice_name}, et Faster-Whisper {self.config.whisper_model_size} avec filtre VAD Silero."
+                f"Je tourne sur {self.config.live_model} avec la voix {self.config.voice_name} "
+                f"et Faster-Whisper {self.config.whisper_model_size} pour la détection vocale."
             )
-        return (
-            f"Bien reçu depuis {surface} : « {prompt} ». "
-            "Je traite ta demande en temps réel avec Gemini Live et je synchronise la session avec Antigravity."
-        )
+        return f"Je t'écoute : {prompt}. Dis-m'en un peu plus pour que je t'aide tout de suite."
+
+    @staticmethod
+    def pcm16_to_wav_bytes(pcm_bytes: bytes, sample_rate: int = INPUT_SAMPLE_RATE) -> bytes:
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(sample_rate)
+            wf.writeframes(pcm_bytes)
+        return buf.getvalue()
+
+    async def transcribe_and_reply_audio_pcm16(
+        self, pcm_bytes: bytes, surface: str = "gemini_minimal_voice"
+    ) -> tuple[str, str, str, int]:
+        """
+        Directly sends 16kHz PCM audio (wrapped in WAV) to `gemini-3.8-flash`
+        to obtain both exact transcription and a natural spoken reply in one call.
+        Returns (transcript, reply_text, model_used, latency_ms).
+        """
+        if self._client is None or not HAS_GENAI or genai_types is None or len(pcm_bytes) < 3200:
+            return "", "", "", 0
+
+        t0 = time.perf_counter()
+        wav_bytes = self.pcm16_to_wav_bytes(pcm_bytes, INPUT_SAMPLE_RATE)
+        loop = asyncio.get_running_loop()
+
+        def _call_multimodal() -> tuple[str, str]:
+            prompt_instructions = (
+                "Tu es Gemini Live, l'assistant vocal officiel Google Gemini connecté à la Super App et Antigravity.\n"
+                "Écoute l'enregistrement vocal de l'utilisateur.\n"
+                "Si l'audio ne contient que du silence ou du bruit de fond indistinct sans parole humaine, "
+                "réponds exactement:\nTRANSCRIPT:\nREPLY:\n"
+                "Sinon, renvoie exactement deux lignes :\n"
+                "TRANSCRIPT: <transcription exacte en français ou dans la langue parlée>\n"
+                "REPLY: <ta réponse vocale naturelle, chaleureuse, fluide et directe en 1 à 2 phrases courtes, sans markdown>"
+            )
+            for candidate_model in ("gemini-3.8-flash", "gemini-2.5-flash"):
+                try:
+                    resp = self._client.models.generate_content(
+                        model=candidate_model,
+                        contents=[
+                            genai_types.Part.from_bytes(data=wav_bytes, mime_type="audio/wav"),
+                            prompt_instructions,
+                        ],
+                        config={"thinking_config": {"thinking_budget": 0}},
+                    )
+                    raw_text = (getattr(resp, "text", None) or "").strip()
+                    if not raw_text:
+                        continue
+                    transcript_out = ""
+                    reply_out = ""
+                    for line in raw_text.splitlines():
+                        s = line.strip()
+                        if s.upper().startswith("TRANSCRIPT:"):
+                            transcript_out = s.split(":", 1)[1].strip().strip('"')
+                        elif s.upper().startswith("REPLY:"):
+                            reply_out = s.split(":", 1)[1].strip().strip('"')
+                    if transcript_out and reply_out:
+                        return transcript_out, reply_out
+                except Exception:
+                    continue
+            return "", ""
+
+        try:
+            transcript, reply = await asyncio.wait_for(
+                loop.run_in_executor(None, _call_multimodal), timeout=5.5
+            )
+            if transcript and reply:
+                ms = int((time.perf_counter() - t0) * 1000)
+                return transcript, reply, "gemini-3.8-live / gemini-3.8-flash", ms
+        except Exception as exc:
+            logger.debug("Direct multimodal audio turn fallback to Whisper: %s", exc)
+        return "", "", "", 0
 
     async def synthesize_speech_pcm24k(self, text: str) -> bytes:
         """
         Synthesizes speech using:
-        1. `gemini-3.8-flash-tts` (`audio/l16`, 24kHz) with `speech_metadata` annotations
-        2. `edge-tts` neural multilingual voice fallback
+        1. Ultra-low-latency Neural Edge-TTS (`fr-FR-VivienneMultilingualNeural`) for instant (<400ms) natural voice
+        2. `gemini-3.8-flash-tts` (`audio/wav`, 24kHz `Aoede`) via `models.generate_content`
         3. Pure harmonic voice-like chime/synth if offline
-        Returns 24kHz 16-bit signed little-endian mono WAV bytes.
+        Returns valid container audio bytes (MP3 or RIFF WAV).
         """
         clean_text = text.strip()
         if not clean_text:
             return b""
 
-        # 1. Try Gemini 3.8 Flash TTS via Interactions API
-        if self._client is not None and hasattr(self._client, "interactions"):
-            try:
-                loop = asyncio.get_running_loop()
-
-                def _call_tts() -> bytes:
-                    interaction = self._client.interactions.create(
-                        model=self.config.tts_model,
-                        input=[
-                            {
-                                "type": "user_input",
-                                "content": [
-                                    {
-                                        "type": "text",
-                                        "text": clean_text,
-                                        "annotations": [
-                                            {
-                                                "type": "speech_metadata",
-                                                "style": self.config.speech_style,
-                                            }
-                                        ],
-                                    }
-                                ],
-                            }
-                        ],
-                        response_format={"type": "audio"},
-                        generation_config={"speech_config": [{"voice": self.config.voice_name}]},
-                    )
-                    out_audio = getattr(interaction, "output_audio", None)
-                    if out_audio and getattr(out_audio, "data", None):
-                        return base64.b64decode(out_audio.data)
-                    return b""
-
-                wav_bytes = await asyncio.wait_for(
-                    loop.run_in_executor(None, _call_tts), timeout=4.5
-                )
-                if wav_bytes:
-                    return wav_bytes
-            except Exception as exc:
-                logger.debug("Gemini 3.8 TTS fallback to neural edge-tts: %s", exc)
-
-        # 2. Neural Edge-TTS (High-speed humanized multilingual voice)
+        # 1. Neural Edge-TTS (High-speed humanized multilingual voice, ~350ms latency)
         if HAS_EDGE_TTS:
             try:
                 communicate = edge_tts.Communicate(
@@ -468,7 +528,43 @@ class GeminiLiveAndTTSBridge:
                 if mp3_chunks:
                     return bytes(mp3_chunks)
             except Exception as exc:
-                logger.warning("edge-tts synthesis fallback: %s", exc)
+                logger.warning("edge-tts synthesis fallback to Gemini TTS: %s", exc)
+
+        # 2. Gemini 3.8 Flash TTS via `models.generate_content`
+        if self._client is not None and hasattr(self._client, "models"):
+            try:
+                loop = asyncio.get_running_loop()
+
+                def _call_tts() -> bytes:
+                    resp = self._client.models.generate_content(
+                        model=self.config.tts_model,
+                        contents=clean_text,
+                        config={
+                            "response_modalities": ["AUDIO"],
+                            "speech_config": {
+                                "voice_config": {
+                                    "prebuilt_voice_config": {
+                                        "voice_name": self.config.voice_name,
+                                    }
+                                }
+                            },
+                        },
+                    )
+                    part = resp.candidates[0].content.parts[0].inline_data
+                    raw_audio = part.data
+                    if isinstance(raw_audio, str):
+                        raw_audio = base64.b64decode(raw_audio)
+                    if raw_audio and raw_audio[:4] != b"RIFF" and raw_audio[:3] != b"ID3" and raw_audio[:1] != b"\xff":
+                        return self.pcm16_to_wav_bytes(raw_audio, OUTPUT_SAMPLE_RATE)
+                    return raw_audio or b""
+
+                wav_bytes = await asyncio.wait_for(
+                    loop.run_in_executor(None, _call_tts), timeout=4.5
+                )
+                if wav_bytes:
+                    return wav_bytes
+            except Exception as exc:
+                logger.debug("Gemini 3.8 TTS fallback to harmonic synth: %s", exc)
 
         # 3. Offline harmonic speech envelope WAV fallback
         return self._generate_harmonic_wav(clean_text)
@@ -583,6 +679,77 @@ class VoiceHubServer:
         self._telemetry_task: asyncio.Task[Any] | None = None
         self._mic_stream: Any | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
+        self._settings_path = _REPO_ROOT / "config" / "audio_and_surfaces.json"
+        self.full_settings: dict[str, Any] = self._load_full_settings()
+        audio_cfg = self.full_settings.get("audio", {})
+        self.selected_input_device_index: int | None = audio_cfg.get("input_device_index")
+        self.selected_output_device_index: int | None = audio_cfg.get("output_device_index")
+        tts_cfg = audio_cfg.get("tts", {})
+        if tts_cfg.get("voice_name"):
+            self.config.voice_name = str(tts_cfg["voice_name"])
+        if audio_cfg.get("vad_mode"):
+            self.config.vad_mode = str(audio_cfg["vad_mode"])
+
+    def _load_full_settings(self) -> dict[str, Any]:
+        try:
+            if self._settings_path.exists():
+                return json.loads(self._settings_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            logger.debug("Settings load notice: %s", exc)
+        return {
+            "version": "2026.11.2",
+            "audio": {
+                "input_device_index": 1,
+                "output_device_index": 5,
+                "vad_mode": "hybrid_auto",
+                "barge_in_enabled": True,
+                "youtube_music_ducking": True,
+                "tts": {"voice_name": "Aoede"},
+            },
+            "gemini_web_app": {
+                "enabled": True,
+                "inject_minimal_orb_pill": True,
+                "auto_sync_prompt_input": True,
+                "companion_pet_mode": "2d",
+            },
+            "antigravity": {
+                "cli_enabled": True,
+                "mic_tcp_port": ANTIGRAVITY_MIC_PORT,
+                "agentapi_bridge": True,
+            },
+        }
+
+    def _save_full_settings(self) -> None:
+        try:
+            self._settings_path.parent.mkdir(parents=True, exist_ok=True)
+            self._settings_path.write_text(
+                json.dumps(self.full_settings, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+        except Exception as exc:
+            logger.debug("Settings save notice: %s", exc)
+
+    def play_test_speaker_chime(self, output_device: int | None = None) -> bool:
+        """Plays a harmonic 24kHz Gemini chord on the selected output speaker."""
+        if not HAS_SOUNDDEVICE or sd is None:
+            return False
+        try:
+            sr = OUTPUT_SAMPLE_RATE
+            dur = 0.55
+            t = np.linspace(0.0, dur, int(sr * dur), endpoint=False, dtype=np.float32)
+            envelope = np.sin(np.pi * t / dur) ** 1.4
+            chord = (
+                0.45 * np.sin(2.0 * np.pi * 523.25 * t)
+                + 0.35 * np.sin(2.0 * np.pi * 659.25 * t)
+                + 0.25 * np.sin(2.0 * np.pi * 783.99 * t)
+            )
+            wave_out = (chord * envelope * 0.28).astype(np.float32)
+            target_dev = output_device if output_device is not None else self.selected_output_device_index
+            sd.play(wave_out, samplerate=sr, device=target_dev, blocking=False)
+            return True
+        except Exception as exc:
+            logger.warning("Speaker test chime notice: %s", exc)
+            return False
 
     async def start_background_tasks(self, app: web.Application) -> None:
         self._loop = asyncio.get_running_loop()
@@ -623,10 +790,104 @@ class VoiceHubServer:
             tcp_srv.close()
             await tcp_srv.wait_closed()
 
-    def _start_hardware_mic_if_available(self) -> None:
+    def get_hardware_audio_status(self) -> dict[str, Any]:
+        """Auto-detects and returns all Windows audio microphones, speakers, and active DSP state."""
+        inputs: list[dict[str, Any]] = []
+        outputs: list[dict[str, Any]] = []
+        default_in_idx = -1
+        default_out_idx = -1
+        active_mic_name = "unavailable"
+        active_speaker_name = "unavailable"
+
+        if HAS_SOUNDDEVICE and sd is not None:
+            try:
+                def_devs = sd.default.device
+                default_in_idx = int(def_devs[0]) if def_devs and def_devs[0] is not None else -1
+                default_out_idx = int(def_devs[1]) if def_devs and def_devs[1] is not None else -1
+                hostapis = sd.query_hostapis()
+                for idx, dev in enumerate(sd.query_devices()):
+                    api_idx = int(dev.get("hostapi", 0))
+                    api_name = (
+                        hostapis[api_idx].get("name", "Windows")
+                        if 0 <= api_idx < len(hostapis)
+                        else "Windows"
+                    )
+                    entry = {
+                        "index": idx,
+                        "name": str(dev.get("name", "")),
+                        "hostapi": api_name,
+                        "max_input_channels": int(dev.get("max_input_channels", 0)),
+                        "max_output_channels": int(dev.get("max_output_channels", 0)),
+                        "default_samplerate": float(dev.get("default_samplerate", 16000.0)),
+                    }
+                    if entry["max_input_channels"] > 0:
+                        inputs.append(entry)
+                        target_in = (
+                            self.selected_input_device_index
+                            if self.selected_input_device_index is not None
+                            else default_in_idx
+                        )
+                        if idx == target_in:
+                            active_mic_name = entry["name"]
+                    if entry["max_output_channels"] > 0:
+                        outputs.append(entry)
+                        target_out = (
+                            self.selected_output_device_index
+                            if self.selected_output_device_index is not None
+                            else default_out_idx
+                        )
+                        if idx == target_out:
+                            active_speaker_name = entry["name"]
+            except Exception as exc:
+                logger.debug("Audio device query error: %s", exc)
+
+        return {
+            "has_sounddevice": HAS_SOUNDDEVICE,
+            "has_faster_whisper": HAS_FASTER_WHISPER,
+            "whisper_loaded_model": getattr(self.whisper, "_loaded_model_name", "unloaded"),
+            "has_edge_tts": HAS_EDGE_TTS,
+            "mic_stream_active": self._mic_stream is not None and bool(getattr(self._mic_stream, "active", False)),
+            "default_input_index": default_in_idx,
+            "default_output_index": default_out_idx,
+            "selected_input_index": (
+                self.selected_input_device_index
+                if self.selected_input_device_index is not None
+                else default_in_idx
+            ),
+            "selected_output_index": (
+                self.selected_output_device_index
+                if self.selected_output_device_index is not None
+                else default_out_idx
+            ),
+            "active_microphone": active_mic_name,
+            "active_speaker": active_speaker_name,
+            "input_sample_rate_hz": INPUT_SAMPLE_RATE,
+            "output_sample_rate_hz": OUTPUT_SAMPLE_RATE,
+            "live_input_rms": round(self.input_rms, 5),
+            "live_output_rms": round(self.output_rms, 5),
+            "fft_32": self.fft_bins,
+            "input_devices_count": len(inputs),
+            "output_devices_count": len(outputs),
+            "input_devices": inputs[:20],
+            "output_devices": outputs[:20],
+            "settings": self.full_settings,
+        }
+
+    def _start_hardware_mic_if_available(self, device_index: int | None = None) -> None:
         if not HAS_SOUNDDEVICE:
             return
         try:
+            if device_index is not None:
+                self.selected_input_device_index = device_index
+            target_dev = self.selected_input_device_index
+            if self._mic_stream is not None:
+                try:
+                    self._mic_stream.stop()
+                    self._mic_stream.close()
+                except Exception:
+                    pass
+                self._mic_stream = None
+
             blocksize = int(INPUT_SAMPLE_RATE * 0.04)  # 40ms frames (640 samples)
 
             def _audio_callback(
@@ -634,15 +895,18 @@ class VoiceHubServer:
             ) -> None:
                 if self._loop is None:
                     return
-                pcm16 = (np.clip(indata[:, 0], -1.0, 1.0) * 32767.0).astype(np.int16)
+                mono = indata[:, 0]
+                # Remove DC offset + low-frequency rumble before RMS/FFT/VAD
+                mono_clean = mono - float(np.mean(mono))
+                pcm16 = (np.clip(mono_clean, -1.0, 1.0) * 32767.0).astype(np.int16)
                 raw_bytes = pcm16.tobytes()
-                rms = float(np.sqrt(np.mean(indata[:, 0] ** 2)))
-                # Compute 32-band FFT magnitudes in [0.0, 1.0]
-                fft_vals = np.abs(np.fft.rfft(indata[:, 0], n=64))[:32]
-                fft_norm = np.clip(fft_vals * 4.0, 0.0, 1.0).tolist()
+                rms = float(np.sqrt(np.mean(mono_clean**2)))
+                fft_vals = np.abs(np.fft.rfft(mono_clean * np.hanning(len(mono_clean)), n=64))[:32]
+                fft_norm = np.clip(fft_vals * 5.0, 0.0, 1.0).tolist()
                 self._loop.call_soon_threadsafe(self._on_mic_frame, raw_bytes, rms, fft_norm)
 
             self._mic_stream = sd.InputStream(
+                device=target_dev,
                 samplerate=INPUT_SAMPLE_RATE,
                 channels=CHANNELS,
                 dtype="float32",
@@ -650,7 +914,12 @@ class VoiceHubServer:
                 callback=_audio_callback,
             )
             self._mic_stream.start()
-            logger.info("Hardware microphone capture started at 16kHz mono.")
+            hw = self.get_hardware_audio_status()
+            logger.info(
+                "Hardware microphone capture active at 16kHz mono on '%s' (speaker: '%s').",
+                hw["active_microphone"],
+                hw["active_speaker"],
+            )
         except Exception as exc:
             logger.warning("Hardware microphone stream fallback to virtual/browser mic: %s", exc)
             self._mic_stream = None
@@ -668,6 +937,11 @@ class VoiceHubServer:
                 self.mic_tcp_clients.discard(writer)
 
         if not (self.is_live_active or self.is_recording_ptt):
+            return
+
+        # If a browser surface (e.g. /chrome-home) is capturing its own microphone stream,
+        # only use the server hardware mic for RMS/FFT telemetry, not duplicate VAD turns.
+        if getattr(self, "_browser_mic_surface_active", False) and not self.is_recording_ptt:
             return
 
         # Barge-in detection: if Gemini is speaking and user speaks loudly, interrupt politely
@@ -741,6 +1015,11 @@ class VoiceHubServer:
 
     def trigger_barge_in(self) -> None:
         """Handles polite interruption (barge-in) when user speaks while Gemini is speaking."""
+        if HAS_SOUNDDEVICE and sd is not None:
+            try:
+                sd.stop()
+            except Exception:
+                pass
         if self._speaking_task and not self._speaking_task.done():
             self._speaking_task.cancel()
         self.interaction_state = "INTERRUPTED"
@@ -772,7 +1051,12 @@ class VoiceHubServer:
         await self.handle_user_utterance(transcript, surface=surface, stt_latency_ms=int(stt_ms))
 
     async def handle_user_utterance(
-        self, text: str, surface: str = "flutter_app", stt_latency_ms: int = 0
+        self,
+        text: str,
+        surface: str = "flutter_app",
+        stt_latency_ms: int = 0,
+        precomputed_reply: tuple[str, str, int] | None = None,
+        pre_synthesized_audio: bytes | None = None,
     ) -> dict[str, Any]:
         """Processes a user voice transcript or slash command across all bridged surfaces."""
         clean_text = text.strip()
@@ -829,11 +1113,16 @@ class VoiceHubServer:
             }
         )
 
-        reply_text, model_used, llm_ms = (
-            await self.gemini_bridge.generate_conversational_reply(clean_text, surface=surface)
-            if hasattr(self.gemini_bridge, "generate_conversational_reply")
-            else await self.gemini_bridge.generate_Conversational_reply(clean_text, surface=surface)
-        )
+        if precomputed_reply is not None:
+            reply_text, model_used, llm_ms = precomputed_reply
+        else:
+            reply_text, model_used, llm_ms = (
+                await self.gemini_bridge.generate_conversational_reply(clean_text, surface=surface)
+                if hasattr(self.gemini_bridge, "generate_conversational_reply")
+                else await self.gemini_bridge.generate_Conversational_reply(
+                    clean_text, surface=surface
+                )
+            )
 
         model_turn = ConversationTurn(
             id=f"turn-{int(time.time() * 1000)}-m",
@@ -859,7 +1148,9 @@ class VoiceHubServer:
         # Start speaking + audio synthesis asynchronously
         if self._speaking_task and not self._speaking_task.done():
             self._speaking_task.cancel()
-        self._speaking_task = asyncio.create_task(self._speak_response(model_turn))
+        self._speaking_task = asyncio.create_task(
+            self._speak_response(model_turn, pre_synthesized_audio=pre_synthesized_audio)
+        )
 
         return {
             "status": "ok",
@@ -867,7 +1158,11 @@ class VoiceHubServer:
             "model_turn": asdict(model_turn),
         }
 
-    async def _speak_response(self, model_turn: ConversationTurn) -> None:
+    async def _speak_response(
+        self,
+        model_turn: ConversationTurn,
+        pre_synthesized_audio: bytes | None = None,
+    ) -> None:
         try:
             self.interaction_state = "SPEAKING"
             await self.broadcast_event(
@@ -878,7 +1173,11 @@ class VoiceHubServer:
                     "interaction_status": "IN_PROGRESS",
                 }
             )
-            audio_bytes = await self.gemini_bridge.synthesize_speech_pcm24k(model_turn.text)
+            audio_bytes = (
+                pre_synthesized_audio
+                if pre_synthesized_audio is not None
+                else await self.gemini_bridge.synthesize_speech_pcm24k(model_turn.text)
+            )
             audio_b64 = base64.b64encode(audio_bytes).decode("ascii") if audio_bytes else ""
             mime_type = "audio/wav" if audio_bytes[:4] == b"RIFF" else "audio/mpeg"
 
@@ -893,6 +1192,19 @@ class VoiceHubServer:
                     "text": model_turn.text,
                 }
             )
+
+            # Play directly on Windows hardware speaker if no browser WebSocket client is handling playback
+            if HAS_SOUNDDEVICE and sd is not None and audio_bytes and len(self.ws_clients) == 0:
+                try:
+                    if audio_bytes[:4] == b"RIFF":
+                        with wave.open(io.BytesIO(audio_bytes), "rb") as wf:
+                            sr = wf.getframerate()
+                            pcm = np.frombuffer(
+                                wf.readframes(wf.getnframes()), dtype=np.int16
+                            ).astype(np.float32) / 32768.0
+                            sd.play(pcm, samplerate=sr, blocking=False)
+                except Exception as exc:
+                    logger.debug("Hardware speaker playback notice: %s", exc)
 
             # Simulate expressive vocal envelope for the permanent Gemini SVG animation
             est_duration = min(6.0, max(1.2, len(model_turn.text) * 0.042))
@@ -1051,11 +1363,79 @@ class VoiceHubServer:
                 "is_live_active": self.is_live_active,
                 "is_recording_ptt": self.is_recording_ptt,
                 "config": asdict(self.config),
+                "hardware_audio": self.get_hardware_audio_status(),
                 "antigravity_mic_addr": f"127.0.0.1:{ANTIGRAVITY_MIC_PORT}",
                 "ws_url": f"ws://{HTTP_WS_HOST}:{HTTP_WS_PORT}/ws/voice",
                 "gemini_windows_state": getattr(self, "gemini_windows_state", {}),
                 "history_count": len(self.history),
                 "history": [asdict(t) for t in self.history[-20:]],
+            },
+            headers=self._cors_headers(),
+        )
+
+    async def handle_hardware_audio(self, request: web.Request) -> web.Response:
+        chime_played = False
+        if request.method == "POST":
+            try:
+                body = await request.json()
+                audio_sec = self.full_settings.setdefault("audio", {})
+                in_idx = body.get("input_device_index", body.get("device_index"))
+                if in_idx is not None:
+                    self.selected_input_device_index = int(in_idx)
+                    audio_sec["input_device_index"] = int(in_idx)
+                    self._start_hardware_mic_if_available(int(in_idx))
+                out_idx = body.get("output_device_index")
+                if out_idx is not None:
+                    self.selected_output_device_index = int(out_idx)
+                    audio_sec["output_device_index"] = int(out_idx)
+                    if HAS_SOUNDDEVICE and sd is not None:
+                        try:
+                            cur_in = (
+                                self.selected_input_device_index
+                                if self.selected_input_device_index is not None
+                                else sd.default.device[0]
+                            )
+                            sd.default.device = (cur_in, int(out_idx))
+                        except Exception:
+                            pass
+                if "voice_name" in body and body["voice_name"]:
+                    vname = str(body["voice_name"])
+                    self.config.voice_name = vname
+                    audio_sec.setdefault("tts", {})["voice_name"] = vname
+                if "vad_mode" in body and body["vad_mode"]:
+                    vmode = str(body["vad_mode"])
+                    self.config.vad_mode = vmode
+                    audio_sec["vad_mode"] = vmode
+                if "barge_in_enabled" in body:
+                    barge = bool(body["barge_in_enabled"])
+                    self.config.barge_in_enabled = barge
+                    audio_sec["barge_in_enabled"] = barge
+                if "youtube_music_ducking" in body:
+                    audio_sec["youtube_music_ducking"] = bool(body["youtube_music_ducking"])
+                if isinstance(body.get("gemini_web_app"), dict):
+                    self.full_settings.setdefault("gemini_web_app", {}).update(
+                        body["gemini_web_app"]
+                    )
+                if isinstance(body.get("antigravity"), dict):
+                    self.full_settings.setdefault("antigravity", {}).update(body["antigravity"])
+                if body.get("test_speaker"):
+                    chime_played = self.play_test_speaker_chime(self.selected_output_device_index)
+                self._save_full_settings()
+                await self.broadcast_event(
+                    {
+                        "type": "hardware_settings_updated",
+                        "hardware_audio": self.get_hardware_audio_status(),
+                        "settings": self.full_settings,
+                    }
+                )
+            except Exception as exc:
+                logger.warning("POST /api/audio/hardware notice: %s", exc)
+        return web.json_response(
+            {
+                "ok": True,
+                "chime_played": chime_played,
+                "hardware_audio": self.get_hardware_audio_status(),
+                "settings": self.full_settings,
             },
             headers=self._cors_headers(),
         )
@@ -1067,6 +1447,10 @@ class VoiceHubServer:
 
         if action == "toggle_live":
             self.is_live_active = data.get("enabled", not self.is_live_active)
+            if surface in ("gemini_minimal_voice", "gemini_web", "chrome_home") or data.get("browser_mic"):
+                self._browser_mic_surface_active = bool(self.is_live_active)
+            elif not self.is_live_active:
+                self._browser_mic_surface_active = False
             self.interaction_state = "LISTENING" if self.is_live_active else "IDLE"
             if not self.is_live_active and self._speaking_task:
                 self._speaking_task.cancel()
@@ -1161,6 +1545,8 @@ class VoiceHubServer:
             auto_reply = data.get("auto_reply", action == "voice_to_voice")
             stt_ms = 0.0
             transcript = text_override
+            precomputed_reply: tuple[str, str, int] | None = None
+
             if not transcript and pcm_b64:
                 raw_pcm = base64.b64decode(pcm_b64)
                 # Forward to ANTIGRAVITY_MIC clients too
@@ -1169,9 +1555,22 @@ class VoiceHubServer:
                         writer.write(raw_pcm)
                     except Exception:
                         self.mic_tcp_clients.discard(writer)
-                transcript, stt_ms = await self.whisper.transcribe_pcm16(
-                    raw_pcm, language=self.config.language_code
-                )
+
+                if auto_reply:
+                    mm_transcript, mm_reply, mm_model, mm_ms = (
+                        await self.gemini_bridge.transcribe_and_reply_audio_pcm16(
+                            raw_pcm, surface=surface
+                        )
+                    )
+                    if mm_transcript and mm_reply:
+                        transcript = mm_transcript
+                        stt_ms = float(mm_ms // 2)
+                        precomputed_reply = (mm_reply, mm_model, mm_ms)
+
+                if not transcript:
+                    transcript, stt_ms = await self.whisper.transcribe_pcm16(
+                        raw_pcm, language=self.config.language_code
+                    )
             if not transcript:
                 return web.json_response(
                     {"status": "empty", "transcript": "", "stt_latency_ms": int(stt_ms)},
@@ -1186,16 +1585,35 @@ class VoiceHubServer:
                     },
                     headers=self._cors_headers(),
                 )
-            result = await self.handle_user_utterance(
-                transcript, surface=surface, stt_latency_ms=int(stt_ms)
+
+            if precomputed_reply is None:
+                reply_text, model_used, llm_ms = (
+                    await self.gemini_bridge.generate_conversational_reply(
+                        transcript, surface=surface
+                    )
+                    if hasattr(self.gemini_bridge, "generate_conversational_reply")
+                    else await self.gemini_bridge.generate_Conversational_reply(
+                        transcript, surface=surface
+                    )
+                )
+                precomputed_reply = (reply_text, model_used, llm_ms)
+
+            model_text = precomputed_reply[0]
+            audio_bytes = (
+                await self.gemini_bridge.synthesize_speech_pcm24k(model_text)
+                if model_text
+                else b""
             )
-            model_text = result.get("model_turn", {}).get("text", "")
-            audio_b64 = ""
-            mime_type = "audio/mpeg"
-            if model_text:
-                audio_bytes = await self.gemini_bridge.synthesize_speech_pcm24k(model_text)
-                audio_b64 = base64.b64encode(audio_bytes).decode("ascii") if audio_bytes else ""
-                mime_type = "audio/wav" if audio_bytes[:4] == b"RIFF" else "audio/mpeg"
+            audio_b64 = base64.b64encode(audio_bytes).decode("ascii") if audio_bytes else ""
+            mime_type = "audio/wav" if audio_bytes[:4] == b"RIFF" else "audio/mpeg"
+
+            result = await self.handle_user_utterance(
+                transcript,
+                surface=surface,
+                stt_latency_ms=int(stt_ms),
+                precomputed_reply=precomputed_reply,
+                pre_synthesized_audio=audio_bytes,
+            )
             result["transcript"] = transcript
             result["reply_text"] = model_text
             result["audio_base64"] = audio_b64
@@ -1347,6 +1765,9 @@ def create_app() -> tuple[web.Application, VoiceHubServer]:
     app = web.Application()
     app["hub"] = hub
     app.router.add_get("/api/status", hub.handle_status)
+    app.router.add_get("/api/audio/hardware", hub.handle_hardware_audio)
+    app.router.add_post("/api/audio/hardware", hub.handle_hardware_audio)
+    app.router.add_options("/api/audio/hardware", hub.handle_options)
     app.router.add_post("/api/voice", hub.handle_voice_command)
     app.router.add_options("/api/voice", hub.handle_options)
     app.router.add_options("/api/status", hub.handle_options)

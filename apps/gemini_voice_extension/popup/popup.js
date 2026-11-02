@@ -1,128 +1,109 @@
-const statusEl = document.getElementById("hub-status");
+/**
+ * @fileoverview Minimalist Popup Controller (Zero Text, Voice-to-Voice + 2D/3D Pet).
+ */
+
 const toggleBtn = document.getElementById("toggle-live-btn");
-const liveSwitch = document.getElementById("live-switch");
+const micDockBtn = document.getElementById("mic-dock-btn");
+const petDimBtn = document.getElementById("pet-dim-btn");
 const sidePanelBtn = document.getElementById("open-sidepanel-btn");
-const telemetryCard = document.getElementById("telemetry-card");
-const openInfoBtn = document.getElementById("open-info-dialog-btn");
-const infoDialog = document.getElementById("voice-info-dialog");
+const popOrb = document.getElementById("pop-orb");
+const petCanvas = document.getElementById("popPetCanvas");
+const petCtx = petCanvas ? petCanvas.getContext("2d") : null;
 
-// Optional switch polyfill check when 'switch' in HTMLInputElement.prototype is false
-if (
-  typeof HTMLInputElement !== "undefined" &&
-  !("switch" in HTMLInputElement.prototype)
-) {
-  liveSwitch?.setAttribute("role", "switch");
+let isActive = false;
+let is3d = true;
+let phase = 0;
+
+function tick() {
+  phase += isActive ? 0.08 : 0.03;
+  if (popOrb) {
+    const scale = 1 + (isActive ? 0.16 : 0.04) * Math.sin(phase * 2);
+    popOrb.style.transform = `rotate(${((phase * 22) % 360).toFixed(1)}deg) scale(${scale.toFixed(3)})`;
+  }
+
+  if (petCtx && petCanvas) {
+    petCtx.clearRect(0, 0, 84, 84);
+    const bob = Math.sin(phase * 1.6) * (isActive ? 5 : 2.5);
+    petCtx.save();
+    petCtx.translate(42, 44 + bob);
+
+    const layers = is3d ? 6 : 0;
+    for (let z = -layers; z <= 0; z++) {
+      petCtx.fillStyle = z === 0 ? "#f4f7f5" : "#cfd8d3";
+      petCtx.beginPath();
+      petCtx.roundRect(-22 + z * 0.8, -18 + z * 0.5, 44, 38, 18);
+      petCtx.fill();
+    }
+    petCtx.fillStyle = "#81c995";
+    petCtx.beginPath();
+    petCtx.ellipse(-4, -22, 7, 4, -0.4, 0, Math.PI * 2);
+    petCtx.ellipse(5, -22, 7, 4, 0.4, 0, Math.PI * 2);
+    petCtx.fill();
+
+    petCtx.fillStyle = "#1f1f1f";
+    petCtx.beginPath();
+    petCtx.arc(-8, -3, 2.6, 0, Math.PI * 2);
+    petCtx.arc(8, -3, 2.6, 0, Math.PI * 2);
+    petCtx.fill();
+    petCtx.restore();
+  }
+
+  requestAnimationFrame(tick);
 }
-
-// Probe discrete display transition support (handles Firefox bug 1882408)
-let supportsDisplayTransition;
-function canTransitionDisplay() {
-  if (supportsDisplayTransition !== undefined) return supportsDisplayTransition;
-  if (
-    !window.CSS?.supports?.("transition-behavior", "allow-discrete") ||
-    !document.body
-  ) {
-    return false;
-  }
-  const probe = document.createElement("div");
-  probe.style.cssText =
-    "transition: display 1s allow-discrete !important; display: block;";
-  document.body.appendChild(probe);
-  getComputedStyle(probe).display;
-  probe.style.display = "none";
-  supportsDisplayTransition = getComputedStyle(probe).display === "block";
-  probe.remove();
-  return supportsDisplayTransition;
-}
-
-async function setCardVisibility(el, visible) {
-  if (!el) return;
-  if (visible) {
-    el.removeAttribute("data-closing");
-    el.hidden = false;
-    return;
-  }
-  if (canTransitionDisplay()) {
-    el.hidden = true;
-  } else {
-    el.setAttribute("data-closing", "");
-  }
-  const animations = el.getAnimations();
-  if (animations.length > 0) {
-    await Promise.race([
-      Promise.allSettled(animations.map((a) => a.finished)),
-      new Promise((r) => setTimeout(r, 2000)),
-    ]);
-  }
-  if (el.hasAttribute("data-closing")) {
-    el.removeAttribute("data-closing");
-    el.hidden = true;
-  }
-}
-
-// Light-dismiss dialog fallback for browsers without closedBy support
-if (infoDialog && !("closedBy" in HTMLDialogElement.prototype)) {
-  infoDialog.addEventListener("click", (event) => {
-    if (event.target !== infoDialog) return;
-    const rect = infoDialog.getBoundingClientRect();
-    const isDialogContent =
-      rect.top <= event.clientY &&
-      event.clientY <= rect.top + rect.height &&
-      rect.left <= event.clientX &&
-      event.clientX <= rect.left + rect.width;
-    if (isDialogContent) return;
-    infoDialog.close();
-  });
-}
-
-openInfoBtn?.addEventListener("click", () => {
-  infoDialog?.showModal();
-});
+requestAnimationFrame(tick);
 
 async function refreshStatus() {
   try {
     const res = await chrome.runtime.sendMessage({ type: "GET_STATUS" });
     if (res?.ok && res.data) {
-      const active = Boolean(res.data.is_live_active);
-      statusEl.textContent = `${res.data.state} • ${res.data.config?.live_model || "gemini-3.8-live"}`;
-      toggleBtn.textContent = active
-        ? "Désactiver /voice Live"
-        : "Activer /voice Live";
-      if (liveSwitch) liveSwitch.checked = active;
-      await setCardVisibility(telemetryCard, true);
-    } else {
-      statusEl.textContent = "Bridge hors-ligne (127.0.0.1:8765)";
+      isActive = Boolean(res.data.is_live_active);
+      toggleBtn?.setAttribute("aria-pressed", String(isActive));
+      micDockBtn?.setAttribute("aria-pressed", String(isActive));
     }
-  } catch {
-    statusEl.textContent = "Erreur de connexion";
-  }
+  } catch {}
 }
 
-async function setLiveMode(enabled) {
-  await chrome.runtime.sendMessage({
-    type: "VOICE_ACTION",
-    payload: {
-      action: "toggle_live",
-      enabled,
-      surface: "gemini_web",
-    },
-  });
-  await refreshStatus();
+async function toggleLive() {
+  isActive = !isActive;
+  toggleBtn?.setAttribute("aria-pressed", String(isActive));
+  micDockBtn?.setAttribute("aria-pressed", String(isActive));
+  try {
+    await chrome.runtime.sendMessage({
+      type: "VOICE_ACTION",
+      payload: {
+        action: "toggle_live",
+        enabled: isActive,
+        surface: "gemini_web",
+      },
+    });
+  } catch {}
 }
 
-toggleBtn?.addEventListener("click", async () => {
-  const nextState = !(liveSwitch?.checked ?? false);
-  await setLiveMode(nextState);
-});
+toggleBtn?.addEventListener("click", toggleLive);
+micDockBtn?.addEventListener("click", toggleLive);
 
-liveSwitch?.addEventListener("change", async () => {
-  await setLiveMode(liveSwitch.checked);
+petDimBtn?.addEventListener("click", () => {
+  is3d = !is3d;
+  petDimBtn.setAttribute("aria-pressed", String(is3d));
 });
 
 sidePanelBtn?.addEventListener("click", async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tab?.windowId) {
-    await chrome.sidePanel.open({ windowId: tab.windowId });
+  try {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    if (chrome.sidePanel?.open && tab?.windowId) {
+      await chrome.sidePanel.open({ windowId: tab.windowId });
+    } else {
+      await chrome.tabs.create({
+        url: chrome.runtime.getURL("sidepanel/sidepanel.html"),
+      });
+    }
+  } catch {
+    await chrome.tabs.create({
+      url: chrome.runtime.getURL("sidepanel/sidepanel.html"),
+    });
   }
 });
 

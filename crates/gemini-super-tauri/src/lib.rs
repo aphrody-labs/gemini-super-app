@@ -25,7 +25,11 @@ use jan_agent_audio::{
 };
 use lu_voice_engine::{LuVoiceLoopConfig, MusicGenerationSpec};
 use mic_bridge::MicStreamConfig;
-use openpets_core::GeminiPetCareState;
+use openpets_core::{
+    default_mochi_emote_catalogue, export_mesh_to_glb, extrude_rgba_to_3d_mesh,
+    GeminiPetCareState, MochiBondState, MochiEmoteSpec, MochiFocusPlan, OpenPets3dExtrudeConfig,
+    OPENPETS_3D_WGPU_SHADER_WGSL,
+};
 use polaris_audio::{AudioCodecFormat, IndexedTrack, PolarisLibraryIndex};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -114,6 +118,10 @@ pub struct GeminiSuperAppSnapshot {
     pub gemini_function_declarations: Value,
     pub rust_audio_catalog_count: usize,
     pub gemini_pet: GeminiPetCareState,
+    pub mochi_bond: MochiBondState,
+    pub mochi_emotes: Vec<MochiEmoteSpec>,
+    pub mochi_focus_plan: MochiFocusPlan,
+    pub wgpu_3d_shader_len: usize,
 }
 
 impl GeminiSuperAppSnapshot {
@@ -136,8 +144,34 @@ impl GeminiSuperAppSnapshot {
             gemini_function_declarations,
             rust_audio_catalog_count: catalog.len(),
             gemini_pet: GeminiPetCareState::default(),
+            mochi_bond: MochiBondState::default(),
+            mochi_emotes: default_mochi_emote_catalogue(),
+            mochi_focus_plan: MochiFocusPlan::default(),
+            wgpu_3d_shader_len: OPENPETS_3D_WGPU_SHADER_WGSL.len(),
         }
     }
+}
+
+/// Generate a binary glTF 2.0 `.glb` 3D voxel/relief mesh for the Gemini Pet / Mochi sprite.
+pub fn ipc_generate_pet_3d_glb() -> Vec<u8> {
+    let width = 8u32;
+    let height = 8u32;
+    let mut rgba = vec![0u8; (width * height * 4) as usize];
+    for y in 0..height {
+        for x in 0..width {
+            let idx = ((y * width + x) * 4) as usize;
+            let dist = ((x as f32 - 3.5).abs() + (y as f32 - 3.5).abs()) as u32;
+            if dist <= 4 {
+                rgba[idx] = 110;
+                rgba[idx + 1] = 231;
+                rgba[idx + 2] = 183;
+                rgba[idx + 3] = 255;
+            }
+        }
+    }
+    let cfg = OpenPets3dExtrudeConfig::default();
+    let mesh = extrude_rgba_to_3d_mesh(&rgba, width, height, &cfg);
+    export_mesh_to_glb(&mesh, None)
 }
 
 /// Result of a native Rust Tauri v3 Voice-to-Voice (`gemini-3.8-live`) immersive turn.
@@ -378,6 +412,13 @@ mod tests {
         assert_eq!(snapshot.voice_profiles.len(), 3);
         assert_eq!(snapshot.agent_tools.len(), 4);
         assert!(snapshot.rust_audio_catalog_count >= 3);
+        assert_eq!(snapshot.mochi_emotes.len(), 12);
+        assert_eq!(snapshot.mochi_focus_plan.focus_minutes, 25);
+        assert!(snapshot.wgpu_3d_shader_len > 100);
+
+        let glb = ipc_generate_pet_3d_glb();
+        assert!(glb.len() > 64);
+        assert_eq!(&glb[0..4], b"glTF");
 
         let samples: Vec<i16> = (0..512)
             .map(|i| ((i as f32 * 0.2).sin() * 14000.0) as i16)

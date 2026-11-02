@@ -65,6 +65,7 @@ function u() {
   let liveBtn = document.getElementById("btn-voice-live"),
     liveLabel = document.getElementById("btn-voice-live-label"),
     stcBtn = document.getElementById("btn-voice-stc"),
+    petBtn = document.getElementById("btn-voice-pet"),
     hubBtn = document.getElementById("btn-voice-hub"),
     isLive = !1;
   liveBtn &&
@@ -85,6 +86,10 @@ function u() {
   stcBtn &&
     stcBtn.addEventListener("click", () => {
       i.ipcRenderer.invoke("gemini-voice:stc-trigger");
+    });
+  petBtn &&
+    petBtn.addEventListener("click", () => {
+      i.ipcRenderer.send("gemini-voice:open-pet");
     });
   hubBtn &&
     hubBtn.addEventListener("click", () => {

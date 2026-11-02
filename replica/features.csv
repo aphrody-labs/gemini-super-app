@@ -1,0 +1,19 @@
+feature,area,priority,original,clone,notes
+Personalized zero-state greeting with gradient typography,S01,must,yes,yes,Clean-room greeting in fresh French copy with semantic gradient tokens
+4-card interactive prompt suggestion grid,S01,must,yes,yes,Vector SVG icons and instant submission to active thread
+Model selector dropdown with ARIA listbox semantics,S01,must,yes,yes,Supports Gemini 3.8 Flash / Gemini 4 Argon / Gemini 3.8 Live
+Multi-turn linear conversation thread with SQLite WAL persistence,S02,must,yes,yes,Full CRUD and message history backed by bun:sqlite WAL
+User message bubble with inline edit action,S02,must,yes,yes,Right-aligned surface pill with edit-to-dock reload
+Assistant markdown rendering with syntax code blocks,S02,must,yes,yes,Clean-room markdown parser for paragraphs and code blocks
+Expandable reasoning thought process accordion,S02,should,yes,yes,Native <details>/<summary> block displaying internal reasoning steps
+Web grounding source citations chips,S02,should,yes,yes,Clickable external source pills attached to assistant turns
+Message action toolbar (Copy to clipboard and TTS read-aloud),S02,must,yes,yes,Wired to clipboard API and /api/gemini/tts endpoint
+Skeleton loading shimmer and retryable error banner,S02,must,yes,yes,3-bar shimmer during generation and alert banner with retry button
+Collapsible left navigation sidebar (68px rail to 280px drawer),S03,must,yes,yes,Responsive drawer on 390px mobile and collapsible rail on 1440px desktop
+Pinned and chronological conversation grouping,S03,must,yes,yes,Grouped into Pinned and Recent with star/unstar and delete actions
+Real-time conversation title search filter,S03,should,yes,yes,Instant client-side filtering in sidebar
+Light and Dark theme switcher with 100% WCAG AA/AAA parity,S03,must,yes,yes,9 token pairs verified with 0 AA failures via contrast.py
+Auto-expanding floating omni input dock capsule,S04,must,yes,yes,Grows up to 180px with Enter to send and Shift+Enter for newline
+Multi-file attachment picker with removable preview chips,S04,must,yes,yes,Supports multiple files with badge chips in dock and message bubbles
+Full-duplex Live Voice overlay with 32-band radial FFT orb,S05,must,yes,yes,Canvas 32-band radial visualizer + vector SVG spark + mute/unmute controls
+Isolated WCAG Design System & Primitives inspector modal,S03,could,no,yes,Added clean-room token contrast verification modal

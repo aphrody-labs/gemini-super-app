@@ -14,6 +14,8 @@ const electron = require("electron");
 
 const HUB_HOST = "127.0.0.1";
 const HUB_PORT = 8765;
+const SUPER_APP_PORT = 8787;
+const TAURI_V3_PORT = 8788;
 const MIC_TCP_PORT = 24713;
 
 let mainHooks = null;
@@ -109,20 +111,55 @@ function ensureVoiceHubBackendRunning() {
 
   httpGetJson("/api/status", 1200).then((status) => {
     if (status && status.status === "ok") return;
-    const pyExe = "C:\\Users\\aphro\\google\\.venv\\Scripts\\python.exe";
-    const serverScript =
-      "C:\\Users\\aphro\\google\\backend\\voice_bridge_server.py";
-    if (fs.existsSync(pyExe) && fs.existsSync(serverScript)) {
-      try {
-        const child = spawn(pyExe, [serverScript], {
-          cwd: "C:\\Users\\aphro\\google",
-          detached: true,
-          stdio: "ignore",
-          windowsHide: true,
-        });
-        child.unref();
-      } catch {}
-    }
+
+    try {
+      const cp = require("child_process");
+      cp.execFile(
+        "schtasks.exe",
+        ["/run", "/tn", "Aphrody\\Aphrody Gemini Assistant 24x7"],
+        { windowsHide: true },
+        (err) => {
+          if (!err) return;
+
+          const bunExe = "C:\\Users\\aphro\\.bun\\bin\\bun.exe";
+          const supervisorScript =
+            "C:\\Users\\aphro\\google\\scripts\\gemini_24_7_supervisor.ts";
+          const conhost = "C:\\WINDOWS\\System32\\conhost.exe";
+
+          if (fs.existsSync(conhost) && fs.existsSync(bunExe) && fs.existsSync(supervisorScript)) {
+            try {
+              const child = cp.spawn(
+                conhost,
+                ["--headless", bunExe, "run", supervisorScript],
+                {
+                  cwd: "C:\\Users\\aphro\\google",
+                  detached: true,
+                  stdio: "ignore",
+                  windowsHide: true,
+                },
+              );
+              child.unref();
+              return;
+            } catch {}
+          }
+
+          const pywExe = "C:\\Users\\aphro\\google\\.venv\\Scripts\\pythonw.exe";
+          const serverScript =
+            "C:\\Users\\aphro\\google\\backend\\voice_bridge_server.py";
+          if (fs.existsSync(pywExe) && fs.existsSync(serverScript)) {
+            try {
+              const child = cp.spawn(pywExe, [serverScript], {
+                cwd: "C:\\Users\\aphro\\google",
+                detached: true,
+                stdio: "ignore",
+                windowsHide: true,
+              });
+              child.unref();
+            } catch {}
+          }
+        },
+      );
+    } catch {}
   });
 }
 
@@ -479,7 +516,21 @@ function initVoiceBridgeNative(hooks) {
 
   electron.ipcMain.on("gemini-voice:open-hub", () => {
     try {
-      electron.shell.openExternal("http://127.0.0.1:8765/");
+      electron.shell.openExternal(`http://${HUB_HOST}:${SUPER_APP_PORT}/`);
+    } catch {}
+  });
+
+  electron.ipcMain.on("gemini-voice:open-pet", () => {
+    try {
+      electron.shell.openExternal(`http://${HUB_HOST}:${SUPER_APP_PORT}/pet`);
+    } catch {}
+  });
+
+  electron.ipcMain.on("gemini-voice:open-tauri", () => {
+    try {
+      electron.shell.openExternal(
+        `http://${HUB_HOST}:${SUPER_APP_PORT}/windows-tauri`,
+      );
     } catch {}
   });
 

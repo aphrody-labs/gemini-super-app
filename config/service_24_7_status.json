@@ -1,0 +1,41 @@
+{
+  "supervisorPid": 63792,
+  "startedAt": "2026-11-02T01:31:27.429Z",
+  "updatedAt": "2026-11-02T02:31:18.780Z",
+  "allHealthy": true,
+  "services": {
+    "super_app": {
+      "id": "super_app",
+      "name": "The One Big Gemini Super App + Gemini Pet & Mochi Studio (:8787)",
+      "url": "http://127.0.0.1:8787",
+      "healthEndpoint": "http://127.0.0.1:8787/api/health",
+      "healthy": true,
+      "pid": 24060,
+      "restartCount": 6,
+      "lastCheckedAt": "2026-11-02T02:31:18.780Z",
+      "lastStartedAt": "2026-11-02T02:31:07.135Z"
+    },
+    "tauri_v3": {
+      "id": "tauri_v3",
+      "name": "Gemini Windows Native Tauri v3 Host (:8788)",
+      "url": "http://127.0.0.1:8788",
+      "healthEndpoint": "http://127.0.0.1:8788/api/tauri/snapshot",
+      "healthy": true,
+      "pid": 57608,
+      "restartCount": 1,
+      "lastCheckedAt": "2026-11-02T02:31:18.780Z",
+      "lastStartedAt": "2026-11-02T01:31:27.441Z"
+    },
+    "voice_bridge": {
+      "id": "voice_bridge",
+      "name": "Gemini Live Voice Bridge & TCP Mic Hub (:8765 / :24713)",
+      "url": "http://127.0.0.1:8765",
+      "healthEndpoint": "http://127.0.0.1:8765/api/status",
+      "healthy": true,
+      "pid": 25256,
+      "restartCount": 5,
+      "lastCheckedAt": "2026-11-02T02:31:18.780Z",
+      "lastStartedAt": "2026-11-02T02:31:07.140Z"
+    }
+  }
+}

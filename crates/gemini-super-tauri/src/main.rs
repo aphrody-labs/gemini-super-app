@@ -11,13 +11,15 @@
 
 use axum::{
     extract::State,
+    http::{header, StatusCode},
+    response::IntoResponse,
     routing::{get, post},
     Json, Router,
 };
 use base64::Engine as _;
 use gemini_super_tauri::{
-    ipc_compute_orb_spectrum, ipc_execute_immersive_voice_to_voice, resolve_gemini_api_key,
-    GeminiSuperAppSnapshot, ImmersiveVoiceTurnResult,
+    ipc_compute_orb_spectrum, ipc_execute_immersive_voice_to_voice, ipc_generate_pet_3d_glb,
+    resolve_gemini_api_key, GeminiSuperAppSnapshot, ImmersiveVoiceTurnResult,
 };
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -88,6 +90,33 @@ async fn handle_spectrum(
     Json(ipc_compute_orb_spectrum(&req.samples, sr))
 }
 
+async fn handle_pet_state(State(state): State<Arc<TauriHostState>>) -> Json<serde_json::Value> {
+    let snap = GeminiSuperAppSnapshot::build(&state.repo_root);
+    Json(serde_json::json!({
+        "ok": true,
+        "gemini_pet": snap.gemini_pet,
+        "mochi_bond": snap.mochi_bond,
+        "mochi_emotes": snap.mochi_emotes,
+        "mochi_focus_plan": snap.mochi_focus_plan,
+        "wgpu_3d_shader_len": snap.wgpu_3d_shader_len,
+    }))
+}
+
+async fn handle_pet_3d_glb() -> impl IntoResponse {
+    let glb_bytes = ipc_generate_pet_3d_glb();
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "model/gltf-binary"),
+            (
+                header::CONTENT_DISPOSITION,
+                "inline; filename=\"gemini-pet-tauri-v3.glb\"",
+            ),
+        ],
+        glb_bytes,
+    )
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let _ = rustls::crypto::ring::default_provider().install_default();
@@ -126,6 +155,8 @@ async fn main() -> anyhow::Result<()> {
     let state = Arc::new(TauriHostState { repo_root, api_key });
     let app = Router::new()
         .route("/api/tauri/snapshot", get(handle_snapshot))
+        .route("/api/tauri/pet", get(handle_pet_state))
+        .route("/api/tauri/pet/3d.glb", get(handle_pet_3d_glb))
         .route("/api/tauri/voice-to-voice", post(handle_voice_to_voice))
         .route("/api/tauri/spectrum", post(handle_spectrum))
         .with_state(state);
