@@ -6,6 +6,7 @@
 
 const VOICE_BRIDGE_URL = "http://127.0.0.1:8765";
 const SUPER_APP_URL = "http://127.0.0.1:8787";
+const GEMINI_WINDOWS_DIRECT_URL = "http://127.0.0.1:8789";
 const PET_IDS = ["mochi", "gemini-sparkle", "hoodie-cat"];
 
 let isLiveActive = false;
@@ -16,6 +17,8 @@ let petCharacterIndex = 0; // 0: Mochi, 1: Gemini Sparkle, 2: Hoodie Cat
 let petBounce = 0;
 let cursorX = 0;
 let cursorY = 0;
+let useAgyCliBackend = false;
+let geminiWindowsConnected = false;
 
 // Anti-race-condition locks against 25Hz WebSocket telemetry
 let lastLocalToggleMs = 0;
@@ -665,7 +668,8 @@ async function submitUtterance(chunks, textHint = "") {
       pcm16_base64: merged.byteLength > 0 ? arrayBufferToBase64(merged) : "",
       text: cleanHint,
       auto_reply: true,
-      surface: "gemini_minimal_voice",
+      use_agy_cli: useAgyCliBackend,
+      surface: useAgyCliBackend ? "agy_cli" : "gemini_minimal_voice",
     });
     const turnId = data?.model_turn?.id || "";
     if (data?.audio_base64) {
@@ -678,6 +682,61 @@ async function submitUtterance(chunks, textHint = "") {
   } finally {
     isSubmittingUtterance = false;
   }
+}
+
+async function pilotGeminiWindows(command = "stc_trigger", extra = {}) {
+  const payload = { command, launch: true, ...extra };
+  // 1. Direct Native Control Server inside Gemini.exe (:8789)
+  try {
+    const directRes = await fetch(`${GEMINI_WINDOWS_DIRECT_URL}/api/pilot`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (directRes.ok) {
+      const out = await directRes.json();
+      geminiWindowsConnected = true;
+      return out;
+    }
+  } catch {}
+  // 2. Fallback to Voice Bridge (:8765) & Super App (:8787) which auto-launch Gemini.exe
+  for (const baseUrl of [VOICE_BRIDGE_URL, SUPER_APP_URL]) {
+    try {
+      const res = await fetch(`${baseUrl}/api/gemini-windows/pilot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const out = await res.json();
+        geminiWindowsConnected = Boolean(out.direct_connected || out.launched);
+        return out;
+      }
+    } catch {}
+  }
+  return null;
+}
+
+async function invokeAgyCliBackend(promptText, options = {}) {
+  const payload = {
+    action: options.action || "print",
+    prompt: promptText,
+    model: options.model || "gemini-3.8-flash-low",
+    include_audio: options.include_audio !== false,
+  };
+  for (const baseUrl of [VOICE_BRIDGE_URL, SUPER_APP_URL]) {
+    try {
+      const res = await fetch(`${baseUrl}/api/agy/cli`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {}
+  }
+  return null;
 }
 
 function startBrowserSpeechRecognitionAssist() {
@@ -844,6 +903,8 @@ const micBtn = document.getElementById("micLiveBtn");
 const petVoiceBtn = document.getElementById("petVoiceBtn");
 const petDimBtn = document.getElementById("petDimensionBtn");
 const petCharBtn = document.getElementById("petCharacterBtn");
+const geminiWindowsBtn = document.getElementById("geminiWindowsBtn");
+const agyCliBtn = document.getElementById("agyCliBtn");
 const themeBtn = document.getElementById("themeBtn");
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsDialog = document.getElementById("settingsDialog");
@@ -859,6 +920,10 @@ const bargeInToggle = document.getElementById("bargeInToggle");
 const ytmDuckingToggle = document.getElementById("ytmDuckingToggle");
 const micRmsBar = document.getElementById("micRmsBar");
 const micRmsLabel = document.getElementById("micRmsLabel");
+const surfaceStatusLabel = document.getElementById("surfaceStatusLabel");
+const pilotWinShowBtn = document.getElementById("pilotWinShowBtn");
+const pilotWinStcBtn = document.getElementById("pilotWinStcBtn");
+const testAgyCliBtn = document.getElementById("testAgyCliBtn");
 
 async function loadHardwareAndSurfaceSettings() {
   for (const baseUrl of [VOICE_BRIDGE_URL, SUPER_APP_URL]) {
@@ -1095,6 +1160,90 @@ async function triggerCompanionPetVoiceGreeting() {
 orbBtn?.addEventListener("click", toggleVoiceSession);
 micBtn?.addEventListener("click", toggleVoiceSession);
 petVoiceBtn?.addEventListener("click", triggerCompanionPetVoiceGreeting);
+
+geminiWindowsBtn?.addEventListener("click", async () => {
+  petBounce = 1.15;
+  spawnPetParticles(6);
+  playPetChirp();
+  geminiWindowsBtn.setAttribute("aria-pressed", "true");
+  const out = await pilotGeminiWindows("stc_trigger", { launch: true });
+  await pilotGeminiWindows("show", { launch: false });
+  if (surfaceStatusLabel && out) {
+    surfaceStatusLabel.textContent = "Gemini.exe actif (:8789)";
+  }
+  setTimeout(() => {
+    geminiWindowsBtn.setAttribute(
+      "aria-pressed",
+      String(geminiWindowsConnected),
+    );
+  }, 600);
+});
+
+agyCliBtn?.addEventListener("click", async () => {
+  useAgyCliBackend = !useAgyCliBackend;
+  petBounce = 1.15;
+  spawnPetParticles(6);
+  playActivationChime(useAgyCliBackend);
+  agyCliBtn.setAttribute("aria-pressed", String(useAgyCliBackend));
+  await invokeAgyCliBackend("", {
+    action: "toggle_backend",
+    include_audio: false,
+  }).catch(() => {});
+  if (surfaceStatusLabel) {
+    surfaceStatusLabel.textContent = useAgyCliBackend
+      ? "agy CLI Backend Actif"
+      : "Gemini Live Direct";
+  }
+});
+
+pilotWinShowBtn?.addEventListener("click", async () => {
+  playPetChirp();
+  await pilotGeminiWindows("show", { launch: true });
+  if (surfaceStatusLabel) {
+    surfaceStatusLabel.textContent = "Fenêtre Gemini.exe ouverte (:8789)";
+  }
+});
+
+pilotWinStcBtn?.addEventListener("click", async () => {
+  playPetChirp();
+  await pilotGeminiWindows("stc_trigger", { launch: true });
+  if (surfaceStatusLabel) {
+    surfaceStatusLabel.textContent = "Capsule STC active (:8789)";
+  }
+});
+
+testAgyCliBtn?.addEventListener("click", async () => {
+  if (surfaceStatusLabel) {
+    surfaceStatusLabel.textContent = "Exécution agy.exe...";
+  }
+  playActivationChime(true);
+  liveState = "THINKING";
+  const res = await invokeAgyCliBackend(
+    "Réponds en français en une courte phrase : confirme que le backend Antigravity CLI est branché.",
+    { action: "print", include_audio: true },
+  );
+  if (res?.audio_base64) {
+    await playAudioBase64(res.audio_base64, `agy-${Date.now()}`);
+  } else {
+    liveState = isLiveActive ? "LISTENING" : "IDLE";
+  }
+  if (surfaceStatusLabel) {
+    surfaceStatusLabel.textContent = res?.reply_text
+      ? `agy OK (${res.latency_ms || 0} ms)`
+      : "agy prêt";
+  }
+});
+
+// Probe Gemini Windows App (:8789) & agy CLI status on startup
+fetch(`${GEMINI_WINDOWS_DIRECT_URL}/api/status`)
+  .then((r) => (r.ok ? r.json() : null))
+  .then((data) => {
+    if (data && data.status === "ok") {
+      geminiWindowsConnected = true;
+      geminiWindowsBtn?.setAttribute("aria-pressed", "true");
+    }
+  })
+  .catch(() => {});
 
 petDimBtn?.addEventListener("click", () => {
   is3dPet = !is3dPet;

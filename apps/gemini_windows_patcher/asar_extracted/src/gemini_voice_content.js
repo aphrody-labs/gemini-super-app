@@ -426,7 +426,7 @@
     });
   }
 
-  // Build Floating Voice-to-Voice Studio Pill UI
+  // Minimalist Zero-Text Floating Google Gemini Orb + Companion Pet Pill
   function createFloatingVoiceRoot() {
     if (document.getElementById("agy-gemini-live-floating-root")) return;
 
@@ -434,79 +434,57 @@
     root.id = "agy-gemini-live-floating-root";
     root.style.cssText = [
       "position: fixed",
-      "bottom: 22px",
-      "right: 22px",
+      "bottom: 24px",
+      "right: 24px",
       "z-index: 2147483646",
       "display: flex",
-      "flex-direction: column",
+      "align-items: center",
       "gap: 8px",
-      "padding: 12px 16px",
-      "border-radius: 22px",
-      "background: rgba(13, 15, 24, 0.94)",
-      "border: 1px solid rgba(155, 114, 203, 0.5)",
-      "box-shadow: 0 10px 36px rgba(66, 133, 244, 0.35)",
-      "backdrop-filter: blur(20px)",
-      "color: #E8EAED",
-      'font-family: "Google Sans", Roboto, system-ui, sans-serif',
-      "font-size: 12.5px",
+      "padding: 6px 10px",
+      "border-radius: 9999px",
+      "background: #1e1f20",
+      "border: 1px solid #333537",
+      "box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45)",
       "user-select: none",
-      "min-width: 310px",
-      "max-width: 380px",
-      "transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
     ].join(";");
 
     root.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <div id="agy-gem-orb-hit" title="Cliquer pour activer/désactiver /voice Live Full-Duplex" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <div style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle, rgba(66,133,244,0.28) 0%, rgba(155,114,203,0.08) 70%, transparent 100%);">
-            <svg id="agy-gemini-official-svg" viewBox="0 0 64 64" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="agyGemGrad" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#4285F4"/>
-                  <stop offset="38%" stop-color="#9B72CB"/>
-                  <stop offset="72%" stop-color="#D96570"/>
-                  <stop offset="100%" stop-color="#F49C46"/>
-                </linearGradient>
-              </defs>
-              <path d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z" fill="url(#agyGemGrad)"/>
-            </svg>
-          </div>
-          <div>
-            <div id="agy-gem-status-title" style="font-weight:700;font-size:13px;color:#FFFFFF;letter-spacing:0.2px;">Gemini Live /voice</div>
-            <div id="agy-gem-status-sub" style="font-size:11px;color:#9AA0A6;">Voice-to-Voice • Aoede HD</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <button id="agy-gem-live-btn" title="Mode /voice Full-Duplex (VAD automatique + Barge-in)" style="background:rgba(66,133,244,0.18);color:#8AB4F8;border:1px solid rgba(138,180,248,0.4);border-radius:999px;padding:6px 11px;font-size:11.5px;font-weight:600;cursor:pointer;">/voice</button>
-          <button id="agy-gem-ptt-btn" title="Push-to-Talk Record (F5)" style="background:linear-gradient(135deg,#4285F4,#9B72CB,#D96570);color:#FFFFFF;border:none;border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:600;cursor:pointer;">● Record</button>
-        </div>
-      </div>
-      <div id="agy-gem-transcript-box" style="display:none;flex-direction:column;gap:4px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,0.05);font-size:11.5px;line-height:1.35;max-height:92px;overflow-y:auto;">
-        <div id="agy-gem-user-line" style="color:#8AB4F8;"></div>
-        <div id="agy-gem-model-line" style="color:#E8EAED;"></div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:2px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:#9AA0A6;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span id="agy-gem-mode-toggle" style="cursor:pointer;color:#C58AF9;font-weight:600;" title="Changer de mode : Voice-to-Voice / Dictée Prompt / Speak-to-Window">⇄ Mode: Voice-to-Voice</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span id="agy-gem-stc-btn" style="cursor:pointer;color:#8AB4F8;" title="Ouvrir la capsule flottante Windows Speak-to-Window (Alt+Shift+D)">⊞ Capsule STC</span>
-          <span id="agy-gem-Test-btn" style="cursor:pointer;color:#81C995;" title="Tester une interaction vocale instantanée">▶ Test Voix</span>
-        </div>
-      </div>
+      <button id="agy-gem-orb-hit" type="button" aria-label="Gemini Live Voice" style="width:40px;height:40px;border:none;border-radius:9999px;background:radial-gradient(circle, rgba(66,133,244,0.22) 0%, transparent 70%);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;">
+        <svg id="agy-gemini-official-svg" viewBox="0 0 64 64" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="agyGemGrad" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#4285F4"/>
+              <stop offset="50%" stop-color="#9B72CB"/>
+              <stop offset="100%" stop-color="#D96570"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 3C32 19.0163 19.0163 32 3 32C19.0163 32 32 44.9837 32 61C32 44.9837 44.9837 32 61 32C44.9837 32 32 19.0163 32 3Z" fill="url(#agyGemGrad)"/>
+        </svg>
+      </button>
+      <button id="agy-gem-live-btn" type="button" aria-label="Microphone Voice-to-Voice" style="width:38px;height:38px;border:none;border-radius:9999px;background:#282a2c;color:#e3e3e3;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
+      </button>
+      <button id="agy-gem-ptt-btn" type="button" aria-label="Push-to-Talk" style="width:38px;height:38px;border:none;border-radius:9999px;background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;">
+        <svg viewBox="0 0 40 40" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="6" y="10" width="28" height="24" rx="12" fill="#f4f7f5"/>
+          <ellipse cx="17" cy="8" rx="4.5" ry="2.5" transform="rotate(-22 17 8)" fill="#81c995"/>
+          <ellipse cx="23" cy="8" rx="4.5" ry="2.5" transform="rotate(22 23 8)" fill="#81c995"/>
+          <circle cx="15" cy="21" r="2" fill="#1f1f1f"/>
+          <circle cx="25" cy="21" r="2" fill="#1f1f1f"/>
+          <path d="M17.5 25.5Q20 27.5 22.5 25.5" stroke="#1f1f1f" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
     `;
 
     document.body.appendChild(root);
 
-    // Event bindings
     const orbHit = document.getElementById("agy-gem-orb-hit");
     const liveBtn = document.getElementById("agy-gem-live-btn");
     const pttBtn = document.getElementById("agy-gem-ptt-btn");
-    const modeToggle = document.getElementById("agy-gem-mode-toggle");
-    const stcBtn = document.getElementById("agy-gem-stc-btn");
-    const testBtn =
-      document.getElementById("agy-gem-test-btn") ||
-      document.getElementById("agy-gem-Test-btn");
 
     const toggleLiveVoice = async () => {
       isLiveActive = !isLiveActive;
@@ -549,109 +527,18 @@
       }
       updateUiState();
     });
-
-    modeToggle?.addEventListener("click", () => {
-      if (voiceMode === "voice_to_voice") {
-        voiceMode = "dictation";
-        autoSubmitPrompt = true;
-      } else if (voiceMode === "dictation") {
-        voiceMode = "stc_window";
-        autoSubmitPrompt = false;
-      } else {
-        voiceMode = "voice_to_voice";
-        autoSubmitPrompt = false;
-      }
-      updateUiState();
-    });
-
-    stcBtn?.addEventListener("click", async () => {
-      if (window.geminiVoiceExtensionBridge?.triggerStcPill) {
-        await window.geminiVoiceExtensionBridge.triggerStcPill();
-      } else {
-        await sendVoiceAction({
-          action: "pilot_gemini_windows",
-          command: "stc_trigger",
-        });
-      }
-    });
-
-    testBtn?.addEventListener("click", async () => {
-      liveState = "THINKING";
-      updateUiState();
-      const res = await sendVoiceAction({
-        action: "voice_to_voice",
-        text: "Salut Gemini, confirme que le mode Voice-to-Voice fonctionne !",
-        auto_reply: true,
-      });
-      if (res) {
-        lastTranscript = res.transcript || "Salut Gemini !";
-        lastReply = res.reply_text || res.model_turn?.text || "";
-        updateUiState();
-        if (res.audio_base64) {
-          await playSynthesizedAudio(
-            res.audio_base64,
-            res.mime_type || "audio/mpeg",
-          );
-        }
-      }
-    });
   }
 
   function updateUiState() {
-    const statusTitle = document.getElementById("agy-gem-status-title");
-    const statusSub = document.getElementById("agy-gem-status-sub");
+    const root = document.getElementById("agy-gemini-live-floating-root");
     const liveBtn = document.getElementById("agy-gem-live-btn");
-    const pttBtn = document.getElementById("agy-gem-ptt-btn");
-    const modeToggle = document.getElementById("agy-gem-mode-toggle");
-    const transcriptBox = document.getElementById("agy-gem-transcript-box");
-    const userLine = document.getElementById("agy-gem-user-line");
-    const modelLine = document.getElementById("agy-gem-model-line");
-
-    if (statusTitle) {
-      statusTitle.textContent = isLiveActive
-        ? `Gemini Live • ${liveState}`
-        : isRecordingPtt
-          ? "● Enregistrement vocal..."
-          : "Gemini Live /voice";
-    }
-    if (statusSub) {
-      statusSub.textContent =
-        liveState === "SPEAKING"
-          ? "Gemini parle (parlez pour interrompre)"
-          : liveState === "LISTENING"
-            ? "Micro 16kHz actif • Parlez librement"
-            : liveState === "THINKING"
-              ? "Whisper STT + Gemini 3.8 Live..."
-              : "Voice-to-Voice • Aoede HD";
+    if (root) {
+      root.style.borderColor =
+        isLiveActive || isRecordingPtt ? "#a8c7fa" : "#333537";
     }
     if (liveBtn) {
-      liveBtn.style.background = isLiveActive
-        ? "rgba(129, 201, 149, 0.25)"
-        : "rgba(66, 133, 244, 0.18)";
-      liveBtn.style.color = isLiveActive ? "#81C995" : "#8AB4F8";
-      liveBtn.textContent = isLiveActive ? "● /voice ON" : "/voice";
-    }
-    if (pttBtn) {
-      pttBtn.textContent = isRecordingPtt ? "■ Stop" : "● Record";
-    }
-    if (modeToggle) {
-      const labels = {
-        voice_to_voice: "⇄ Mode: Voice-to-Voice",
-        dictation: "⇄ Mode: Dictée + Envoi",
-        stc_window: "⇄ Mode: Speak-to-Window",
-      };
-      modeToggle.textContent = labels[voiceMode] || labels.voice_to_voice;
-    }
-    if (transcriptBox && (lastTranscript || lastReply)) {
-      transcriptBox.style.display = "flex";
-      if (userLine) {
-        userLine.textContent = lastTranscript
-          ? `Vous : « ${lastTranscript} »`
-          : "";
-      }
-      if (modelLine) {
-        modelLine.textContent = lastReply ? `Gemini : ${lastReply}` : "";
-      }
+      liveBtn.style.background = isLiveActive ? "#a8c7fa" : "#282a2c";
+      liveBtn.style.color = isLiveActive ? "#042c6c" : "#e3e3e3";
     }
   }
 

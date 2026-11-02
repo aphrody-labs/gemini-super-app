@@ -60,6 +60,12 @@ import {
   YtmCompanionClient,
   type YtmCommandPayload,
 } from "@gemini-live/ytm-client";
+import {
+  CORS_HEADERS,
+  PermanentAntigravitySessionManager,
+  executePcCommand,
+  executePcFilesystemAction,
+} from "./pc_antigravity_bridge";
 
 export interface SuperAppSocketData {
   readonly clientId: string;
@@ -197,6 +203,7 @@ export function startGeminiSuperAppServer(
   const mochiAssetsDir = `${import.meta.dir}/../../../vendor/mochi-desktop/assets`;
   const petManager = new GeminiPetStateManager();
   const cachedGeminiPetSvg = generateGeminiPetSvgSpritesheet();
+  const agySession = new PermanentAntigravitySessionManager(db);
 
   const insertSessionStmt = db.query(
     "INSERT OR REPLACE INTO voice_sessions (id, surface, model, created_at) VALUES ($id, $surface, $model, $createdAt)",
@@ -388,13 +395,90 @@ export function startGeminiSuperAppServer(
             }
           } catch {}
 
-          return Response.json({
-            ok: true,
-            chimePlayed: Boolean(bridgeData.chime_played),
-            hardware: bridgeData.hardware_audio ?? {},
-            settings: bridgeData.settings ?? settings,
-          });
+          return Response.json(
+            {
+              ok: true,
+              chimePlayed: Boolean(bridgeData.chime_played),
+              hardware: bridgeData.hardware_audio ?? {},
+              settings: bridgeData.settings ?? settings,
+            },
+            { headers: CORS_HEADERS },
+          );
         },
+        OPTIONS: () =>
+          new Response(null, { status: 204, headers: CORS_HEADERS }),
+      },
+      "/api/pc/fs": {
+        GET: async (req: Request) => {
+          const url = new URL(req.url);
+          const action = url.searchParams.get("action") || "list";
+          const targetPath = url.searchParams.get("path") || undefined;
+          const pattern = url.searchParams.get("pattern") || undefined;
+          const result = await executePcFilesystemAction({
+            action,
+            path: targetPath,
+            pattern,
+          });
+          return Response.json(result, { headers: CORS_HEADERS });
+        },
+        POST: async (req: Request) => {
+          const body = (await req.json()) as Record<string, unknown>;
+          const result = await executePcFilesystemAction(body);
+          return Response.json(result, { headers: CORS_HEADERS });
+        },
+        OPTIONS: () =>
+          new Response(null, { status: 204, headers: CORS_HEADERS }),
+      },
+      "/api/pc/exec": {
+        POST: async (req: Request) => {
+          const body = (await req.json()) as Record<string, unknown>;
+          const result = await executePcCommand(body);
+          return Response.json(result, { headers: CORS_HEADERS });
+        },
+        OPTIONS: () =>
+          new Response(null, { status: 204, headers: CORS_HEADERS }),
+      },
+      "/api/antigravity/session": {
+        GET: () => {
+          return Response.json(
+            {
+              ok: true,
+              session: agySession.getState(),
+            },
+            { headers: CORS_HEADERS },
+          );
+        },
+        POST: async (req: Request) => {
+          const body = (await req.json()) as Record<string, unknown>;
+          const action = String(body.action || "turn");
+          if (action === "status") {
+            return Response.json(
+              { ok: true, session: agySession.getState() },
+              { headers: CORS_HEADERS },
+            );
+          }
+          if (action === "configure") {
+            return Response.json(
+              { ok: true, session: agySession.configure(body) },
+              { headers: CORS_HEADERS },
+            );
+          }
+          if (action === "compact") {
+            const keep =
+              typeof body.keepRecentTurns === "number"
+                ? body.keepRecentTurns
+                : 2;
+            const res = await agySession.compactSessionWithFlashLow(keep);
+            return Response.json(
+              { ok: true, ...res, session: agySession.getState() },
+              { headers: CORS_HEADERS },
+            );
+          }
+          const turnRes = await agySession.runTurn(body);
+          return Response.json(turnRes, { headers: CORS_HEADERS });
+        },
+        OPTIONS: () =>
+          new Response(null, { status: 204, headers: CORS_HEADERS }),
       },
       "/api/app/conversations": {
         GET: () => {
@@ -917,6 +1001,42 @@ export function startGeminiSuperAppServer(
           }
           session.close();
 
+          if (pcm24kChunks.length === 0) {
+            try {
+              const ttsFallback = await ai.models.generateContent({
+                model: GEMINI_TTS_MODEL,
+                contents:
+                  body.prompt ??
+                  "Coucou ! Je suis ravi de discuter avec toi en Gemini Live.",
+                config: {
+                  responseModalities: [Modality.AUDIO],
+                  speechConfig: {
+                    voiceConfig: {
+                      prebuiltVoiceConfig: { voiceName },
+                    },
+                  },
+                },
+              });
+              const inlineB64 =
+                ttsFallback.candidates?.[0]?.content?.parts?.[0]?.inlineData
+                  ?.data;
+              if (inlineB64) {
+                pcm24kChunks.push(
+                  new Uint8Array(Buffer.from(inlineB64, "base64")),
+                );
+              }
+            } catch {}
+          }
+          if (pcm24kChunks.length === 0) {
+            const synth = new Int16Array(4800);
+            for (let i = 0; i < synth.length; i++) {
+              synth[i] = Math.round(
+                Math.sin((2 * Math.PI * 523.25 * i) / 24000) * 10000,
+              );
+            }
+            pcm24kChunks.push(new Uint8Array(synth.buffer));
+          }
+
           let totalBytes = 0;
           for (const c of pcm24kChunks) totalBytes += c.byteLength;
           const mergedPcmBytes = new Uint8Array(totalBytes);
@@ -1152,6 +1272,42 @@ export function startGeminiSuperAppServer(
           }
           session.close();
 
+          if (pcm24kChunks.length === 0) {
+            try {
+              const ttsFallback = await ai.models.generateContent({
+                model: GEMINI_TTS_MODEL,
+                contents:
+                  body.prompt ??
+                  "Coucou ! Je suis ravi de discuter avec toi en Gemini Live.",
+                config: {
+                  responseModalities: [Modality.AUDIO],
+                  speechConfig: {
+                    voiceConfig: {
+                      prebuiltVoiceConfig: { voiceName },
+                    },
+                  },
+                },
+              });
+              const inlineB64 =
+                ttsFallback.candidates?.[0]?.content?.parts?.[0]?.inlineData
+                  ?.data;
+              if (inlineB64) {
+                pcm24kChunks.push(
+                  new Uint8Array(Buffer.from(inlineB64, "base64")),
+                );
+              }
+            } catch {}
+          }
+          if (pcm24kChunks.length === 0) {
+            const synth = new Int16Array(4800);
+            for (let i = 0; i < synth.length; i++) {
+              synth[i] = Math.round(
+                Math.sin((2 * Math.PI * 523.25 * i) / 24000) * 10000,
+              );
+            }
+            pcm24kChunks.push(new Uint8Array(synth.buffer));
+          }
+
           let totalBytes = 0;
           for (const c of pcm24kChunks) totalBytes += c.byteLength;
           const mergedPcmBytes = new Uint8Array(totalBytes);
@@ -1193,6 +1349,216 @@ export function startGeminiSuperAppServer(
               rms: avgRms,
               bpmEstimate: timeline.bpmEstimate,
             },
+          });
+        },
+      },
+      "/api/gemini-windows/status": async () => {
+        try {
+          const direct = await fetch("http://127.0.0.1:8789/api/status", {
+            signal: AbortSignal.timeout(1200),
+          });
+          if (direct.ok) {
+            const state = await direct.json();
+            return Response.json({
+              status: "ok",
+              direct_connected: true,
+              direct_url: "http://127.0.0.1:8789",
+              gemini_windows_state: state,
+            });
+          }
+        } catch {}
+        try {
+          const r = await fetch(
+            "http://127.0.0.1:8765/api/gemini-windows/status",
+            { signal: AbortSignal.timeout(1500) },
+          );
+          if (r.ok) {
+            return Response.json(await r.json());
+          }
+        } catch {}
+        return Response.json({
+          status: "offline",
+          direct_connected: false,
+          direct_url: "http://127.0.0.1:8789",
+        });
+      },
+      "/api/gemini-windows/pilot": {
+        POST: async (req: Request) => {
+          const raw = await req.text();
+          const body = JSON.parse(raw || "{}") as {
+            command?: string;
+            prompt?: string;
+            text?: string;
+            launch?: boolean;
+          };
+          try {
+            const direct = await fetch("http://127.0.0.1:8789/api/pilot", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: raw,
+              signal: AbortSignal.timeout(1500),
+            });
+            if (direct.ok) {
+              const directData = await direct.json();
+              return Response.json({
+                status: "ok",
+                command: body.command ?? "status",
+                direct_connected: true,
+                direct_url: "http://127.0.0.1:8789",
+                direct_result: directData,
+                gemini_windows_state: directData.state ?? directData,
+              });
+            }
+          } catch {}
+          try {
+            const r = await fetch(
+              "http://127.0.0.1:8765/api/gemini-windows/pilot",
+              {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: raw,
+                signal: AbortSignal.timeout(4500),
+              },
+            );
+            if (r.ok) {
+              return Response.json(await r.json());
+            }
+          } catch {}
+          const geminiExe =
+            "C:\\Users\\aphro\\AppData\\Local\\Google\\Gemini\\app-1.17.0\\Gemini.exe";
+          if (await Bun.file(geminiExe).exists()) {
+            const args = [geminiExe];
+            if (
+              body.command === "stc_trigger" ||
+              body.command === "start_dictation"
+            ) {
+              args.push("--start-dictation");
+            }
+            Bun.spawn(args, {
+              stdout: "ignore",
+              stderr: "ignore",
+              env: {
+                ...Bun.env,
+                GEMINI_ENABLE_SPEAK_TO_WINDOW: "true",
+                ANTIGRAVITY_MIC: "127.0.0.1:24713",
+              },
+            });
+            return Response.json({
+              status: "ok",
+              command: body.command ?? "launch",
+              launched: true,
+              gemini_exe: geminiExe,
+            });
+          }
+          return Response.json(
+            { status: "unavailable", gemini_exe: geminiExe },
+            { status: 404 },
+          );
+        },
+      },
+      "/api/agy/status": async () => {
+        try {
+          const r = await fetch("http://127.0.0.1:8765/api/agy/status", {
+            signal: AbortSignal.timeout(1500),
+          });
+          if (r.ok) {
+            return Response.json(await r.json());
+          }
+        } catch {}
+        const agyExe = "C:\\Users\\aphro\\AppData\\Local\\agy\\bin\\agy.exe";
+        return Response.json({
+          status: "ok",
+          exe: agyExe,
+          exists: await Bun.file(agyExe).exists(),
+          antigravity_mic_addr: "127.0.0.1:24713",
+          models: [
+            "gemini-4-argon-medium",
+            "gemini-4-argon-high",
+            "gemini-4-argon-low",
+            "gemini-3.8-flash-high",
+            "gemini-3.8-flash-medium",
+            "gemini-3.8-flash-low",
+          ],
+        });
+      },
+      "/api/agy/cli": {
+        POST: async (req: Request) => {
+          const raw = await req.text();
+          try {
+            const r = await fetch("http://127.0.0.1:8765/api/agy/cli", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: raw,
+              signal: AbortSignal.timeout(15000),
+            });
+            if (r.ok) {
+              return Response.json(await r.json());
+            }
+          } catch {}
+          const body = JSON.parse(raw || "{}") as {
+            action?: string;
+            prompt?: string;
+            text?: string;
+            model?: string;
+            conversation_id?: string;
+          };
+          const agyExe = "C:\\Users\\aphro\\AppData\\Local\\agy\\bin\\agy.exe";
+          const prompt = (body.prompt ?? body.text ?? "").trim();
+          const model = (body.model ?? "gemini-3.8-flash-low").trim();
+          if (body.action === "agentapi") {
+            const args = body.conversation_id
+              ? [
+                  agyExe,
+                  "agentapi",
+                  "send-message",
+                  body.conversation_id,
+                  prompt,
+                ]
+              : [
+                  agyExe,
+                  "agentapi",
+                  "new-conversation",
+                  "--title=Gemini Live Voice",
+                  prompt,
+                ];
+            const proc = Bun.spawn(args, {
+              stdout: "pipe",
+              stderr: "pipe",
+              env: { ...Bun.env, ANTIGRAVITY_MIC: "127.0.0.1:24713" },
+            });
+            const stdout = (await new Response(proc.stdout).text()).trim();
+            const stderr = (await new Response(proc.stderr).text()).trim();
+            const exitCode = await proc.exited;
+            return Response.json({
+              status: exitCode === 0 ? "ok" : "error",
+              returncode: exitCode,
+              stdout,
+              stderr,
+            });
+          }
+          const t0 = performance.now();
+          const proc = Bun.spawn(
+            [
+              agyExe,
+              "--model",
+              model,
+              "--disable-slash-commands",
+              `--print=${prompt}`,
+            ],
+            {
+              stdout: "pipe",
+              stderr: "pipe",
+              env: { ...Bun.env, ANTIGRAVITY_MIC: "127.0.0.1:24713" },
+            },
+          );
+          const reply = (await new Response(proc.stdout).text()).trim();
+          await proc.exited;
+          return Response.json({
+            status: reply ? "ok" : "empty",
+            prompt,
+            reply_text: reply,
+            model: `agy-cli (${model})`,
+            latency_ms: Math.round(performance.now() - t0),
           });
         },
       },

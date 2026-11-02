@@ -1,0 +1,39 @@
+{
+  "sessionId": "agy-permanent-main",
+  "model": "gemini-3.8-flash",
+  "thinkingLevel": "low",
+  "autoCompactEnabled": true,
+  "autoCompactThresholdChars": 4200,
+  "maxTurnsBeforeCompact": 6,
+  "compactCount": 1,
+  "lastCompactedAt": 1793587992180,
+  "compactedSummary": "[Auto-Compact #1 • gemini-3.8-flash (low) • Workspace: C:\\Users\\aphro\\google] Session permanente Antigravity connectée à Gemini Web App et au PC Windows (C:\\Users\\aphro\\google). Modèle actif : gemini-3.8-flash (thinkingLevel: low) avec Auto-Compact temps réel et accès complet au système de fichiers. | Derniers états : [USER]: /read package.json Résume ce fichier. [ASSISTANT]: Accès PC exécuté sur C:\\Users\\aphro\\google : [PC FILE C:\\Users\\aphro\\google\\package.json (lines 1-64/64)]: { \"name\": \"gemini-live-voice-monorepo\", \"version\": \"2026.11.0\", \"private\": true, \"type\": \"module\", \"description\": \"Unified November 2026 Monorepo (Rust Crates + Bun v1.4.5 Packages + Python uv + Tauri v3 Alpha) for the One Big Gemini Voice, Audio & Music Super App\", \"workspaces\": [ \"packages/*\", \"apps/*\" ], \"scripts\": { \"consolidate\": \"bun run scripts/consolidate_monorepo.ts\", \"build\": \"bun build apps/gemini_super_app/src/server.ts --outdir ./dist --target",
+  "workspaceRoot": "C:\\Users\\aphro\\google",
+  "turns": [
+    {
+      "id": "agy-u-1793587988633",
+      "role": "user",
+      "content": "/read package.json Résume ce fichier.",
+      "pcContextAttached": [
+        "fs:read:C:\\Users\\aphro\\google\\package.json"
+      ],
+      "model": "gemini-3.8-flash",
+      "thinkingLevel": "low",
+      "latencyMs": 0,
+      "createdAt": 1793587988633
+    },
+    {
+      "id": "agy-a-1793587988679",
+      "role": "assistant",
+      "content": "Accès PC exécuté sur C:\\Users\\aphro\\google :\n\n[PC FILE C:\\Users\\aphro\\google\\package.json (lines 1-64/64)]:\n{\n  \"name\": \"gemini-live-voice-monorepo\",\n  \"version\": \"2026.11.0\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"description\": \"Unified November 2026 Monorepo (Rust Crates + Bun v1.4.5 Packages + Python uv + Tauri v3 Alpha) for the One Big Gemini Voice, Audio & Music Super App\",\n  \"workspaces\": [\n    \"packages/*\",\n    \"apps/*\"\n  ],\n  \"scripts\": {\n    \"consolidate\": \"bun run scripts/consolidate_monorepo.ts\",\n    \"build\": \"bun build apps/gemini_super_app/src/server.ts --outdir ./dist --target bun\",\n    \"super-app\": \"bun run apps/gemini_super_app/src/server.ts\",\n    \"super-app:dev\": \"bun --watch run apps/gemini_super_app/src/server.ts\",\n    \"check\": \"bun check\",\n    \"fmt\": \"bun fmt packages scripts apps/gemini_super_app apps/gemini_windows_patcher/src\",\n    \"fmt:check\": \"bun fmt --check packages scripts apps/gemini_super_app apps/gemini_windows_patcher/src\",\n    \"lint\": \"bun lint packages scripts apps/gemini_super_app apps/gemini_windows_patcher/src\",\n    \"test\": \"bun test\",\n    \"test:rust\": \"cargo test --workspace\",\n    \"test:python\": \"uv run pytest\",\n    \"patch:gemini\": \"bun run apps/gemini_windows_patcher/src/patch_gemini_desktop.ts\",\n    \"assistant:supervisor\": \"bun run scripts/gemini_24_7_supervisor.ts\",\n    \"assistant:check\": \"bun run scripts/gemini_24_7_supervisor.ts --once\",\n    \"assistant:status\": \"bun run scripts/setup_windows_persistent_service.ts --status\",\n    \"chrome:gemini\": \"bun run scripts/setup_chrome_gemini_ai.ts\",\n    \"package:cws\": \"bun run scripts/package_chrome_web_store.ts\",\n    \"voice:server\": \"uv run python backend/voice_bridge_server.py\",\n    \"voice:hub\": \"uv run python backend/super_app_hub.py\",\n    \"cookies:import\": \"bun run scripts/gemini_cookie_daemon.ts import\",\n    \"cookies:refresh\": \"bun run scripts/gemini_cookie_daemon.ts refresh\",\n    \"cookies:status\": \"bun run scripts/gemini_cookie_daemon.ts status\",\n    \"cookies:daemon\": \"bun run scripts/gemini_cookie_daemon.ts daemon\",\n    \"windows:migrate\": \"bun run scripts/gemini_windows_tauri_v3.ts\",\n    \"windows:tauri-v3\": \"cargo run -p gemini-super-tauri --bin gemini-windows-tauri-v3\"\n  },\n  \"dependencies\": {\n    \"@gemini-live/google-ai-suite\": \"workspace:*\",\n    \"@gemini-live/openpets-gemini\": \"workspace:*\",\n    \"@google/genai\": \"^2.32.0\",\n    \"@tauri-apps/api\": \"^3.0.0-alpha.3\",\n    \"@tauri-apps/plugin-dialog\": \"^3.0.0-alpha.4\",\n    \"@tauri-apps/plugin-fs\": \"^3.0.0-alpha.3\",\n    \"@tauri-apps/plugin-shell\": \"^3.0.0-alpha.3\",\n    \"@tauri-apps/plugin-store\": \"^3.0.0-alpha.3\",\n    \"google-auth-library\": \"^11.3.2\",\n    \"lucide-react\": \"^1.66.0\",\n    \"react\": \"^19.3.1\",\n    \"react-dom\": \"^19.3.1\",\n    \"tailwindcss\": \"^4.3.3\",\n    \"wavesurfer.js\": \"^8.0.4\",\n    \"zod\": \"^4.6.7\",\n    \"zustand\": \"^5.0.16\"\n  },\n  \"devDependencies\": {\n    \"@tauri-apps/cli\": \"^3.0.0-alpha.5\",\n    \"@types/bun\": \"^1.4.4\",\n    \"@types/chrome\": \"^0.3.7\",\n    \"@types/node\": \"^26.6.6\",\n    \"typescript\": \"^7.0.2\"\n  }\n}\n",
+      "pcContextAttached": [
+        "fs:read:C:\\Users\\aphro\\google\\package.json"
+      ],
+      "model": "gemini-3.8-flash",
+      "thinkingLevel": "low",
+      "latencyMs": 46,
+      "createdAt": 1793587988679
+    }
+  ],
+  "updatedAt": 1793588020385
+}

@@ -338,16 +338,32 @@ class GeminiLiveAndTTSBridge:
         return cfg
 
     async def generate_Conversational_reply(
-        self, prompt: str, surface: str = "flutter_app"
+        self,
+        prompt: str,
+        surface: str = "flutter_app",
+        use_agy_cli: bool = False,
     ) -> tuple[str, str, int]:
         """
         Generates a fast conversational response using:
-        1. Gemini Interactions API (`gemini-3.8-flash` / `gemini-4-argon`) if API key/ADC is active
-        2. Antigravity CLI (`agy --print`) if bridged
-        3. Built-in ultra-fast localized conversational intelligence fallback
+        1. Antigravity CLI (`agy.exe --model ... --print=...`) when `use_agy_cli=True` or `/agy ` prefix is used
+        2. Gemini API (`gemini-3.8-flash` / `gemini-4-argon`) if API key/ADC is active
+        3. Antigravity CLI fallback (`agy.exe`) if bridged
+        4. Built-in ultra-fast localized conversational intelligence fallback
         Returns (reply_text, model_used, latency_ms).
         """
         t0 = time.perf_counter()
+
+        # 0. Direct Antigravity CLI (`agy.exe`) execution when explicitly requested or prefixed with `/agy `
+        if use_agy_cli or prompt.startswith("/agy ") or surface == "agy_cli":
+            clean_prompt = prompt.replace("/agy ", "", 1).strip() if prompt.startswith("/agy ") else prompt.strip()
+            voice_wrapped_prompt = (
+                "Réponds en français en 1 à 2 phrases courtes, naturelles et directement parlables à l'oral "
+                f"(sans markdown ni blocs de code) : {clean_prompt}"
+            )
+            agy_reply = await self.run_agy_cli_prompt(voice_wrapped_prompt)
+            if agy_reply:
+                ms = int((time.perf_counter() - t0) * 1000)
+                return agy_reply, "agy-cli (gemini-3.8-flash-low)", ms
 
         # 1. Try Google GenAI Interactions API / generate_content first
         if self._client is not None:
@@ -394,18 +410,18 @@ class GeminiLiveAndTTSBridge:
                     "GenAI direct call fallback (%s); trying agy CLI / local live responder.", exc
                 )
 
-        # 2. If the prompt explicitly requests `/agy <command>`, run `agy --print`
-        if prompt.startswith("/agy "):
-            clean_prompt = prompt.replace("/agy ", "", 1).strip()
-            agy_reply = await self.run_agy_cli_prompt(clean_prompt)
-            if agy_reply:
-                ms = int((time.perf_counter() - t0) * 1000)
-                return agy_reply, "agy-cli (gemini-4-argon)", ms
+        # 2. Fallback to `agy.exe --print=...`
+        agy_fallback = await self.run_agy_cli_prompt(prompt)
+        if agy_fallback:
+            ms = int((time.perf_counter() - t0) * 1000)
+            return agy_fallback, "agy-cli (gemini-3.8-flash-low)", ms
 
         # 3. Ultra-fast humanized conversational responder (< 45ms latency) for instant voice interaction
         reply = self._humanized_instant_response(prompt, surface)
         ms = max(12, int((time.perf_counter() - t0) * 1000))
         return reply, f"{self.config.live_model} ({self.config.voice_name})", ms
+
+    generate_conversational_reply = generate_Conversational_reply
 
     def _humanized_instant_response(self, prompt: str, surface: str) -> str:
         _ = surface
@@ -589,23 +605,62 @@ class GeminiLiveAndTTSBridge:
             wf.writeframes(pcm.tobytes())
         return buf.getvalue()
 
-    async def run_agy_cli_prompt(self, prompt: str) -> str:
-        """Invokes `agy.exe --print` non-interactively to execute a prompt in Antigravity CLI."""
+    async def run_agy_cli_prompt(
+        self, prompt: str, model: str = "gemini-3.8-flash-low"
+    ) -> str:
+        """Invokes `agy.exe --model <model> --disable-slash-commands --print=<prompt>` non-interactively."""
         if not Path(AGY_EXE_PATH).exists():
             return ""
+        clean_prompt = prompt.strip()
+        if not clean_prompt:
+            return ""
         try:
+            env = dict(os.environ)
+            env["ANTIGRAVITY_MIC"] = f"127.0.0.1:{ANTIGRAVITY_MIC_PORT}"
             proc = await asyncio.create_subprocess_exec(
                 AGY_EXE_PATH,
-                "--print",
-                prompt,
+                "--model",
+                model,
+                "--disable-slash-commands",
+                f"--print={clean_prompt}",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                env=env,
             )
             stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=15.0)
             return stdout.decode("utf-8", errors="replace").strip()
         except Exception as exc:
             logger.warning("agy --print execution warning: %s", exc)
             return ""
+
+    async def list_agy_models(self) -> list[str]:
+        """Lists available models from `agy.exe models`."""
+        if not Path(AGY_EXE_PATH).exists():
+            return []
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                AGY_EXE_PATH,
+                "models",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5.0)
+            out = stdout.decode("utf-8", errors="replace").strip()
+            models: list[str] = []
+            for line in out.splitlines():
+                s = line.strip()
+                if s.startswith("- "):
+                    models.append(s[2:].split(" ")[0].strip())
+            return models
+        except Exception:
+            return [
+                "gemini-4-argon-medium",
+                "gemini-4-argon-high",
+                "gemini-4-argon-low",
+                "gemini-3.8-flash-high",
+                "gemini-3.8-flash-medium",
+                "gemini-3.8-flash-low",
+            ]
 
     async def send_to_antigravity_agentapi(
         self, prompt: str, target: str = "cli", conversation_id: str | None = None
@@ -629,12 +684,15 @@ class GeminiLiveAndTTSBridge:
             args.extend(["new-conversation", "--title=Gemini Live Voice", prompt])
 
         try:
+            env = dict(os.environ)
+            env["ANTIGRAVITY_MIC"] = f"127.0.0.1:{ANTIGRAVITY_MIC_PORT}"
             proc = await asyncio.create_subprocess_exec(
                 *args,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                env=env,
             )
-            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=10.0)
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=12.0)
             return {
                 "status": "ok" if proc.returncode == 0 else "error",
                 "returncode": proc.returncode,
@@ -662,6 +720,8 @@ class VoiceHubServer:
         self.ws_clients: set[web.WebSocketResponse] = set()
         self.mic_tcp_clients: set[asyncio.StreamWriter] = set()
         self.history: list[ConversationTurn] = []
+        self.gemini_windows_state: dict[str, Any] = {}
+        self.pending_pilot_commands: list[dict[str, Any]] = []
 
         # Live state: "IDLE" | "LISTENING" | "THINKING" | "SPEAKING" | "INTERRUPTED"
         self.interaction_state: str = "IDLE"
@@ -1057,6 +1117,7 @@ class VoiceHubServer:
         stt_latency_ms: int = 0,
         precomputed_reply: tuple[str, str, int] | None = None,
         pre_synthesized_audio: bytes | None = None,
+        use_agy_cli: bool = False,
     ) -> dict[str, Any]:
         """Processes a user voice transcript or slash command across all bridged surfaces."""
         clean_text = text.strip()
@@ -1113,14 +1174,18 @@ class VoiceHubServer:
             }
         )
 
+        prefer_agy = bool(
+            use_agy_cli
+            or self.full_settings.get("antigravity", {}).get("use_agy_cli_backend", False)
+            or surface == "agy_cli"
+        )
+
         if precomputed_reply is not None:
             reply_text, model_used, llm_ms = precomputed_reply
         else:
             reply_text, model_used, llm_ms = (
-                await self.gemini_bridge.generate_conversational_reply(clean_text, surface=surface)
-                if hasattr(self.gemini_bridge, "generate_conversational_reply")
-                else await self.gemini_bridge.generate_Conversational_reply(
-                    clean_text, surface=surface
+                await self.gemini_bridge.generate_Conversational_reply(
+                    clean_text, surface=surface, use_agy_cli=prefer_agy
                 )
             )
 
@@ -1152,11 +1217,40 @@ class VoiceHubServer:
             self._speak_response(model_turn, pre_synthesized_audio=pre_synthesized_audio)
         )
 
+        # Sync voice turn to Gemini Windows App (:8789) in the background
+        if self.config.bridged_surfaces.get("gemini_windows", True):
+            asyncio.create_task(
+                self._sync_turn_to_gemini_windows(clean_text, reply_text, surface)
+            )
+
         return {
             "status": "ok",
             "user_turn": asdict(user_turn),
             "model_turn": asdict(model_turn),
         }
+
+    async def _sync_turn_to_gemini_windows(
+        self, transcript: str, reply_text: str, surface: str
+    ) -> None:
+        """Pushes the latest voice turn directly into Gemini.exe (:8789) if online."""
+        try:
+            timeout = aiohttp.ClientTimeout(total=1.2)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(
+                    "http://127.0.0.1:8789/api/pilot",
+                    json={
+                        "command": "voice_turn_sync",
+                        "transcript": transcript,
+                        "reply_text": reply_text,
+                        "surface": surface,
+                    },
+                ) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        if isinstance(data.get("state"), dict):
+                            self.gemini_windows_state = data["state"]
+        except Exception:
+            pass
 
     async def _speak_response(
         self,
@@ -1301,12 +1395,10 @@ class VoiceHubServer:
 
     async def pilot_gemini_windows_app(self, data: dict[str, Any]) -> dict[str, Any]:
         """
-        Pilots C:\\Users\\aphro\\AppData\\Local\\Google\\Gemini\\Gemini.exe (v1.17.0):
-        - Launches Gemini.exe or GeminiAppLauncher.exe if requested or not running
-        - Sends CLI switches (--start-dictation, --hide, etc.)
-        - Broadcasts real-time pilot commands (`show`, `hide`, `stc_trigger`, `toggle_live`,
-          `send_prompt`, `inject_unicode`, `get_foreground_context`) over WebSocket to the
-          injected Electron controller (`src/voice_bridge_native.js`) inside Gemini.exe.
+        Pilots C:\\Users\\aphro\\AppData\\Local\\Google\\Gemini\\app-1.17.0\\Gemini.exe:
+        - Calls the direct native control server inside Gemini.exe (`http://127.0.0.1:8789/api/pilot`)
+        - Launches Gemini.exe automatically if requested (`launch=True`) or if `:8789` is offline
+        - Queues in `self.pending_pilot_commands` and broadcasts over WebSocket (`/ws/voice`)
         """
         gemini_exe = Path(r"C:\Users\aphro\AppData\Local\Google\Gemini\app-1.17.0\Gemini.exe")
         if not gemini_exe.exists():
@@ -1315,33 +1407,77 @@ class VoiceHubServer:
         command = data.get("command", "status")
         prompt = data.get("prompt", "")
         text = data.get("text", "")
-        launch = data.get("launch", False)
+        launch = bool(data.get("launch", False))
 
+        direct_response: dict[str, Any] | None = None
         launched = False
-        if launch and gemini_exe.exists():
-            cli_args = [str(gemini_exe)]
-            if command in ("stc_trigger", "start_dictation"):
-                cli_args.append("--start-dictation")
-            elif command == "hide":
-                cli_args.append("--hide")
-            env = dict(os.environ)
-            env["GEMINI_ENABLE_SPEAK_TO_WINDOW"] = "true"
-            env["ANTIGRAVITY_MIC"] = f"127.0.0.1:{ANTIGRAVITY_MIC_PORT}"
-            subprocess.Popen(
-                cli_args,
-                env=env,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            launched = True
+
+        async def _call_direct_8789() -> dict[str, Any] | None:
+            try:
+                timeout = aiohttp.ClientTimeout(total=1.5)
+                async with aiohttp.ClientSession(timeout=timeout) as session:
+                    if command == "status":
+                        async with session.get("http://127.0.0.1:8789/api/status") as resp:
+                            if resp.status == 200:
+                                return await resp.json()
+                    else:
+                        async with session.post(
+                            "http://127.0.0.1:8789/api/pilot",
+                            json={
+                                "command": command,
+                                "prompt": prompt,
+                                "text": text,
+                                "transcript": data.get("transcript", ""),
+                                "reply_text": data.get("reply_text", ""),
+                            },
+                        ) as resp:
+                            if resp.status == 200:
+                                return await resp.json()
+            except Exception:
+                return None
+            return None
+
+        direct_response = await _call_direct_8789()
+
+        if (launch or direct_response is None) and gemini_exe.exists() and command != "hide":
+            if direct_response is None:
+                cli_args = [str(gemini_exe)]
+                if command in ("stc_trigger", "start_dictation"):
+                    cli_args.append("--start-dictation")
+                env = dict(os.environ)
+                env["GEMINI_ENABLE_SPEAK_TO_WINDOW"] = "true"
+                env["ANTIGRAVITY_MIC"] = f"127.0.0.1:{ANTIGRAVITY_MIC_PORT}"
+                subprocess.Popen(
+                    cli_args,
+                    env=env,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                launched = True
+                for _ in range(8):
+                    await asyncio.sleep(0.35)
+                    direct_response = await _call_direct_8789()
+                    if direct_response is not None:
+                        break
+
+        if isinstance(direct_response, dict):
+            state_snap = direct_response.get("state") or direct_response
+            if isinstance(state_snap, dict):
+                self.gemini_windows_state = state_snap
 
         pilot_event = {
+            "id": f"pilot-{int(time.time() * 1000)}",
             "type": "pilot_gemini_windows",
             "command": command,
             "prompt": prompt,
             "text": text,
             "timestamp": time.time(),
         }
+        if direct_response is None and command != "status":
+            self.pending_pilot_commands.append(pilot_event)
+            if len(self.pending_pilot_commands) > 10:
+                self.pending_pilot_commands = self.pending_pilot_commands[-10:]
+
         await self.broadcast_event(pilot_event)
         return {
             "status": "ok",
@@ -1349,12 +1485,17 @@ class VoiceHubServer:
             "gemini_exe": str(gemini_exe),
             "gemini_exe_exists": gemini_exe.exists(),
             "launched": launched,
+            "direct_connected": direct_response is not None,
+            "direct_url": "http://127.0.0.1:8789",
+            "direct_result": direct_response,
             "active_ws_clients": len(self.ws_clients),
-            "gemini_windows_state": getattr(self, "gemini_windows_state", {}),
+            "gemini_windows_state": self.gemini_windows_state,
         }
 
     # HTTP & WebSocket Handlers
     async def handle_status(self, request: web.Request) -> web.Response:
+        pending_copy = list(self.pending_pilot_commands)
+        self.pending_pilot_commands.clear()
         return web.json_response(
             {
                 "status": "ok",
@@ -1365,10 +1506,113 @@ class VoiceHubServer:
                 "config": asdict(self.config),
                 "hardware_audio": self.get_hardware_audio_status(),
                 "antigravity_mic_addr": f"127.0.0.1:{ANTIGRAVITY_MIC_PORT}",
+                "agy_cli": {
+                    "exe": AGY_EXE_PATH,
+                    "exists": Path(AGY_EXE_PATH).exists(),
+                    "mic_tcp_clients": len(self.mic_tcp_clients),
+                    "use_agy_cli_backend": bool(
+                        self.full_settings.get("antigravity", {}).get("use_agy_cli_backend", False)
+                    ),
+                },
                 "ws_url": f"ws://{HTTP_WS_HOST}:{HTTP_WS_PORT}/ws/voice",
                 "gemini_windows_state": getattr(self, "gemini_windows_state", {}),
+                "pending_pilot_commands": pending_copy,
                 "history_count": len(self.history),
                 "history": [asdict(t) for t in self.history[-20:]],
+            },
+            headers=self._cors_headers(),
+        )
+
+    async def handle_gemini_windows_status(self, request: web.Request) -> web.Response:
+        res = await self.pilot_gemini_windows_app({"command": "status", "launch": False})
+        return web.json_response(res, headers=self._cors_headers())
+
+    async def handle_gemini_windows_pilot(self, request: web.Request) -> web.Response:
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        res = await self.pilot_gemini_windows_app(body)
+        return web.json_response(res, headers=self._cors_headers())
+
+    async def handle_agy_status(self, request: web.Request) -> web.Response:
+        models = await self.gemini_bridge.list_agy_models()
+        return web.json_response(
+            {
+                "status": "ok",
+                "exe": AGY_EXE_PATH,
+                "exists": Path(AGY_EXE_PATH).exists(),
+                "app_agentapi_exe": ANTIGRAVITY_APP_AGENTAPI_PATH,
+                "app_agentapi_exists": Path(ANTIGRAVITY_APP_AGENTAPI_PATH).exists(),
+                "antigravity_mic_addr": f"127.0.0.1:{ANTIGRAVITY_MIC_PORT}",
+                "mic_tcp_clients": len(self.mic_tcp_clients),
+                "use_agy_cli_backend": bool(
+                    self.full_settings.get("antigravity", {}).get("use_agy_cli_backend", False)
+                ),
+                "models": models,
+            },
+            headers=self._cors_headers(),
+        )
+
+    async def handle_agy_cli(self, request: web.Request) -> web.Response:
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        action = body.get("action", "print")
+        prompt = str(body.get("prompt", body.get("text", ""))).strip()
+        model = str(body.get("model", "gemini-3.8-flash-low")).strip()
+
+        if action == "toggle_backend":
+            enabled = bool(
+                body.get(
+                    "enabled",
+                    not self.full_settings.get("antigravity", {}).get(
+                        "use_agy_cli_backend", False
+                    ),
+                )
+            )
+            self.full_settings.setdefault("antigravity", {})["use_agy_cli_backend"] = enabled
+            self._save_full_settings()
+            return web.json_response(
+                {"status": "ok", "use_agy_cli_backend": enabled},
+                headers=self._cors_headers(),
+            )
+
+        if action == "models":
+            models = await self.gemini_bridge.list_agy_models()
+            return web.json_response(
+                {"status": "ok", "models": models}, headers=self._cors_headers()
+            )
+
+        if action == "agentapi":
+            target = str(body.get("target", "cli"))
+            conv_id = body.get("conversation_id")
+            res = await self.gemini_bridge.send_to_antigravity_agentapi(
+                prompt, target=target, conversation_id=conv_id
+            )
+            return web.json_response(res, headers=self._cors_headers())
+
+        t0 = time.perf_counter()
+        reply = await self.gemini_bridge.run_agy_cli_prompt(prompt, model=model)
+        latency_ms = int((time.perf_counter() - t0) * 1000)
+        audio_b64 = ""
+        mime_type = "audio/mpeg"
+        if body.get("include_audio") and reply:
+            audio_bytes = await self.gemini_bridge.synthesize_speech_pcm24k(reply)
+            if audio_bytes:
+                audio_b64 = base64.b64encode(audio_bytes).decode("ascii")
+                mime_type = "audio/wav" if audio_bytes[:4] == b"RIFF" else "audio/mpeg"
+
+        return web.json_response(
+            {
+                "status": "ok" if reply else "empty",
+                "prompt": prompt,
+                "reply_text": reply,
+                "model": f"agy-cli ({model})",
+                "latency_ms": latency_ms,
+                "audio_base64": audio_b64,
+                "mime_type": mime_type,
             },
             headers=self._cors_headers(),
         )
@@ -1526,23 +1770,55 @@ class VoiceHubServer:
 
         if action == "utterance":
             text = data.get("text", "")
-            result = await self.handle_user_utterance(text, surface=surface)
+            use_agy = bool(data.get("use_agy_cli", False))
             if data.get("include_audio"):
-                model_text = result.get("model_turn", {}).get("text", "")
-                if model_text:
-                    audio_bytes = await self.gemini_bridge.synthesize_speech_pcm24k(model_text)
-                    result["audio_base64"] = (
-                        base64.b64encode(audio_bytes).decode("ascii") if audio_bytes else ""
+                prefer_agy = bool(
+                    use_agy
+                    or self.full_settings.get("antigravity", {}).get(
+                        "use_agy_cli_backend", False
                     )
-                    result["mime_type"] = (
-                        "audio/wav" if audio_bytes[:4] == b"RIFF" else "audio/mpeg"
+                    or surface == "agy_cli"
+                )
+                reply_text, model_used, llm_ms = (
+                    await self.gemini_bridge.generate_Conversational_reply(
+                        text, surface=surface, use_agy_cli=prefer_agy
                     )
+                )
+                audio_bytes = (
+                    await self.gemini_bridge.synthesize_speech_pcm24k(reply_text)
+                    if reply_text
+                    else b""
+                )
+                result = await self.handle_user_utterance(
+                    text,
+                    surface=surface,
+                    precomputed_reply=(reply_text, model_used, llm_ms),
+                    pre_synthesized_audio=audio_bytes,
+                    use_agy_cli=prefer_agy,
+                )
+                result["audio_base64"] = (
+                    base64.b64encode(audio_bytes).decode("ascii") if audio_bytes else ""
+                )
+                result["mime_type"] = (
+                    "audio/wav" if audio_bytes[:4] == b"RIFF" else "audio/mpeg"
+                )
+                return web.json_response(result, headers=self._cors_headers())
+            result = await self.handle_user_utterance(
+                text, surface=surface, use_agy_cli=use_agy
+            )
             return web.json_response(result, headers=self._cors_headers())
 
         if action in ("stt_pcm16", "voice_to_voice"):
             pcm_b64 = data.get("pcm16_base64", "")
             text_override = data.get("text", "").strip()
             auto_reply = data.get("auto_reply", action == "voice_to_voice")
+            use_agy = bool(
+                data.get("use_agy_cli", False)
+                or self.full_settings.get("antigravity", {}).get(
+                    "use_agy_cli_backend", False
+                )
+                or surface == "agy_cli"
+            )
             stt_ms = 0.0
             transcript = text_override
             precomputed_reply: tuple[str, str, int] | None = None
@@ -1556,7 +1832,7 @@ class VoiceHubServer:
                     except Exception:
                         self.mic_tcp_clients.discard(writer)
 
-                if auto_reply:
+                if auto_reply and not use_agy:
                     mm_transcript, mm_reply, mm_model, mm_ms = (
                         await self.gemini_bridge.transcribe_and_reply_audio_pcm16(
                             raw_pcm, surface=surface
@@ -1588,12 +1864,8 @@ class VoiceHubServer:
 
             if precomputed_reply is None:
                 reply_text, model_used, llm_ms = (
-                    await self.gemini_bridge.generate_conversational_reply(
-                        transcript, surface=surface
-                    )
-                    if hasattr(self.gemini_bridge, "generate_conversational_reply")
-                    else await self.gemini_bridge.generate_Conversational_reply(
-                        transcript, surface=surface
+                    await self.gemini_bridge.generate_Conversational_reply(
+                        transcript, surface=surface, use_agy_cli=use_agy
                     )
                 )
                 precomputed_reply = (reply_text, model_used, llm_ms)
@@ -1613,6 +1885,7 @@ class VoiceHubServer:
                 stt_latency_ms=int(stt_ms),
                 precomputed_reply=precomputed_reply,
                 pre_synthesized_audio=audio_bytes,
+                use_agy_cli=use_agy,
             )
             result["transcript"] = transcript
             result["reply_text"] = model_text
@@ -1624,8 +1897,38 @@ class VoiceHubServer:
             res = await self.pilot_gemini_windows_app(data)
             return web.json_response(res, headers=self._cors_headers())
 
-        if action == "bridge_agentapi":
-            prompt = data.get("prompt", "")
+        if action == "gemini_windows_status":
+            if isinstance(data.get("state"), dict):
+                self.gemini_windows_state = data["state"]
+                await self.broadcast_event(
+                    {
+                        "type": "gemini_windows_status",
+                        "state": self.gemini_windows_state,
+                    }
+                )
+            return web.json_response(
+                {"status": "ok", "state": self.gemini_windows_state},
+                headers=self._cors_headers(),
+            )
+
+        if action in ("bridge_agentapi", "agy_cli"):
+            prompt = str(data.get("prompt", data.get("text", ""))).strip()
+            sub_action = str(data.get("sub_action", "agentapi" if action == "bridge_agentapi" else "print"))
+            if sub_action == "print":
+                model = str(data.get("model", "gemini-3.8-flash-low"))
+                t0 = time.perf_counter()
+                reply = await self.gemini_bridge.run_agy_cli_prompt(prompt, model=model)
+                ms = int((time.perf_counter() - t0) * 1000)
+                return web.json_response(
+                    {
+                        "status": "ok" if reply else "empty",
+                        "prompt": prompt,
+                        "reply_text": reply,
+                        "model": f"agy-cli ({model})",
+                        "latency_ms": ms,
+                    },
+                    headers=self._cors_headers(),
+                )
             target = data.get("target", "cli")
             conv_id = data.get("conversation_id")
             res = await self.gemini_bridge.send_to_antigravity_agentapi(
@@ -1770,6 +2073,14 @@ def create_app() -> tuple[web.Application, VoiceHubServer]:
     app.router.add_options("/api/audio/hardware", hub.handle_options)
     app.router.add_post("/api/voice", hub.handle_voice_command)
     app.router.add_options("/api/voice", hub.handle_options)
+    app.router.add_get("/api/gemini-windows/status", hub.handle_gemini_windows_status)
+    app.router.add_options("/api/gemini-windows/status", hub.handle_options)
+    app.router.add_post("/api/gemini-windows/pilot", hub.handle_gemini_windows_pilot)
+    app.router.add_options("/api/gemini-windows/pilot", hub.handle_options)
+    app.router.add_get("/api/agy/status", hub.handle_agy_status)
+    app.router.add_options("/api/agy/status", hub.handle_options)
+    app.router.add_post("/api/agy/cli", hub.handle_agy_cli)
+    app.router.add_options("/api/agy/cli", hub.handle_options)
     app.router.add_options("/api/status", hub.handle_options)
     app.router.add_options("/api/aphrody/ai", hub.handle_options)
     app.router.add_options("/api/aphrody/status", hub.handle_options)

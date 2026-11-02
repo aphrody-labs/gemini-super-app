@@ -16,13 +16,16 @@ const HUB_HOST = "127.0.0.1";
 const HUB_PORT = 8765;
 const SUPER_APP_PORT = 8787;
 const TAURI_V3_PORT = 8788;
+const DIRECT_NATIVE_PORT = 8789;
 const MIC_TCP_PORT = 24713;
 
 let mainHooks = null;
 let topBarWc = null;
 let micTcpSocket = null;
+let directControlServer = null;
 let stcMode = "voice_to_voice"; // 'voice_to_voice' | 'dictate_to_window'
 let hubEnsureAttempted = false;
+let latestSyncedTurn = null;
 
 function httpPostJson(urlPath, payload, timeoutMs = 12000) {
   return new Promise((resolve) => {
@@ -399,12 +402,112 @@ function injectVoiceExtensionIntoMainView(webContents) {
   } catch {}
 }
 
+function getNativeStateSnapshot() {
+  let mainWinVisible = false;
+  let stcWinVisible = false;
+  let fgApp = null;
+  let caret = null;
+  let selectedText = "";
+  try {
+    const mw = mainHooks?.getMainWindow?.();
+    if (mw && !mw.isDestroyed()) mainWinVisible = Boolean(mw.isVisible());
+  } catch {}
+  try {
+    const sw = mainHooks?.getStcWindow?.();
+    if (sw && !sw.isDestroyed()) stcWinVisible = Boolean(sw.isVisible());
+  } catch {}
+  try {
+    const addon = mainHooks?.getNativeAddon?.();
+    if (addon) {
+      fgApp = addon.getForegroundAppInfo?.() || null;
+      caret = addon.getCaretPosition?.() || null;
+      selectedText = addon.getSelectedText?.() || "";
+    }
+  } catch {}
+  return {
+    status: "ok",
+    app: "gemini-windows-native",
+    version: "1.17.0",
+    pid: process.pid,
+    directUrl: `http://${HUB_HOST}:${DIRECT_NATIVE_PORT}`,
+    mainWindowVisible: mainWinVisible,
+    stcWindowVisible: stcWinVisible,
+    stcMode,
+    foregroundApp: fgApp,
+    caret,
+    selectedText,
+    latestSyncedTurn,
+    antigravityMicAddr: `${HUB_HOST}:${MIC_TCP_PORT}`,
+    updatedAt: Date.now(),
+  };
+}
+
+function startDirectNativeControlServer() {
+  if (directControlServer) return;
+  try {
+    directControlServer = http.createServer(async (req, res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      if (req.method === "OPTIONS") {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+      if (req.method === "GET" && (req.url === "/api/status" || req.url === "/")) {
+        res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify(getNativeStateSnapshot()));
+        return;
+      }
+      if (req.method === "POST" && (req.url === "/api/pilot" || req.url === "/api/voice")) {
+        const chunks = [];
+        req.on("data", (c) => chunks.push(c));
+        req.on("end", async () => {
+          try {
+            const body = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+            const out = await executeLocalPilotCommand(body);
+            res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+            res.end(JSON.stringify({ ...out, state: getNativeStateSnapshot() }));
+          } catch (err) {
+            res.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
+            res.end(JSON.stringify({ status: "error", message: String(err) }));
+          }
+        });
+        return;
+      }
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ status: "not_found" }));
+    });
+    directControlServer.on("error", () => {});
+    directControlServer.listen(DIRECT_NATIVE_PORT, HUB_HOST);
+  } catch {}
+}
+
 function startStatusPollingAndPilotLoop() {
   let lastHistoryId = null;
+  let tick = 0;
 
   setInterval(async () => {
+    tick++;
     const status = await httpGetJson("/api/status", 1500);
     if (!status || status.status !== "ok") return;
+
+    if (Array.isArray(status.pending_pilot_commands) && status.pending_pilot_commands.length > 0) {
+      for (const cmdObj of status.pending_pilot_commands) {
+        await executeLocalPilotCommand(cmdObj);
+      }
+    }
+
+    if (tick % 3 === 0) {
+      httpPostJson(
+        "/api/voice",
+        {
+          action: "gemini_windows_status",
+          state: getNativeStateSnapshot(),
+        },
+        1500,
+      ).catch(() => {});
+    }
 
     broadcastToRenderers({
       type: "telemetry",
@@ -539,12 +642,16 @@ function initVoiceBridgeNative(hooks) {
     } catch {}
   });
 
+  startDirectNativeControlServer();
   startStatusPollingAndPilotLoop();
 }
 
 async function executeLocalPilotCommand(payload) {
   const cmd = payload?.command || "";
   try {
+    if (cmd === "status") {
+      return { status: "ok", command: cmd, nativeState: getNativeStateSnapshot() };
+    }
     if (cmd === "show") {
       mainHooks?.showMainWindow?.();
       return { status: "ok", command: cmd };
@@ -553,13 +660,64 @@ async function executeLocalPilotCommand(payload) {
       mainHooks?.hideMainWindow?.();
       return { status: "ok", command: cmd };
     }
-    if (cmd === "stc_trigger") {
+    if (cmd === "stc_trigger" || cmd === "start_dictation") {
       await mainHooks?.triggerStc?.();
       return { status: "ok", command: cmd };
     }
     if (cmd === "reload") {
       mainHooks?.reloadMainWindow?.(true);
       return { status: "ok", command: cmd };
+    }
+    if (cmd === "inject_unicode" && payload.text) {
+      const addon = mainHooks?.getNativeAddon?.();
+      if (addon && typeof addon.injectUnicodeText === "function") {
+        const injectedCount = addon.injectUnicodeText(String(payload.text));
+        return { status: "ok", command: cmd, injectedCount };
+      }
+      return { status: "unavailable", command: cmd };
+    }
+    if (cmd === "get_foreground_context") {
+      return { status: "ok", command: cmd, context: getNativeStateSnapshot() };
+    }
+    if (cmd === "voice_turn_sync") {
+      latestSyncedTurn = {
+        transcript: payload.transcript || payload.prompt || "",
+        replyText: payload.reply_text || payload.text || "",
+        surface: payload.surface || "voice_hub",
+        timestamp: Date.now(),
+      };
+      if (latestSyncedTurn.transcript) {
+        broadcastToRenderers({
+          type: "transcript",
+          turn: {
+            role: "user",
+            text: latestSyncedTurn.transcript,
+            surface: latestSyncedTurn.surface,
+          },
+          is_final: true,
+        });
+      }
+      if (latestSyncedTurn.replyText) {
+        broadcastToRenderers({
+          type: "model_response",
+          turn: {
+            role: "model",
+            text: latestSyncedTurn.replyText,
+            surface: latestSyncedTurn.surface,
+          },
+        });
+      }
+      const stcWin = mainHooks?.getStcWindow?.();
+      if (stcWin && !stcWin.isDestroyed() && latestSyncedTurn.replyText) {
+        stcWin.webContents.send("stc:update", {
+          status: payload.audio_base64 ? "speaking" : "done",
+          text: latestSyncedTurn.transcript,
+          replyText: latestSyncedTurn.replyText,
+          audioBase64: payload.audio_base64 || "",
+          mimeType: payload.mime_type || "audio/mpeg",
+        });
+      }
+      return { status: "ok", command: cmd, synced: latestSyncedTurn };
     }
     if (cmd === "send_prompt" && payload.prompt) {
       broadcastToRenderers({

@@ -409,5 +409,66 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     expect(hwJson.dspVerification.sampleRateHz).toBe(16000);
     expect(hwJson.dspVerification.spectrumBands32Count).toBe(32);
     expect(hwJson.vendorEnginesActive.length).toBe(11);
-  });
+
+    // 6. Verify Real Full PC Filesystem (/api/pc/fs), PC Exec (/api/pc/exec), and Permanent Antigravity Session with Auto-Compact (gemini-3.8-flash low)
+    const fsListRes = await fetch(`${baseUrl}/api/pc/fs`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "list", path: "." }),
+    });
+    expect(fsListRes.status).toBe(200);
+    const fsListJson = (await fsListRes.json()) as {
+      ok: boolean;
+      count: number;
+      entries: Array<{ name: string; isDir: boolean }>;
+    };
+    expect(fsListJson.ok).toBe(true);
+    expect(fsListJson.count).toBeGreaterThan(5);
+    expect(fsListJson.entries.some((e) => e.name === "package.json")).toBe(
+      true,
+    );
+
+    const fsReadRes = await fetch(`${baseUrl}/api/pc/fs`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "read",
+        path: "package.json",
+        startLine: 1,
+        endLine: 15,
+      }),
+    });
+    expect(fsReadRes.status).toBe(200);
+    const fsReadJson = (await fsReadRes.json()) as {
+      ok: boolean;
+      content: string;
+    };
+    expect(fsReadJson.ok).toBe(true);
+    expect(fsReadJson.content).toContain("gemini");
+
+    const agyTurnRes = await fetch(`${baseUrl}/api/antigravity/session`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "turn",
+        prompt: "/read package.json Résume ce fichier.",
+        forceCompact: true,
+      }),
+    });
+    expect(agyTurnRes.status).toBe(200);
+    const agyTurnJson = (await agyTurnRes.json()) as {
+      ok: boolean;
+      model: string;
+      thinkingLevel: string;
+      autoCompacted: boolean;
+      compactCount: number;
+      pcContextAttached: string[];
+    };
+    expect(agyTurnJson.ok).toBe(true);
+    expect(agyTurnJson.model).toBe("gemini-3.8-flash");
+    expect(agyTurnJson.thinkingLevel).toBe("low");
+    expect(agyTurnJson.autoCompacted).toBe(true);
+    expect(agyTurnJson.compactCount).toBeGreaterThanOrEqual(1);
+    expect(agyTurnJson.pcContextAttached.length).toBeGreaterThanOrEqual(1);
+  }, 25000);
 });

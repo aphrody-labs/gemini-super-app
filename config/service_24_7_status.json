@@ -1,7 +1,7 @@
 {
-  "supervisorPid": 63792,
-  "startedAt": "2026-11-02T01:31:27.429Z",
-  "updatedAt": "2026-11-02T02:31:58.799Z",
+  "supervisorPid": 67996,
+  "startedAt": "2026-11-02T02:41:25.769Z",
+  "updatedAt": "2026-11-02T02:53:41.963Z",
   "allHealthy": true,
   "services": {
     "super_app": {
@@ -10,10 +10,10 @@
       "url": "http://127.0.0.1:8787",
       "healthEndpoint": "http://127.0.0.1:8787/api/health",
       "healthy": true,
-      "pid": 24060,
-      "restartCount": 6,
-      "lastCheckedAt": "2026-11-02T02:31:58.799Z",
-      "lastStartedAt": "2026-11-02T02:31:07.135Z"
+      "pid": 69576,
+      "restartCount": 2,
+      "lastCheckedAt": "2026-11-02T02:53:41.963Z",
+      "lastStartedAt": "2026-11-02T02:53:40.122Z"
     },
     "tauri_v3": {
       "id": "tauri_v3",
@@ -21,10 +21,10 @@
       "url": "http://127.0.0.1:8788",
       "healthEndpoint": "http://127.0.0.1:8788/api/tauri/snapshot",
       "healthy": true,
-      "pid": 57608,
+      "pid": 13700,
       "restartCount": 1,
-      "lastCheckedAt": "2026-11-02T02:31:58.799Z",
-      "lastStartedAt": "2026-11-02T01:31:27.441Z"
+      "lastCheckedAt": "2026-11-02T02:53:41.963Z",
+      "lastStartedAt": "2026-11-02T02:41:25.795Z"
     },
     "voice_bridge": {
       "id": "voice_bridge",
@@ -32,10 +32,10 @@
       "url": "http://127.0.0.1:8765",
       "healthEndpoint": "http://127.0.0.1:8765/api/status",
       "healthy": true,
-      "pid": 25256,
-      "restartCount": 5,
-      "lastCheckedAt": "2026-11-02T02:31:58.799Z",
-      "lastStartedAt": "2026-11-02T02:31:07.140Z"
+      "pid": 23260,
+      "restartCount": 2,
+      "lastCheckedAt": "2026-11-02T02:53:41.963Z",
+      "lastStartedAt": "2026-11-02T02:53:40.138Z"
     }
   }
 }

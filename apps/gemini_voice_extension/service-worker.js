@@ -212,6 +212,42 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         return;
       }
 
+      if (message.type === "PC_FS_ACTION") {
+        const response = await fetch("http://127.0.0.1:8787/api/pc/fs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(message.payload || {}),
+        });
+        const data = await response.json();
+        sendResponse({ ok: Boolean(data.ok), data });
+        return;
+      }
+
+      if (message.type === "PC_EXEC_ACTION") {
+        const response = await fetch("http://127.0.0.1:8787/api/pc/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(message.payload || {}),
+        });
+        const data = await response.json();
+        sendResponse({ ok: Boolean(data.ok), data });
+        return;
+      }
+
+      if (message.type === "AGY_SESSION_ACTION") {
+        const response = await fetch(
+          "http://127.0.0.1:8787/api/antigravity/session",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(message.payload || {}),
+          },
+        );
+        const data = await response.json();
+        sendResponse({ ok: Boolean(data.ok), data });
+        return;
+      }
+
       sendResponse({ ok: false, error: "Unknown message type" });
     } catch (error) {
       sendResponse({ ok: false, error: String(error) });

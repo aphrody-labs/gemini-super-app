@@ -39,7 +39,7 @@
     "tts": {
       "engine": "gemini-3.8-flash-tts",
       "fallback_engine": "edge-tts",
-      "voice_name": "Aoede",
+      "voice_name": "Zephyr",
       "edge_voice_name": "fr-FR-VivienneMultilingualNeural",
       "speech_style": "warm, expressive, conversational, natural",
       "available_voices": [
@@ -64,7 +64,7 @@
     "auto_sync_prompt_input": true,
     "auto_submit_voice_prompt": true,
     "intercept_native_mic_button": true,
-    "companion_pet_mode": "2d",
+    "companion_pet_mode": "3d",
     "theme_color": "#131314",
     "color_scheme": "dark"
   },
@@ -82,7 +82,11 @@
     "hotkeys": {
       "toggle_voice": "F5",
       "push_to_talk": "Ctrl+Shift+V",
-      "slash_commands": ["/voice", "/record", "/voice-live"]
+      "slash_commands": [
+        "/voice",
+        "/record",
+        "/voice-live"
+      ]
     },
     "sidecar_config_path": "C:\\Users\\aphro\\.gemini\\config\\sidecars\\gemini-live-voice\\sidecar.json",
     "session_start_hook_path": "C:\\Users\\aphro\\google\\.agents\\hooks.json",
