@@ -1,0 +1,10 @@
+{
+  "name": "@gemini-super-app/gemini-app-plugin",
+  "version": "2026.11.2",
+  "type": "module",
+  "private": true,
+  "main": "./mcp_server.ts",
+  "scripts": {
+    "start": "bun run mcp_server.ts"
+  }
+}

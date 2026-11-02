@@ -1605,6 +1605,168 @@ export function startGeminiSuperAppServer(
           });
         },
       },
+      "/mcp": {
+        GET: async () => {
+          try {
+            const r = await fetch("http://127.0.0.1:8789/mcp", {
+              signal: AbortSignal.timeout(2500),
+            });
+            if (r.ok) {
+              return Response.json(await r.json());
+            }
+          } catch {}
+          return Response.json({
+            status: "ok",
+            protocolVersion: "2024-11-05",
+            serverInfo: {
+              name: "gemini-app-runtime",
+              version: "2026.11.2",
+              description:
+                "Gemini Web App & Windows Native Runtime MCP Server (Super App Bridge)",
+            },
+          });
+        },
+        POST: async (req: Request) => {
+          const raw = await req.text();
+          try {
+            const r = await fetch("http://127.0.0.1:8789/mcp", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: raw,
+              signal: AbortSignal.timeout(45000),
+            });
+            if (r.status === 202) {
+              return new Response(null, { status: 202 });
+            }
+            if (r.ok) {
+              return Response.json(await r.json());
+            }
+          } catch {}
+          return Response.json(
+            {
+              jsonrpc: "2.0",
+              id: null,
+              error: {
+                code: -32000,
+                message: "Gemini.exe native MCP server (:8789) is starting up.",
+              },
+            },
+            { status: 503 },
+          );
+        },
+      },
+      "/api/runtime/status": async () => {
+        try {
+          const r = await fetch("http://127.0.0.1:8789/api/runtime/status", {
+            signal: AbortSignal.timeout(2500),
+          });
+          if (r.ok) {
+            return Response.json(await r.json());
+          }
+        } catch {}
+        return Response.json({
+          status: "fallback_super_app",
+          runtime: "gemini-app-runtime",
+          version: "2026.11.2",
+        });
+      },
+      "/api/runtime/tools": async () => {
+        try {
+          const r = await fetch("http://127.0.0.1:8789/api/runtime/tools", {
+            signal: AbortSignal.timeout(2500),
+          });
+          if (r.ok) {
+            return Response.json(await r.json());
+          }
+        } catch {}
+        return Response.json({ status: "offline", catalog: [] });
+      },
+      "/api/runtime/memory": async () => {
+        try {
+          const r = await fetch("http://127.0.0.1:8789/api/runtime/memory", {
+            signal: AbortSignal.timeout(2500),
+          });
+          if (r.ok) {
+            return Response.json(await r.json());
+          }
+        } catch {}
+        const memFile = Bun.file(
+          "C:/Users/aphro/google/config/gemini_web_memory.json",
+        );
+        if (await memFile.exists()) {
+          return Response.json({
+            status: "ok",
+            memory: await memFile.json(),
+          });
+        }
+        return Response.json({ status: "empty", memory: {} });
+      },
+      "/api/runtime/memory/import": {
+        POST: async (req: Request) => {
+          const raw = await req.text();
+          try {
+            const r = await fetch(
+              "http://127.0.0.1:8789/api/runtime/memory/import",
+              {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: raw,
+                signal: AbortSignal.timeout(25000),
+              },
+            );
+            if (r.ok) {
+              return Response.json(await r.json());
+            }
+          } catch {}
+          return Response.json({
+            status: "offline",
+            message: "Gemini.exe (:8789) offline",
+          });
+        },
+      },
+      "/api/runtime/memory/save": {
+        POST: async (req: Request) => {
+          const raw = await req.text();
+          try {
+            const r = await fetch(
+              "http://127.0.0.1:8789/api/runtime/memory/save",
+              {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: raw,
+                signal: AbortSignal.timeout(15000),
+              },
+            );
+            if (r.ok) {
+              return Response.json(await r.json());
+            }
+          } catch {}
+          return Response.json({
+            status: "offline",
+            message: "Gemini.exe (:8789) offline",
+          });
+        },
+      },
+      "/api/runtime/execute": {
+        POST: async (req: Request) => {
+          const raw = await req.text();
+          try {
+            const r = await fetch("http://127.0.0.1:8789/api/runtime/execute", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: raw,
+              signal: AbortSignal.timeout(45000),
+            });
+            if (r.ok) {
+              return Response.json(await r.json());
+            }
+          } catch {}
+          return Response.json({
+            status: "offline",
+            message: "Gemini.exe (:8789) offline",
+          });
+        },
+      },
       "/api/status": async () => {
         try {
           const r = await fetch("http://127.0.0.1:8765/api/status", {

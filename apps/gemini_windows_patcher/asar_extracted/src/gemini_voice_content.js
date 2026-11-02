@@ -66,6 +66,66 @@
     }
   }
 
+  async function callPcFs(payload) {
+    try {
+      if (typeof chrome !== "undefined" && chrome.runtime?.sendMessage) {
+        const res = await chrome.runtime.sendMessage({
+          type: "PC_FS_ACTION",
+          payload,
+        });
+        if (res?.data) return res.data;
+      }
+      const resp = await fetch("http://127.0.0.1:8787/api/pc/fs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      return await resp.json();
+    } catch (err) {
+      return { ok: false, error: String(err) };
+    }
+  }
+
+  async function callPcExec(payload) {
+    try {
+      if (typeof chrome !== "undefined" && chrome.runtime?.sendMessage) {
+        const res = await chrome.runtime.sendMessage({
+          type: "PC_EXEC_ACTION",
+          payload,
+        });
+        if (res?.data) return res.data;
+      }
+      const resp = await fetch("http://127.0.0.1:8787/api/pc/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      return await resp.json();
+    } catch (err) {
+      return { ok: false, error: String(err) };
+    }
+  }
+
+  async function callAgySession(payload) {
+    try {
+      if (typeof chrome !== "undefined" && chrome.runtime?.sendMessage) {
+        const res = await chrome.runtime.sendMessage({
+          type: "AGY_SESSION_ACTION",
+          payload,
+        });
+        if (res?.data) return res.data;
+      }
+      const resp = await fetch("http://127.0.0.1:8787/api/antigravity/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      return await resp.json();
+    } catch (err) {
+      return { ok: false, error: String(err) };
+    }
+  }
+
   function arrayBufferToBase64(buffer) {
     const bytes = new Uint8Array(buffer);
     let binary = "";
@@ -245,38 +305,16 @@
           window.geminiVoiceExtensionBridge.sendPcmChunk(pcm16.buffer);
         }
 
-        // Barge-in check: user speaks while Gemini is speaking
-        if (liveState === "SPEAKING" && rms > 0.065) {
-          bargeInFrames++;
-          if (bargeInFrames >= 2) {
-            stopPlaybackForBargeIn();
-            sendVoiceAction({ action: "interrupt" });
-            liveState = "LISTENING";
-            pcmChunks = [pcm16];
-            speechDetectedInTurn = true;
-            silenceStartMs = 0;
-            bargeInFrames = 0;
-            updateUiState();
-            return;
-          }
-        } else {
-          bargeInFrames = 0;
-        }
-
-        // Accumulate PCM during PTT or Hybrid VAD speech
+        // True Simultaneous Full-Duplex: user and Gemini can speak at the exact same time
         if (isRecordingPtt) {
           pcmChunks.push(pcm16);
           speechDetectedInTurn = true;
-        } else if (
-          isLiveActive &&
-          liveState !== "THINKING" &&
-          liveState !== "SPEAKING"
-        ) {
-          if (rms > 0.024) {
+        } else if (isLiveActive) {
+          if (rms > 0.016) {
             pcmChunks.push(pcm16);
             speechDetectedInTurn = true;
             silenceStartMs = 0;
-            if (liveState !== "LISTENING") {
+            if (liveState !== "SPEAKING" && liveState !== "THINKING" && liveState !== "LISTENING") {
               liveState = "LISTENING";
               updateUiState();
             }
@@ -284,8 +322,8 @@
             pcmChunks.push(pcm16);
             if (!silenceStartMs) {
               silenceStartMs = performance.now();
-            } else if (performance.now() - silenceStartMs >= 880) {
-              // 880ms of silence after speech -> finalize utterance!
+            } else if (performance.now() - silenceStartMs >= 240) {
+              // 240ms of silence after speech -> zero-latency dispatch in simultaneous full-duplex!
               const capturedChunks = pcmChunks.slice();
               pcmChunks = [];
               speechDetectedInTurn = false;
@@ -325,11 +363,13 @@
   async function submitCapturedPcmUtterance(chunks) {
     if (!chunks || chunks.length === 0) return;
     const mergedBuffer = mergeInt16Chunks(chunks);
-    // Avoid sending tiny clicks (< 0.25s)
-    if (mergedBuffer.byteLength < 8000) return;
+    // Avoid sending tiny clicks (< 0.075s)
+    if (mergedBuffer.byteLength < 2400) return;
 
-    liveState = "THINKING";
-    updateUiState();
+    if (liveState !== "SPEAKING") {
+      liveState = "THINKING";
+      updateUiState();
+    }
 
     const pcm16Base64 = arrayBufferToBase64(mergedBuffer);
     const autoReply = voiceMode === "voice_to_voice";
@@ -338,6 +378,7 @@
       action: autoReply ? "voice_to_voice" : "stt_pcm16",
       pcm16_base64: pcm16Base64,
       auto_reply: autoReply,
+      simultaneous_full_duplex: true,
     });
 
     if (!res || res.status === "empty" || !res.transcript) {
@@ -478,9 +519,227 @@
           <path d="M17.5 25.5Q20 27.5 22.5 25.5" stroke="#1f1f1f" stroke-width="1.6" stroke-linecap="round"/>
         </svg>
       </button>
+      <button id="agy-gem-pc-btn" type="button" aria-label="Accès PC Filesystem & Session Permanente Antigravity (3.8-flash low Auto-Compact)" style="width:38px;height:38px;border:none;border-radius:9999px;background:#282a2c;color:#a8c7fa;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          <polyline points="10 13 8 15 10 17"/>
+          <polyline points="14 13 16 15 14 17"/>
+        </svg>
+      </button>
     `;
 
     document.body.appendChild(root);
+
+    // PC Filesystem & Permanent Antigravity (gemini-3.8-flash low Auto-Compact) Drawer
+    const drawer = document.createElement("div");
+    drawer.id = "agy-gemini-pc-drawer";
+    drawer.style.cssText = [
+      "position: fixed",
+      "bottom: 80px",
+      "right: 24px",
+      "width: min(460px, 94vw)",
+      "max-height: 76vh",
+      "z-index: 2147483646",
+      "display: none",
+      "flex-direction: column",
+      "gap: 10px",
+      "padding: 16px",
+      "border-radius: 20px",
+      "background: #1e1f20",
+      "border: 1px solid #333537",
+      "box-shadow: 0 20px 56px rgba(0, 0, 0, 0.65)",
+      "color: #e3e3e3",
+      'font-family: "Google Sans", Roboto, system-ui, sans-serif',
+      "font-size: 12px",
+      "overflow: hidden",
+    ].join(";");
+
+    drawer.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;">
+          <span style="color:#a8c7fa;">PC Filesystem &amp; Antigravity</span>
+          <span id="agy-compact-badge" style="padding:2px 8px;border-radius:999px;background:#282a2c;color:#81c995;font-size:11px;">3.8-flash low • Auto-Compact #0</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button id="agy-btn-compact-now" type="button" style="height:28px;padding:0 10px;border-radius:8px;border:1px solid #333537;background:#282a2c;color:#a8c7fa;font-size:11px;cursor:pointer;">Compact</button>
+          <button id="agy-btn-close-drawer" type="button" style="height:28px;padding:0 10px;border-radius:8px;border:1px solid #333537;background:#282a2c;color:#e3e3e3;font-size:11px;cursor:pointer;">✕</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:6px;">
+        <input id="agy-pc-path-input" type="text" value="C:\\Users\\aphro\\google" placeholder="Chemin PC (ex: C:\\Users\\aphro\\google)" style="flex:1;height:32px;border-radius:10px;border:1px solid #333537;background:#131314;color:#e3e3e3;padding:0 10px;font-size:12px;outline:none;"/>
+        <button id="agy-pc-up-btn" type="button" style="height:32px;padding:0 10px;border-radius:10px;border:1px solid #333537;background:#282a2c;color:#e3e3e3;font-size:12px;cursor:pointer;">..</button>
+        <button id="agy-pc-ls-btn" type="button" style="height:32px;padding:0 12px;border-radius:10px;border:1px solid #333537;background:#282a2c;color:#a8c7fa;font-size:12px;cursor:pointer;">Lister</button>
+      </div>
+
+      <div id="agy-pc-entries" style="max-height:150px;overflow-y:auto;border-radius:10px;background:#131314;border:1px solid #333537;padding:6px;display:flex;flex-direction:column;gap:3px;"></div>
+
+      <textarea id="agy-pc-editor" rows="5" placeholder="Contenu fichier PC / Sortie commande / Mémoire Auto-Compact Antigravity..." style="width:100%;border-radius:10px;border:1px solid #333537;background:#131314;color:#e3e3e3;padding:8px;font-family:monospace;font-size:11px;resize:vertical;outline:none;"></textarea>
+
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button id="agy-pc-save-file-btn" type="button" style="height:30px;padding:0 10px;border-radius:8px;border:1px solid #333537;background:#282a2c;color:#81c995;font-size:11px;cursor:pointer;">💾 Écrire sur PC</button>
+        <button id="agy-pc-inject-btn" type="button" style="height:30px;padding:0 10px;border-radius:8px;border:1px solid #333537;background:#042c6c;color:#a8c7fa;font-size:11px;cursor:pointer;">↗ Injecter dans Gemini Web</button>
+        <button id="agy-pc-inject-send-btn" type="button" style="height:30px;padding:0 10px;border-radius:8px;border:1px solid #333537;background:#a8c7fa;color:#042c6c;font-weight:600;font-size:11px;cursor:pointer;">⚡ Envoyer à Gemini Web</button>
+      </div>
+
+      <div style="display:flex;gap:6px;">
+        <input id="agy-pc-cmd-input" type="text" placeholder="Commande PC PowerShell ou /fs, /read, /cmd, /compact..." style="flex:1;height:32px;border-radius:10px;border:1px solid #333537;background:#131314;color:#e3e3e3;padding:0 10px;font-size:12px;outline:none;"/>
+        <button id="agy-pc-run-cmd-btn" type="button" style="height:32px;padding:0 12px;border-radius:10px;border:1px solid #333537;background:#282a2c;color:#81c995;font-size:12px;cursor:pointer;">Exécuter PC</button>
+        <button id="agy-pc-run-agy-btn" type="button" style="height:32px;padding:0 12px;border-radius:10px;border:1px solid #333537;background:#282a2c;color:#a8c7fa;font-size:12px;cursor:pointer;">Session 3.8</button>
+      </div>
+    `;
+    document.body.appendChild(drawer);
+
+    let activeFilePath = "";
+    const pcBtn = document.getElementById("agy-gem-pc-btn");
+    const closeDrawerBtn = document.getElementById("agy-btn-close-drawer");
+    const compactNowBtn = document.getElementById("agy-btn-compact-now");
+    const compactBadge = document.getElementById("agy-compact-badge");
+    const pathInput = document.getElementById("agy-pc-path-input");
+    const upBtn = document.getElementById("agy-pc-up-btn");
+    const lsBtn = document.getElementById("agy-pc-ls-btn");
+    const entriesBox = document.getElementById("agy-pc-entries");
+    const editorBox = document.getElementById("agy-pc-editor");
+    const saveFileBtn = document.getElementById("agy-pc-save-file-btn");
+    const injectBtn = document.getElementById("agy-pc-inject-btn");
+    const injectSendBtn = document.getElementById("agy-pc-inject-send-btn");
+    const cmdInput = document.getElementById("agy-pc-cmd-input");
+    const runCmdBtn = document.getElementById("agy-pc-run-cmd-btn");
+    const runAgyBtn = document.getElementById("agy-pc-run-agy-btn");
+
+    async function refreshPcDirectory(dirPath) {
+      const res = await callPcFs({ action: "list", path: dirPath, limit: 120 });
+      if (!res?.ok || !entriesBox) return;
+      if (pathInput) pathInput.value = res.path;
+      entriesBox.innerHTML = "";
+      for (const item of res.entries || []) {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.style.cssText =
+          "display:flex;align-items:center;justify-content:space-between;width:100%;border:none;background:transparent;color:#e3e3e3;padding:4px 6px;border-radius:6px;text-align:left;cursor:pointer;font-size:11px;";
+        row.innerHTML = `<span>${item.isDir ? "📁" : "📄"} ${item.name}</span><span style="opacity:0.55;">${item.isDir ? "DIR" : item.size + " B"}</span>`;
+        row.addEventListener("click", async () => {
+          if (item.isDir) {
+            await refreshPcDirectory(item.path);
+          } else {
+            activeFilePath = item.path;
+            if (pathInput) pathInput.value = item.path;
+            const fileRes = await callPcFs({
+              action: "read",
+              path: item.path,
+              startLine: 1,
+              endLine: 300,
+            });
+            if (fileRes?.ok && editorBox) {
+              editorBox.value = fileRes.content || "";
+            }
+          }
+        });
+        entriesBox.appendChild(row);
+      }
+    }
+
+    async function refreshAntigravitySessionStatus() {
+      const res = await callAgySession({ action: "status" });
+      if (res?.ok && res.session) {
+        if (compactBadge) {
+          compactBadge.textContent = `${res.session.model} (${res.session.thinkingLevel}) • Auto-Compact #${res.session.compactCount}`;
+        }
+        if (editorBox && !editorBox.value.trim()) {
+          editorBox.value = `[Mémoire Permanente Antigravity #${res.session.compactCount}]\n${res.session.compactedSummary}`;
+        }
+      }
+    }
+
+    pcBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isHidden = drawer.style.display === "none";
+      drawer.style.display = isHidden ? "flex" : "none";
+      if (isHidden) {
+        refreshPcDirectory(pathInput?.value || "C:\\Users\\aphro\\google");
+        refreshAntigravitySessionStatus();
+      }
+    });
+
+    closeDrawerBtn?.addEventListener("click", () => {
+      drawer.style.display = "none";
+    });
+
+    lsBtn?.addEventListener("click", () => {
+      refreshPcDirectory(pathInput?.value || "C:\\Users\\aphro\\google");
+    });
+
+    upBtn?.addEventListener("click", async () => {
+      const cur = pathInput?.value || "C:\\Users\\aphro\\google";
+      const res = await callPcFs({ action: "list", path: cur, limit: 1 });
+      if (res?.parentPath) {
+        await refreshPcDirectory(res.parentPath);
+      }
+    });
+
+    saveFileBtn?.addEventListener("click", async () => {
+      const target = activeFilePath || pathInput?.value;
+      if (!target || !editorBox) return;
+      const res = await callPcFs({
+        action: "write",
+        path: target,
+        content: editorBox.value,
+      });
+      if (res?.ok) {
+        showConfirmationToast(`Fichier sauvegardé sur PC : ${res.path}`);
+      }
+    });
+
+    injectBtn?.addEventListener("click", () => {
+      if (!editorBox?.value) return;
+      const header = activeFilePath ? `[PC File: ${activeFilePath}]\n` : "[PC / Antigravity Context]\n";
+      injectTranscriptIntoPage(`${header}${editorBox.value}`, false);
+    });
+
+    injectSendBtn?.addEventListener("click", () => {
+      if (!editorBox?.value) return;
+      const header = activeFilePath ? `[PC File: ${activeFilePath}]\n` : "[PC / Antigravity Context]\n";
+      injectTranscriptIntoPage(`${header}${editorBox.value}`, true);
+    });
+
+    compactNowBtn?.addEventListener("click", async () => {
+      const res = await callAgySession({ action: "compact", keepRecentTurns: 2 });
+      if (res?.ok) {
+        if (compactBadge) {
+          compactBadge.textContent = `gemini-3.8-flash (low) • Auto-Compact #${res.compactCount}`;
+        }
+        if (editorBox) {
+          editorBox.value = `[Auto-Compact #${res.compactCount} • gemini-3.8-flash (low)]\n${res.compactedSummary}`;
+        }
+        showConfirmationToast(`Auto-Compact #${res.compactCount} exécuté (gemini-3.8-flash low)`);
+      }
+    });
+
+    runCmdBtn?.addEventListener("click", async () => {
+      const cmd = cmdInput?.value?.trim();
+      if (!cmd) return;
+      const res = await callPcExec({
+        command: cmd,
+        cwd: pathInput?.value || "C:\\Users\\aphro\\google",
+      });
+      if (editorBox) {
+        editorBox.value = `$ ${cmd} (exit=${res?.exitCode})\n${res?.stdout || ""}${res?.stderr ? "\n" + res.stderr : ""}`;
+      }
+    });
+
+    runAgyBtn?.addEventListener("click", async () => {
+      const prompt = cmdInput?.value?.trim() || editorBox?.value?.trim();
+      if (!prompt) return;
+      const res = await callAgySession({ action: "turn", prompt });
+      if (res?.ok) {
+        if (compactBadge && res.session) {
+          compactBadge.textContent = `${res.session.model} (${res.session.thinkingLevel}) • Auto-Compact #${res.session.compactCount}`;
+        }
+        if (editorBox) {
+          editorBox.value = res.reply || "";
+        }
+      }
+    });
 
     const orbHit = document.getElementById("agy-gem-orb-hit");
     const liveBtn = document.getElementById("agy-gem-live-btn");
@@ -564,14 +823,41 @@
     requestAnimationFrame(animateSvg);
   }
 
-  // Keyboard shortcuts: F5 toggles Record, Alt+V toggles /voice Live
-  window.addEventListener("keydown", (e) => {
+  // Keyboard shortcuts: F5 toggles Record, Alt+V toggles /voice Live, Alt+A toggles PC Filesystem & Antigravity Drawer, Alt+Enter resolves /fs /read /cmd /compact in Gemini Web prompt
+  window.addEventListener("keydown", async (e) => {
     if (e.key === "F5" && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       document.getElementById("agy-gem-ptt-btn")?.click();
     } else if (e.altKey && (e.key === "v" || e.key === "V")) {
       e.preventDefault();
       document.getElementById("agy-gem-live-btn")?.click();
+    } else if (e.altKey && (e.key === "a" || e.key === "A")) {
+      e.preventDefault();
+      document.getElementById("agy-gem-pc-btn")?.click();
+    } else if (e.altKey && e.key === "Enter") {
+      const activeEl = document.activeElement;
+      const text = (
+        activeEl?.value ||
+        activeEl?.textContent ||
+        ""
+      ).trim();
+      if (text && /(\/fs|@fs|\/read|@read|\/cmd|@cmd|\/compact)/i.test(text)) {
+        e.preventDefault();
+        const res = await callAgySession({ action: "turn", prompt: text });
+        if (res?.ok) {
+          const pcBlock =
+            Array.isArray(res.pcContextData) && res.pcContextData.length > 0
+              ? `${res.pcContextData.join("\n\n")}\n\n`
+              : "";
+          injectTranscriptIntoPage(
+            `${pcBlock}[Antigravity 3.8-flash low Auto-Compact #${res.compactCount ?? 0}]\n${res.reply || ""}`,
+            false,
+          );
+          showConfirmationToast(
+            `Contexte PC & Session Antigravity injectés dans Gemini Web`,
+          );
+        }
+      }
     }
   });
 

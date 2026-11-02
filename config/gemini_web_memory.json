@@ -1,0 +1,188 @@
+{
+  "version": "2026.11.2",
+  "updatedAt": "2026-11-02T03:28:41.703Z",
+  "source": "gemini.google.com (Gemini.exe Native Runtime)",
+  "account": {
+    "email": "aphro@google.com",
+    "gaiaId": "default",
+    "authenticated": false
+  },
+  "savedInfo": [
+    {
+      "id": "mem-1793589999432",
+      "text": "Plugin gemini-app-runtime actif nativement dans Gemini.exe (:8789/mcp) et agy CLI.",
+      "source": "agy_mcp_save_memory",
+      "createdAt": "2026-11-02T03:26:39.432Z"
+    },
+    {
+      "id": "mem-1793589889039",
+      "text": "Plugin gemini-app-runtime actif nativement dans Gemini.exe (:8789/mcp) et agy CLI.",
+      "source": "agy_mcp_save_memory",
+      "createdAt": "2026-11-02T03:24:49.039Z"
+    },
+    {
+      "id": "mem-arch-monorepo",
+      "content": "Monorepo unifié Gemini Super App & Voice Hub (Rust Édition 2024, Bun v1.4.5, Tauri v3 Alpha, Python uv, Flutter) sur C:\\Users\\aphro\\google.",
+      "category": "architecture",
+      "source": "system_seed",
+      "createdAt": "2026-11-02T00:00:00Z"
+    },
+    {
+      "id": "mem-gcp-aphrody",
+      "content": "Projet GCP actif: aphrody (468000409790, us-central1) avec modèles gemini-3.8-live, gemini-4-argon, gemini-3.8-flash et gemini-3.8-flash-tts (voix Aoede).",
+      "category": "cloud",
+      "source": "system_seed",
+      "createdAt": "2026-11-02T00:00:00Z"
+    },
+    {
+      "id": "mem-bun-toolchain",
+      "content": "Toujours utiliser Bun (bun run, bun fmt, bun check, bun test, Bun.serve, bun:sqlite) et uv pour Python.",
+      "category": "preferences",
+      "source": "system_seed",
+      "createdAt": "2026-11-02T00:00:00Z"
+    }
+  ],
+  "gems": [
+    {
+      "id": "gem-coding-partner",
+      "name": "Coding Partner",
+      "description": "Expert en architecture logicielle, Rust, Bun, TypeScript, Python et débogage fullstack.",
+      "builtIn": true
+    },
+    {
+      "id": "gem-deep-researcher",
+      "name": "Deep Research Analyst",
+      "description": "Synthétise des recherches multi-sources web et Google Workspace avec citations vérifiées.",
+      "builtIn": true
+    },
+    {
+      "id": "gem-voice-companion",
+      "name": "Gemini Live Voice & Mochi Companion",
+      "description": "Assistant vocal temps réel connecté à Gemini.exe, Chrome /chrome-home et agy CLI.",
+      "builtIn": false
+    }
+  ],
+  "conversations": [],
+  "recentTurns": [],
+  "discoveredWebTools": [
+    {
+      "id": "deep_research",
+      "name": "Deep Research",
+      "category": "capability",
+      "trigger": "chip:Deep Research",
+      "description": "Agent de recherche autonome multi-étapes sur gemini.google.com qui planifie, navigue sur des dizaines de sources web + Workspace et rédige un rapport sourcé complet."
+    },
+    {
+      "id": "canvas",
+      "name": "Canvas",
+      "category": "capability",
+      "trigger": "chip:Canvas",
+      "description": "Espace de travail côte-à-côte interactif sur gemini.google.com pour l'édition de documents longs et la prévisualisation/exécution de code HTML/React/JS/Python."
+    },
+    {
+      "id": "gems",
+      "name": "Gems (Custom AI Experts)",
+      "category": "capability",
+      "trigger": "url:https://gemini.google.com/gems/view",
+      "description": "Assistants Gemini personnalisés avec instructions système dédiées (Coding Partner, Brainstormer, Writing Editor, Career Guide, Learning Coach et Gems utilisateur)."
+    },
+    {
+      "id": "saved_info",
+      "name": "Saved Info / Web Memory",
+      "category": "memory",
+      "trigger": "url:https://gemini.google.com/saved-info",
+      "description": "Mémoire persistante de l'utilisateur sur gemini.google.com/saved-info (préférences, contexte projet, instructions permanentes)."
+    },
+    {
+      "id": "ext_google_workspace",
+      "name": "@Google Workspace",
+      "category": "extension",
+      "mention": "@Google Workspace",
+      "description": "Connecteur officiel Google Workspace (Gmail, Google Drive, Google Docs, Google Keep, Google Tasks, Google Calendar)."
+    },
+    {
+      "id": "ext_gmail",
+      "name": "@Gmail",
+      "category": "extension",
+      "mention": "@Gmail",
+      "description": "Recherche, résume et croise les e-mails de la boîte Gmail de l'utilisateur directement dans Gemini Web."
+    },
+    {
+      "id": "ext_google_drive",
+      "name": "@Google Drive",
+      "category": "extension",
+      "mention": "@Google Drive",
+      "description": "Recherche et extrait le contenu des documents, PDF et dossiers Google Drive de l'utilisateur."
+    },
+    {
+      "id": "ext_google_docs",
+      "name": "@Google Docs",
+      "category": "extension",
+      "mention": "@Google Docs",
+      "description": "Lit, résume et génère du contenu structuré à partir des documents Google Docs."
+    },
+    {
+      "id": "ext_youtube",
+      "name": "@YouTube",
+      "category": "extension",
+      "mention": "@YouTube",
+      "description": "Recherche des vidéos YouTube, extrait les transcriptions et résume le contenu vidéo."
+    },
+    {
+      "id": "ext_youtube_music",
+      "name": "@YouTube Music",
+      "category": "extension",
+      "mention": "@YouTube Music",
+      "description": "Recherche et lance des titres, artistes, albums et playlists sur YouTube Music."
+    },
+    {
+      "id": "ext_google_maps",
+      "name": "@Google Maps",
+      "category": "extension",
+      "mention": "@Google Maps",
+      "description": "Recherche des lieux, itinéraires, distances et informations géographiques en temps réel via Google Maps."
+    },
+    {
+      "id": "ext_google_flights",
+      "name": "@Google Flights",
+      "category": "extension",
+      "mention": "@Google Flights",
+      "description": "Recherche des vols, horaires et tarifs aériens en temps réel via Google Flights."
+    },
+    {
+      "id": "ext_google_hotels",
+      "name": "@Google Hotels",
+      "category": "extension",
+      "mention": "@Google Hotels",
+      "description": "Recherche et compare des hôtels et hébergements via Google Hotels."
+    },
+    {
+      "id": "ext_github",
+      "name": "@GitHub",
+      "category": "extension",
+      "mention": "@GitHub",
+      "description": "Inspecte des dépôts, issues, pull requests et fichiers de code GitHub dans Gemini."
+    },
+    {
+      "id": "native_live_voice",
+      "name": "Gemini Live Voice-to-Voice (Full-Duplex)",
+      "category": "native_windows",
+      "trigger": "ipc:gemini-voice:stc-trigger",
+      "description": "Mode vocal bidirectionnel temps réel (16 kHz PCM16 -> Whisper/Gemini 3.8 Live -> TTS 24 kHz + Barge-in)."
+    },
+    {
+      "id": "native_stc_window",
+      "name": "Speak-to-Window & Unicode Injection",
+      "category": "native_windows",
+      "trigger": "native:injectUnicodeText",
+      "description": "Capsule flottante Speak-to-Window (Alt+Shift+D) et injection directe de texte Unicode dans la fenêtre Windows active via gemini_native.node."
+    },
+    {
+      "id": "native_window_capture",
+      "name": "Desktop Window Capture (Multimodal Vision)",
+      "category": "native_windows",
+      "trigger": "native:captureWindow",
+      "description": "Capture d'écran haute résolution des fenêtres Windows ouvertes ou de la vue Gemini Web pour analyse multimodale."
+    }
+  ]
+}

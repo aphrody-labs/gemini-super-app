@@ -420,7 +420,11 @@ function ensurePlaybackAudioContext() {
     playbackAudioCtx = new AudioCtx();
   }
   if (playbackAudioCtx.state === "suspended") {
-    playbackAudioCtx.resume().catch(() => {});
+    (async () => {
+      try {
+        await playbackAudioCtx.resume();
+      } catch {}
+    })();
   }
   return playbackAudioCtx;
 }
@@ -1198,10 +1202,12 @@ agyCliBtn?.addEventListener("click", async () => {
   spawnPetParticles(6);
   playActivationChime(useAgyCliBackend);
   agyCliBtn.setAttribute("aria-pressed", String(useAgyCliBackend));
-  await invokeAgyCliBackend("", {
-    action: "toggle_backend",
-    include_audio: false,
-  }).catch(() => {});
+  try {
+    await invokeAgyCliBackend("", {
+      action: "toggle_backend",
+      include_audio: false,
+    });
+  } catch {}
   if (surfaceStatusLabel) {
     surfaceStatusLabel.textContent = useAgyCliBackend
       ? "agy CLI Backend Actif"
@@ -1248,15 +1254,18 @@ testAgyCliBtn?.addEventListener("click", async () => {
 });
 
 // Probe Gemini Windows App (:8789) & agy CLI status on startup
-fetch(`${GEMINI_WINDOWS_DIRECT_URL}/api/status`)
-  .then((r) => (r.ok ? r.json() : null))
-  .then((data) => {
-    if (data && data.status === "ok") {
-      geminiWindowsConnected = true;
-      geminiWindowsBtn?.setAttribute("aria-pressed", "true");
+(async () => {
+  try {
+    const r = await fetch(`${GEMINI_WINDOWS_DIRECT_URL}/api/status`);
+    if (r.ok) {
+      const data = await r.json();
+      if (data && data.status === "ok") {
+        geminiWindowsConnected = true;
+        geminiWindowsBtn?.setAttribute("aria-pressed", "true");
+      }
     }
-  })
-  .catch(() => {});
+  } catch {}
+})();
 
 petDimBtn?.addEventListener("click", () => {
   is3dPet = !is3dPet;
@@ -1266,19 +1275,21 @@ petDimBtn?.addEventListener("click", () => {
   petDimBtn.setAttribute("aria-pressed", String(is3dPet));
 });
 
-petCharBtn?.addEventListener("click", () => {
+petCharBtn?.addEventListener("click", async () => {
   petCharacterIndex = (petCharacterIndex + 1) % 3;
   petBounce = 1.15;
   spawnPetParticles(7);
   playPetChirp();
-  fetch(`${SUPER_APP_URL}/api/pet/action`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "switchPet",
-      petId: PET_IDS[petCharacterIndex],
-    }),
-  }).catch(() => {});
+  try {
+    await fetch(`${SUPER_APP_URL}/api/pet/action`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "switchPet",
+        petId: PET_IDS[petCharacterIndex],
+      }),
+    });
+  } catch {}
 });
 
 // Companion Pet Drag-and-Drop + Click-to-Pet + Double-Click-to-Speak
@@ -1312,16 +1323,18 @@ petInteractBtn?.addEventListener("pointerup", (e) => {
   } catch {}
 });
 
-petInteractBtn?.addEventListener("click", () => {
+petInteractBtn?.addEventListener("click", async () => {
   if (petDragMoved) return;
   petBounce = 1.25;
   spawnPetParticles(8);
   playPetChirp();
-  fetch(`${SUPER_APP_URL}/api/pet/action`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "pet" }),
-  }).catch(() => {});
+  try {
+    await fetch(`${SUPER_APP_URL}/api/pet/action`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "pet" }),
+    });
+  } catch {}
 });
 
 petInteractBtn?.addEventListener("dblclick", () => {
@@ -1342,14 +1355,17 @@ themeBtn?.addEventListener("click", () => {
 });
 
 // Load initial persisted pet character state from Super App SQLite
-fetch(`${SUPER_APP_URL}/api/pet/state`)
-  .then((r) => (r.ok ? r.json() : null))
-  .then((data) => {
-    const activeId = data?.pet?.activePetId;
-    const idx = PET_IDS.indexOf(activeId);
-    if (idx !== -1) petCharacterIndex = idx;
-  })
-  .catch(() => {});
+(async () => {
+  try {
+    const r = await fetch(`${SUPER_APP_URL}/api/pet/state`);
+    if (r.ok) {
+      const data = await r.json();
+      const activeId = data?.pet?.activePetId;
+      const idx = PET_IDS.indexOf(activeId);
+      if (idx !== -1) petCharacterIndex = idx;
+    }
+  } catch {}
+})();
 
 // 6. Real-Time Hardware Microphone Telemetry & Audio Bridge (ws://127.0.0.1:8765/ws/voice)
 function connectHardwareVoiceBridgeWs() {

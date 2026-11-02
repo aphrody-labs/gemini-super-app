@@ -245,6 +245,23 @@ export async function ensureAll24x7ServicesPass(
     services.voice_bridge.lastStartedAt = new Date().toISOString();
   }
 
+  // 4. Check Patched Google Gemini Windows App (:8789)
+  const geminiWinOk = await probeHttpHealth(
+    "http://127.0.0.1:8789/api/status",
+    1200,
+  );
+  if (!geminiWinOk) {
+    const geminiExe = path.join(
+      LOCAL_APPDATA,
+      "Google",
+      "Gemini",
+      "Gemini.exe",
+    );
+    if (await Bun.file(geminiExe).exists()) {
+      spawnHeadlessService([geminiExe]);
+    }
+  }
+
   // Wait briefly if any service was just spawned so we can verify its readiness
   if (!superAppOk || !tauriOk || !voiceOk) {
     for (let attempt = 0; attempt < 8; attempt++) {

@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "gemini-app-runtime": {
+      "command": "C:\\Users\\aphro\\.bun\\bin\\bun.exe",
+      "args": [
+        "run",
+        "C:\\Users\\aphro\\google\\packages\\gemini_app_plugin\\mcp_server.ts"
+      ],
+      "env": {
+        "GEMINI_WINDOWS_MCP_URL": "http://127.0.0.1:8789/mcp",
+        "GEMINI_SUPER_APP_URL": "http://127.0.0.1:8787",
+        "GEMINI_VOICE_HUB_URL": "http://127.0.0.1:8765"
+      },
+      "tools": {
+        "gemini_web_runtime_status": { "eager": true },
+        "gemini_web_execute_prompt": { "eager": true },
+        "gemini_web_discover_tools": { "eager": true },
+        "gemini_web_use_tool": { "eager": true },
+        "gemini_web_import_memory": { "eager": true },
+        "gemini_web_save_memory": { "eager": true },
+        "gemini_web_read_thread": { "eager": true },
+        "gemini_web_navigate": { "eager": true },
+        "gemini_windows_native_control": { "eager": true }
+      }
+    }
+  }
+}

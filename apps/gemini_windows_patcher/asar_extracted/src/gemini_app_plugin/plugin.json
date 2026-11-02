@@ -1,0 +1,25 @@
+{
+  "name": "gemini-app-runtime",
+  "version": "2026.11.2",
+  "displayName": "Gemini Web & Windows Native Runtime",
+  "description": "Complete Gemini Web App (gemini.google.com) & Patched Gemini Windows App (Gemini.exe :8789) Runtime Plugin (MCP + Skill + Rules) allowing agy to control Gemini Web as its execution runtime, exploit all 17 Web Tools & @Extensions (Deep Research, Canvas, Gems, @Google Workspace, @Gmail, @Drive, @Docs, @YouTube, @Maps, @Flights, @Hotels, @GitHub, Speak-to-Window), and import/synchronize Web Memory (/saved-info).",
+  "logo": "assets/logo.svg",
+  "author": {
+    "name": "Aphrody Labs",
+    "email": "aphrody@gmail.com"
+  },
+  "keywords": [
+    "gemini",
+    "gemini-web",
+    "gemini-windows-app",
+    "runtime",
+    "mcp",
+    "web-memory",
+    "saved-info",
+    "deep-research",
+    "canvas",
+    "gems",
+    "google-workspace",
+    "voice-live"
+  ]
+}

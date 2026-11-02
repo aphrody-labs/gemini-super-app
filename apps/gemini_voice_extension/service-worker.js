@@ -3,6 +3,7 @@
 
 const BRIDGE_HTTP = "http://127.0.0.1:8765";
 const ALARM_HEALTH_SYNC = "gemini-live-health-sync";
+const ALARM_BADGE_RESET = "gemini-live-badge-reset";
 
 chrome.runtime.onInstalled.addListener(async () => {
   await chrome.storage.local.set({
@@ -17,24 +18,30 @@ chrome.runtime.onInstalled.addListener(async () => {
     captureLockState: "idle",
   });
 
-  // Register context menu items with user feedback
-  chrome.contextMenus.removeAll(async () => {
-    chrome.contextMenus.create({
-      id: "speak-selection-gemini-live",
-      title: "Envoyer la sélection à Gemini Live /voice",
-      contexts: ["selection"],
-    });
-    chrome.contextMenus.create({
-      id: "open-gemini-voice-sidepanel",
-      title: "Ouvrir le Side Panel Gemini Live Voice",
-      contexts: ["page", "action"],
-    });
+  // Register context menu items with user feedback using async/await
+  await chrome.contextMenus.removeAll();
+  chrome.contextMenus.create({
+    id: "speak-selection-gemini-live",
+    title: "Envoyer la sélection à Gemini Live /voice",
+    contexts: ["selection"],
+  });
+  chrome.contextMenus.create({
+    id: "open-gemini-voice-sidepanel",
+    title: "Ouvrir le Side Panel Gemini Live Voice",
+    contexts: ["page", "action"],
   });
 
   await chrome.alarms.create(ALARM_HEALTH_SYNC, { periodInMinutes: 1 });
 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === ALARM_BADGE_RESET) {
+    const { isLiveActive = false } =
+      await chrome.storage.local.get("isLiveActive");
+    await chrome.action.setBadgeBackgroundColor({ color: "#4285F4" });
+    await chrome.action.setBadgeText({ text: isLiveActive ? "LIVE" : "" });
+    return;
+  }
   if (alarm.name !== ALARM_HEALTH_SYNC) return;
   try {
     const { bridgeUrl = BRIDGE_HTTP } =
@@ -114,6 +121,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         try {
           await chrome.tabs.sendMessage(tab.id, {
             type: "SHOW_TOAST",
+            text: "Sélection envoyée à Gemini Live Voice",
             message: "Sélection envoyée à Gemini Live Voice",
           });
         } catch {}
@@ -127,12 +135,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 async function flashBadgeConfirmation(text, color = "#34A853") {
   await chrome.action.setBadgeBackgroundColor({ color });
   await chrome.action.setBadgeText({ text });
-  const { isLiveActive = false } =
-    await chrome.storage.local.get("isLiveActive");
-  setTimeout(async () => {
-    await chrome.action.setBadgeBackgroundColor({ color: "#4285F4" });
-    await chrome.action.setBadgeText({ text: isLiveActive ? "LIVE" : "" });
-  }, 1600);
+  await chrome.alarms.create(ALARM_BADGE_RESET, {
+    when: Date.now() + 1600,
+  });
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -245,6 +250,40 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         );
         const data = await response.json();
         sendResponse({ ok: Boolean(data.ok), data });
+        return;
+      }
+
+      if (message.type === "AGY_TOOLS_ACTION") {
+        const response = await fetch(
+          "http://127.0.0.1:8787/api/antigravity/tools",
+          {
+            method: message.payload ? "POST" : "GET",
+            headers: { "Content-Type": "application/json" },
+            ...(message.payload
+              ? { body: JSON.stringify(message.payload) }
+              : {}),
+          },
+        );
+        const data = await response.json();
+        sendResponse({ ok: Boolean(data.ok), data });
+        return;
+      }
+
+      if (message.type === "PROMPT_API_QUERY") {
+        if (typeof globalThis.LanguageModel !== "undefined") {
+          const availability = await globalThis.LanguageModel.availability();
+          const params = await globalThis.LanguageModel.params();
+          if (message.prompt && availability === "available") {
+            const session = await globalThis.LanguageModel.create();
+            const reply = await session.prompt(String(message.prompt));
+            session.destroy?.();
+            sendResponse({ ok: true, availability, params, reply });
+            return;
+          }
+          sendResponse({ ok: true, availability, params });
+          return;
+        }
+        sendResponse({ ok: false, availability: "unavailable" });
         return;
       }
 

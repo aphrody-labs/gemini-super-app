@@ -11,6 +11,7 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const electron = require("electron");
+const runtimeEngine = require("./gemini_web_runtime_engine.js");
 
 const HUB_HOST = "127.0.0.1";
 const HUB_PORT = 8765;
@@ -442,41 +443,186 @@ function getNativeStateSnapshot() {
   };
 }
 
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data", (c) => chunks.push(c));
+    req.on("end", () => {
+      try {
+        const raw = Buffer.concat(chunks).toString("utf8") || "{}";
+        resolve(JSON.parse(raw));
+      } catch (err) {
+        reject(err);
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
+function sendJson(res, statusCode, payload) {
+  res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
+  res.end(JSON.stringify(payload));
+}
+
 function startDirectNativeControlServer() {
   if (directControlServer) return;
   try {
     directControlServer = http.createServer(async (req, res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Mcp-Session-Id");
       if (req.method === "OPTIONS") {
         res.writeHead(204);
         res.end();
         return;
       }
-      if (req.method === "GET" && (req.url === "/api/status" || req.url === "/")) {
-        res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-        res.end(JSON.stringify(getNativeStateSnapshot()));
-        return;
-      }
-      if (req.method === "POST" && (req.url === "/api/pilot" || req.url === "/api/voice")) {
-        const chunks = [];
-        req.on("data", (c) => chunks.push(c));
-        req.on("end", async () => {
-          try {
-            const body = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
-            const out = await executeLocalPilotCommand(body);
-            res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-            res.end(JSON.stringify({ ...out, state: getNativeStateSnapshot() }));
-          } catch (err) {
-            res.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
-            res.end(JSON.stringify({ status: "error", message: String(err) }));
-          }
+
+      const urlPath = (req.url || "/").split("?")[0];
+
+      if (req.method === "GET" && (urlPath === "/api/status" || urlPath === "/")) {
+        sendJson(res, 200, {
+          ...getNativeStateSnapshot(),
+          mcpEndpoint: `http://${HUB_HOST}:${DIRECT_NATIVE_PORT}/mcp`,
+          runtimePlugin: "gemini-app-runtime",
+          webToolsCount: runtimeEngine.GEMINI_WEB_TOOLS_CATALOG.length,
         });
         return;
       }
-      res.writeHead(404, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ status: "not_found" }));
+
+      if (req.method === "GET" && urlPath === "/mcp") {
+        sendJson(res, 200, {
+          status: "ok",
+          protocolVersion: "2024-11-05",
+          serverInfo: {
+            name: "gemini-app-runtime",
+            version: "2026.11.2",
+            description: "Native Gemini Web App & Windows Desktop Runtime MCP Server inside Gemini.exe",
+          },
+          tools: runtimeEngine.getMcpToolDefinitions(),
+        });
+        return;
+      }
+
+      if (req.method === "POST" && urlPath === "/mcp") {
+        try {
+          const rpcReq = await readJsonBody(req);
+          const rpcRes = await runtimeEngine.handleMcpJsonRpc(
+            rpcReq,
+            mainHooks,
+            getNativeStateSnapshot,
+            executeLocalPilotCommand,
+          );
+          if (rpcRes === null) {
+            res.writeHead(202);
+            res.end();
+            return;
+          }
+          sendJson(res, 200, rpcRes);
+        } catch (err) {
+          sendJson(res, 400, {
+            jsonrpc: "2.0",
+            id: null,
+            error: { code: -32700, message: String(err) },
+          });
+        }
+        return;
+      }
+
+      if (req.method === "GET" && urlPath === "/api/runtime/status") {
+        const status = await runtimeEngine.getRuntimeStatus(mainHooks, getNativeStateSnapshot);
+        sendJson(res, 200, status);
+        return;
+      }
+
+      if (req.method === "GET" && urlPath === "/api/runtime/tools") {
+        const domState = await runtimeEngine.inspectGeminiWebDom(mainHooks);
+        sendJson(res, 200, {
+          status: "ok",
+          catalog: runtimeEngine.GEMINI_WEB_TOOLS_CATALOG,
+          domTools: domState.domTools || [],
+          activeModel: domState.activeModel || "Gemini 3.8",
+          currentUrl: domState.url || "https://gemini.google.com/app",
+        });
+        return;
+      }
+
+      if (req.method === "GET" && urlPath === "/api/runtime/memory") {
+        sendJson(res, 200, {
+          status: "ok",
+          memory: runtimeEngine.loadLocalWebMemory(),
+          memoryFilePath: runtimeEngine.MEMORY_FILE_PATH,
+          ruleFilePath: runtimeEngine.MEMORY_RULE_MD_PATH,
+        });
+        return;
+      }
+
+      if (req.method === "POST" && urlPath === "/api/runtime/execute") {
+        try {
+          const body = await readJsonBody(req);
+          const out = await runtimeEngine.executeRuntimePrompt(mainHooks, body);
+          sendJson(res, 200, out);
+        } catch (err) {
+          sendJson(res, 400, { status: "error", message: String(err) });
+        }
+        return;
+      }
+
+      if (req.method === "POST" && urlPath === "/api/runtime/tool") {
+        try {
+          const body = await readJsonBody(req);
+          const out = await runtimeEngine.invokeGeminiWebTool(mainHooks, body);
+          sendJson(res, 200, out);
+        } catch (err) {
+          sendJson(res, 400, { status: "error", message: String(err) });
+        }
+        return;
+      }
+
+      if (req.method === "POST" && urlPath === "/api/runtime/memory/import") {
+        try {
+          const body = await readJsonBody(req);
+          const out = await runtimeEngine.importGeminiWebMemory(mainHooks, body);
+          sendJson(res, 200, out);
+        } catch (err) {
+          sendJson(res, 400, { status: "error", message: String(err) });
+        }
+        return;
+      }
+
+      if (req.method === "POST" && urlPath === "/api/runtime/memory/save") {
+        try {
+          const body = await readJsonBody(req);
+          const out = await runtimeEngine.saveGeminiWebMemoryItem(mainHooks, body);
+          sendJson(res, 200, out);
+        } catch (err) {
+          sendJson(res, 400, { status: "error", message: String(err) });
+        }
+        return;
+      }
+
+      if (req.method === "POST" && urlPath === "/api/runtime/navigate") {
+        try {
+          const body = await readJsonBody(req);
+          const out = await runtimeEngine.navigateGeminiWeb(mainHooks, body);
+          sendJson(res, 200, out);
+        } catch (err) {
+          sendJson(res, 400, { status: "error", message: String(err) });
+        }
+        return;
+      }
+
+      if (req.method === "POST" && (urlPath === "/api/pilot" || urlPath === "/api/voice")) {
+        try {
+          const body = await readJsonBody(req);
+          const out = await executeLocalPilotCommand(body);
+          sendJson(res, 200, { ...out, state: getNativeStateSnapshot() });
+        } catch (err) {
+          sendJson(res, 400, { status: "error", message: String(err) });
+        }
+        return;
+      }
+
+      sendJson(res, 404, { status: "not_found", path: urlPath });
     });
     directControlServer.on("error", () => {});
     directControlServer.listen(DIRECT_NATIVE_PORT, HUB_HOST);
@@ -725,7 +871,34 @@ async function executeLocalPilotCommand(payload) {
         command: "send_prompt",
         prompt: payload.prompt,
       });
+      if (payload.waitForReply) {
+        return await runtimeEngine.executeRuntimePrompt(mainHooks, payload);
+      }
       return { status: "ok", command: cmd };
+    }
+    if (cmd === "runtime_execute") {
+      return await runtimeEngine.executeRuntimePrompt(mainHooks, payload);
+    }
+    if (cmd === "runtime_import_memory") {
+      return await runtimeEngine.importGeminiWebMemory(mainHooks, payload);
+    }
+    if (cmd === "runtime_save_memory") {
+      return await runtimeEngine.saveGeminiWebMemoryItem(mainHooks, payload);
+    }
+    if (cmd === "runtime_discover_tools") {
+      const domState = await runtimeEngine.inspectGeminiWebDom(mainHooks);
+      return {
+        status: "ok",
+        command: cmd,
+        catalog: runtimeEngine.GEMINI_WEB_TOOLS_CATALOG,
+        domTools: domState.domTools || [],
+      };
+    }
+    if (cmd === "runtime_navigate") {
+      return await runtimeEngine.navigateGeminiWeb(mainHooks, payload);
+    }
+    if (cmd === "runtime_status") {
+      return await runtimeEngine.getRuntimeStatus(mainHooks, getNativeStateSnapshot);
     }
   } catch (err) {
     return { status: "error", message: String(err) };

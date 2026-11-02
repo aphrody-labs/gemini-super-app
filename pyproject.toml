@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling>=1.26.0"]
+build-backend = "hatchling.build"
+
 [project]
 name = "gemini-live-voice-super-app"
 version = "2026.11.0"
@@ -21,12 +25,22 @@ dependencies = [
   "websockets>=17.4",
 ]
 
+[project.scripts]
+gemini-voice-bridge = "backend.voice_bridge_server:main"
+gemini-windows-patcher = "scripts.patch_and_pilot_gemini_windows:main"
+
+[project.gui-scripts]
+gemini-voice-bridge-w = "backend.voice_bridge_server:main"
+
 [dependency-groups]
 dev = ["pytest>=9.2.0", "pytest-asyncio>=1.4.1", "ruff>=0.9.0"]
 
+[tool.hatch.build.targets.wheel]
+packages = ["backend", "scripts"]
+
 [tool.uv]
 managed = true
-package = false
+package = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

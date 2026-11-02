@@ -25,6 +25,8 @@ from pathlib import Path
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+if str(_REPO_ROOT / "backend") not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT / "backend"))
 
 import os as _os_early
 
@@ -2312,7 +2314,22 @@ def create_app() -> tuple[web.Application, VoiceHubServer]:
     return app, hub
 
 
+def _optimize_windows_process_qos() -> None:
+    if os.name != "nt":
+        return
+    try:
+        import ctypes
+
+        kernel32 = ctypes.windll.kernel32
+        handle = kernel32.GetCurrentProcess()
+        # ABOVE_NORMAL_PRIORITY_CLASS (0x00008000) for real-time audio/voice responsiveness
+        kernel32.SetPriorityClass(handle, 0x00008000)
+    except Exception:
+        pass
+
+
 def main() -> None:
+    _optimize_windows_process_qos()
     app, _ = create_app()
     logger.info(
         "Starting Gemini Live & Antigravity Voice Hub on http://%s:%d (WS: ws://%s:%d/ws/voice)",
@@ -2321,8 +2338,4 @@ def main() -> None:
         HTTP_WS_HOST,
         HTTP_WS_PORT,
     )
-    web.run_app(app, host=HTTP_WS_HOST, port=HTTP_WS_PORT, print=None)
-
-
-if __name__ == "__main__":
-    main()
+    web.run

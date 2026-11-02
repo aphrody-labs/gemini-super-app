@@ -23,8 +23,6 @@
   let autoSubmitPrompt = false;
   let currentRms = 0.06;
   let angle = 0;
-  let lastTranscript = "";
-  let lastReply = "";
 
   // Audio capture & playback state
   let micStream = null;
@@ -34,7 +32,6 @@
   let pcmChunks = [];
   let speechDetectedInTurn = false;
   let silenceStartMs = 0;
-  let bargeInFrames = 0;
 
   let playbackAudioCtx = null;
   let activeAudioSource = null;
@@ -226,7 +223,7 @@
         }
       };
       source.start(0);
-    } catch (err) {
+    } catch {
       // Fallback to HTML5 Audio element
       try {
         const audio = new Audio(`data:${mimeType};base64,${base64Audio}`);
@@ -280,7 +277,6 @@
       pcmChunks = [];
       speechDetectedInTurn = false;
       silenceStartMs = 0;
-      bargeInFrames = 0;
 
       micScriptNode.onaudioprocess = (event) => {
         if (!isLiveActive && !isRecordingPtt) return;
@@ -343,7 +339,7 @@
     }
   }
 
-  function stopMicrophoneCapture() {
+  async function stopMicrophoneCapture() {
     try {
       if (micScriptNode) {
         micScriptNode.disconnect();
@@ -354,8 +350,11 @@
         micStream = null;
       }
       if (micAudioCtx && micAudioCtx.state !== "closed") {
-        micAudioCtx.close().catch(() => {});
+        const ctxToClose = micAudioCtx;
         micAudioCtx = null;
+        try {
+          await ctxToClose.close();
+        } catch {}
       }
     } catch {}
   }
@@ -387,7 +386,6 @@
       return;
     }
 
-    lastTranscript = res.transcript;
     injectTranscriptIntoPage(res.transcript, autoSubmitPrompt);
 
     if (
@@ -395,10 +393,6 @@
       window.geminiVoiceExtensionBridge?.injectUnicodeText
     ) {
       await window.geminiVoiceExtensionBridge.injectUnicodeText(res.transcript);
-    }
-
-    if (res.reply_text) {
-      lastReply = res.reply_text;
     }
     updateUiState();
 
@@ -612,30 +606,42 @@
       if (!res?.ok || !entriesBox) return;
       if (pathInput) pathInput.value = res.path;
       entriesBox.innerHTML = "";
-      for (const item of res.entries || []) {
-        const row = document.createElement("button");
-        row.type = "button";
-        row.style.cssText =
-          "display:flex;align-items:center;justify-content:space-between;width:100%;border:none;background:transparent;color:#e3e3e3;padding:4px 6px;border-radius:6px;text-align:left;cursor:pointer;font-size:11px;";
-        row.innerHTML = `<span>${item.isDir ? "📁" : "📄"} ${item.name}</span><span style="opacity:0.55;">${item.isDir ? "DIR" : item.size + " B"}</span>`;
-        row.addEventListener("click", async () => {
-          if (item.isDir) {
-            await refreshPcDirectory(item.path);
-          } else {
-            activeFilePath = item.path;
-            if (pathInput) pathInput.value = item.path;
-            const fileRes = await callPcFs({
-              action: "read",
-              path: item.path,
-              startLine: 1,
-              endLine: 300,
-            });
-            if (fileRes?.ok && editorBox) {
-              editorBox.value = fileRes.content || "";
+      const entries = res.entries || [];
+      const BATCH = 20;
+      for (let i = 0; i < entries.length; i += BATCH) {
+        await new Promise((resolve) =>
+          requestAnimationFrame(() => {
+            for (const item of entries.slice(i, i + BATCH)) {
+              const row = document.createElement("button");
+              row.type = "button";
+              row.style.cssText =
+                "display:flex;align-items:center;justify-content:space-between;width:100%;border:none;background:transparent;color:#e3e3e3;padding:4px 6px;border-radius:6px;text-align:left;cursor:pointer;font-size:11px;";
+              row.innerHTML = `<span>${item.isDir ? "📁" : "📄"} ${item.name}</span><span style="opacity:0.55;">${item.isDir ? "DIR" : item.size + " B"}</span>`;
+              row.addEventListener("click", async () => {
+                if (item.isDir) {
+                  await refreshPcDirectory(item.path);
+                } else {
+                  activeFilePath = item.path;
+                  if (pathInput) pathInput.value = item.path;
+                  const fileRes = await callPcFs({
+                    action: "read",
+                    path: item.path,
+                    startLine: 1,
+                    endLine: 300,
+                  });
+                  if (fileRes?.ok && editorBox) {
+                    editorBox.value = fileRes.content || "";
+                  }
+                }
+              });
+              entriesBox.appendChild(row);
             }
-          }
-        });
-        entriesBox.appendChild(row);
+            resolve();
+          }),
+        );
+        if (globalThis.scheduler?.yield) {
+          await globalThis.scheduler.yield();
+        }
       }
     }
 
@@ -881,11 +887,9 @@
         if (isLiveActive) startMicrophoneCapture();
         updateUiState();
       } else if (msg.type === "transcript" && msg.turn?.text) {
-        lastTranscript = msg.turn.text;
         injectTranscriptIntoPage(msg.turn.text, autoSubmitPrompt);
         updateUiState();
       } else if (msg.type === "model_response" && msg.turn?.text) {
-        lastReply = msg.turn.text;
         updateUiState();
       } else if (
         msg.type === "audio_output" &&
@@ -961,8 +965,9 @@
 
   if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-      if (message?.type === "SHOW_TOAST" && message.text) {
-        showConfirmationToast(message.text);
+      const toastMsg = message?.text || message?.message;
+      if (message?.type === "SHOW_TOAST" && toastMsg) {
+        showConfirmationToast(toastMsg);
         sendResponse({ ok: true });
       }
       return false;

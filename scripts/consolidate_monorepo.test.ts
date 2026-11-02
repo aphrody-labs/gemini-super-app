@@ -23,9 +23,38 @@ describe("Monorepo Consolidation Script", () => {
     expect(cws.voiceExtension.manifestVersion).toBe(3);
     expect(cws.voiceExtension.descriptionValid).toBe(true);
     expect(cws.voiceExtension.iconsValid).toBe(true);
+    expect(cws.voiceExtension.iconDimensions["16"]).toEqual({
+      width: 16,
+      height: 16,
+    });
+    expect(cws.voiceExtension.iconDimensions["32"]).toEqual({
+      width: 32,
+      height: 32,
+    });
+    expect(cws.voiceExtension.iconDimensions["48"]).toEqual({
+      width: 48,
+      height: 48,
+    });
+    expect(cws.voiceExtension.iconDimensions["128"]).toEqual({
+      width: 128,
+      height: 128,
+    });
     expect(cws.voiceExtension.zeroInlineScripts).toBe(true);
+    expect(cws.voiceExtension.zeroThenChainsOrEval).toBe(true);
     expect(cws.themeExtension.manifestVersion).toBe(3);
     expect(cws.themeExtension.descriptionValid).toBe(true);
     expect(cws.themeExtension.iconsValid).toBe(true);
+    expect(cws.themeExtension.zeroInlineScripts).toBe(true);
+    expect(cws.themeExtension.zeroThenChainsOrEval).toBe(true);
+
+    const cwsDoc = await Bun.file("CHROMEWEBSTORE.md").text();
+    expect(cwsDoc).toContain("1.2.0");
+    expect(cwsDoc).toContain("Permissions Justification");
+    expect(await Bun.file("PRIVACY.md").exists()).toBe(true);
+    expect(
+      await Bun.file(
+        "dist/chrome-web-store/assets/screenshot-1280x800.png",
+      ).exists(),
+    ).toBe(true);
   });
 });
