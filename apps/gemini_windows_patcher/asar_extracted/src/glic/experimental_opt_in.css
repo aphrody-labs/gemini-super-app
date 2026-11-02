@@ -78,7 +78,7 @@ html {
 
 .headline {
   color: var(--cr-fallback-color-on-surface);
-  font-family: 'Google Sans', sans-serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 16px;
   font-weight: 500;
   line-height: 24px;
@@ -87,7 +87,7 @@ html {
 
 .notice-message {
   color: var(--cr-fallback-color-on-surface-variant);
-  font-family: 'Google Sans Text', sans-serif;
+  font-family: "Google Sans Text", sans-serif;
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
@@ -157,7 +157,7 @@ html.android webview.autosized {
 .notice cr-button {
   --cr-button-height: 36px;
   border-radius: var(--corner-radii-fully-round, 100px);
-  font-family: 'Google Sans Text', sans-serif;
+  font-family: "Google Sans Text", sans-serif;
   font-size: var(--cr-button-font-size, 13px);
   font-weight: 500;
   margin-top: 16px;
@@ -165,8 +165,14 @@ html.android webview.autosized {
 }
 
 .tonal-button {
-  background-color: var(--color-sys-tonal-container, var(--cr-fallback-color-tonal-container));
-  color: var(--color-sys-on-tonal-container, var(--cr-fallback-color-on-tonal-container));
+  background-color: var(
+    --color-sys-tonal-container,
+    var(--cr-fallback-color-tonal-container)
+  );
+  color: var(
+    --color-sys-on-tonal-container,
+    var(--cr-fallback-color-on-tonal-container)
+  );
 }
 
 /* Shimmer Container / Loading Skeleton Styles */
@@ -198,8 +204,6 @@ html.android webview.autosized {
   border-radius: 12px;
   flex-shrink: 0;
 }
-
-
 
 #skeleton-container .skeleton-card {
   background-color: var(--color-bg);
@@ -233,19 +237,19 @@ html.android webview.autosized {
   width: 100px;
 }
 
-#skeleton-container:not([state='experimental']) {
+#skeleton-container:not([state="experimental"]) {
   gap: 8px;
 }
 
-#skeleton-container[state='experimental'] {
+#skeleton-container[state="experimental"] {
   gap: 16px;
 }
 
-#skeleton-container:not([state='experimental']) .skeleton-card {
+#skeleton-container:not([state="experimental"]) .skeleton-card {
   height: 200px;
 }
 
-#skeleton-container[state='experimental'] .skeleton-card {
+#skeleton-container[state="experimental"] .skeleton-card {
   height: 261px;
 }
 
@@ -264,7 +268,9 @@ html.android webview.autosized {
   height: 80px;
 }
 
-#skeleton-container:not([state='experimental']) .skeleton-illustration .skeleton-block {
+#skeleton-container:not([state="experimental"])
+  .skeleton-illustration
+  .skeleton-block {
   width: 90px;
   height: 45px;
   border-radius: 24px;
@@ -278,12 +284,15 @@ html.android webview.autosized {
   height: 32px;
 }
 
-#skeleton-container:not([state='experimental']) .skeleton-segment-glic:nth-child(1) {
+#skeleton-container:not([state="experimental"])
+  .skeleton-segment-glic:nth-child(1) {
   height: 78px;
 }
 
-#skeleton-container:not([state='experimental']) .skeleton-segment-glic:nth-child(2),
-#skeleton-container:not([state='experimental']) .skeleton-segment-glic:nth-child(3) {
+#skeleton-container:not([state="experimental"])
+  .skeleton-segment-glic:nth-child(2),
+#skeleton-container:not([state="experimental"])
+  .skeleton-segment-glic:nth-child(3) {
   height: 60px;
 }
 
@@ -325,7 +334,9 @@ html.android webview.autosized {
   height: 110px;
 }
 
-#skeleton-container[state='experimental'] .skeleton-illustration .skeleton-block {
+#skeleton-container[state="experimental"]
+  .skeleton-illustration
+  .skeleton-block {
   width: 180px;
   height: 110px;
   border-radius: 12px;
@@ -335,21 +346,21 @@ html.android webview.autosized {
   height: 48px;
 }
 
-#skeleton-container[state='experimental'] .skeleton-segment:nth-child(1) {
+#skeleton-container[state="experimental"] .skeleton-segment:nth-child(1) {
   height: 78px;
 }
 
-#skeleton-container[state='experimental'] .skeleton-segment:nth-child(2),
-#skeleton-container[state='experimental'] .skeleton-segment:nth-child(3),
-#skeleton-container[state='experimental'] .skeleton-segment:nth-child(4) {
+#skeleton-container[state="experimental"] .skeleton-segment:nth-child(2),
+#skeleton-container[state="experimental"] .skeleton-segment:nth-child(3),
+#skeleton-container[state="experimental"] .skeleton-segment:nth-child(4) {
   height: 60px;
 }
 
 /* Toggle loading skeleton layouts based on state attribute */
-#skeleton-container:not([state='experimental']) .skeleton-experimental {
+#skeleton-container:not([state="experimental"]) .skeleton-experimental {
   display: none;
 }
 
-#skeleton-container[state='experimental'] .skeleton-glic {
+#skeleton-container[state="experimental"] .skeleton-glic {
   display: none;
 }

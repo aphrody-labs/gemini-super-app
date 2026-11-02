@@ -1,23 +1,935 @@
 // Copyright 2011 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import{css,CrLitElement,html}from"chrome://resources/lit/v3_0/lit.rollup.js";import{mojo}from"chrome://resources/mojo/mojo/public/js/bindings.js";const CLASS_NAME="focus-outline-visible";const docsToManager=new Map;class FocusOutlineManager{focusByKeyboard_=true;classList_;constructor(doc){this.classList_=doc.documentElement.classList;doc.addEventListener("keydown",(e=>this.onEvent_(true,e)),true);doc.addEventListener("mousedown",(e=>this.onEvent_(false,e)),true);this.updateVisibility()}onEvent_(focusByKeyboard,e){if(this.focusByKeyboard_===focusByKeyboard){return}if(e instanceof KeyboardEvent&&e.repeat){return}this.focusByKeyboard_=focusByKeyboard;this.updateVisibility()}updateVisibility(){this.visible=this.focusByKeyboard_}set visible(visible){this.classList_.toggle(CLASS_NAME,visible)}get visible(){return this.classList_.contains(CLASS_NAME)}static forDocument(doc){let manager=docsToManager.get(doc);if(!manager){manager=new FocusOutlineManager(doc);docsToManager.set(doc,manager)}return manager}}const isMac=/Mac/.test(navigator.platform);function assert(value,message){if(value){return}throw new Error("Assertion failed"+(message?`: ${message}`:""))}function assertNotReached(message="Unreachable code hit"){assert(false,message)}function assertNotReachedCase(_param,message){assertNotReached(message)}class EventTracker{listeners_=[];add(target,eventType,listener,capture=false){const h={target:target,eventType:eventType,listener:listener,capture:capture};this.listeners_.push(h);target.addEventListener(eventType,listener,capture)}remove(target,eventType){this.listeners_=this.listeners_.filter((listener=>{if(listener.target===target&&(!eventType||listener.eventType===eventType)){EventTracker.removeEventListener(listener);return false}return true}))}removeAll(){this.listeners_.forEach((listener=>EventTracker.removeEventListener(listener)));this.listeners_=[]}static removeEventListener(entry){entry.target.removeEventListener(entry.eventType,entry.listener,entry.capture)}}let instance$7=null;function getCss$6(){return instance$7||(instance$7=[...[],css`:host{bottom:0;display:block;left:0;overflow:hidden;pointer-events:none;position:absolute;right:0;top:0;transform:translate3d(0,0,0)}.ripple{background-color:currentcolor;left:0;opacity:var(--paper-ripple-opacity,0.25);pointer-events:none;position:absolute;will-change:height,transform,width}.ripple,:host(.circle){border-radius:50%}`])}const MAX_RADIUS_PX=300;const MIN_DURATION_MS=800;function distance(x1,y1,x2,y2){const xDelta=x1-x2;const yDelta=y1-y2;return Math.sqrt(xDelta*xDelta+yDelta*yDelta)}class CrRippleElement extends CrLitElement{static get is(){return"cr-ripple"}static get styles(){return getCss$6()}static get properties(){return{holdDown:{type:Boolean},recenters:{type:Boolean},noink:{type:Boolean}}}#holdDown_accessor_storage=false;get holdDown(){return this.#holdDown_accessor_storage}set holdDown(value){this.#holdDown_accessor_storage=value}#recenters_accessor_storage=false;get recenters(){return this.#recenters_accessor_storage}set recenters(value){this.#recenters_accessor_storage=value}#noink_accessor_storage=false;get noink(){return this.#noink_accessor_storage}set noink(value){this.#noink_accessor_storage=value}ripples_=[];eventTracker_=new EventTracker;connectedCallback(){super.connectedCallback();assert(this.parentNode);const keyEventTarget=this.parentNode.nodeType===Node.DOCUMENT_FRAGMENT_NODE?this.parentNode.host:this.parentElement;this.eventTracker_.add(keyEventTarget,"pointerdown",(e=>this.uiDownAction(e)));this.eventTracker_.add(keyEventTarget,"pointerup",(()=>this.uiUpAction()));this.eventTracker_.add(keyEventTarget,"pointerout",(()=>this.uiUpAction()));this.eventTracker_.add(keyEventTarget,"keydown",(e=>{if(e.defaultPrevented){return}if(e.key==="Enter"){this.onEnterKeydown_();return}if(e.key===" "){this.onSpaceKeydown_()}}));this.eventTracker_.add(keyEventTarget,"keyup",(e=>{if(e.defaultPrevented){return}if(e.key===" "){this.onSpaceKeyup_()}}))}disconnectedCallback(){super.disconnectedCallback();this.eventTracker_.removeAll()}updated(changedProperties){super.updated(changedProperties);if(changedProperties.has("holdDown")){this.holdDownChanged_(this.holdDown,changedProperties.get("holdDown"))}}uiDownAction(e){if(e!==undefined&&e.button!==0){return}if(!this.noink){this.downAction_(e)}}downAction_(e){if(this.ripples_.length&&this.holdDown){return}this.showRipple_(e)}clear(){this.hideRipple_();this.holdDown=false}showAndHoldDown(){this.ripples_.forEach((ripple=>{ripple.remove()}));this.ripples_=[];this.holdDown=true}showRipple_(e){const rect=this.getBoundingClientRect();const roundedCenterX=function(){return Math.round(rect.width/2)};const roundedCenterY=function(){return Math.round(rect.height/2)};let x=0;let y=0;const centered=!e;if(centered){x=roundedCenterX();y=roundedCenterY()}else{x=Math.round(e.clientX-rect.left);y=Math.round(e.clientY-rect.top)}const corners=[{x:0,y:0},{x:rect.width,y:0},{x:0,y:rect.height},{x:rect.width,y:rect.height}];const cornerDistances=corners.map((function(corner){return Math.round(distance(x,y,corner.x,corner.y))}));const radius=Math.min(MAX_RADIUS_PX,Math.max.apply(Math,cornerDistances));const startTranslate=`${x-radius}px, ${y-radius}px`;let endTranslate=startTranslate;if(this.recenters&&!centered){endTranslate=`${roundedCenterX()-radius}px, ${roundedCenterY()-radius}px`}const ripple=document.createElement("div");ripple.classList.add("ripple");ripple.style.height=ripple.style.width=2*radius+"px";this.ripples_.push(ripple);this.shadowRoot.appendChild(ripple);ripple.animate({transform:[`translate(${startTranslate}) scale(0)`,`translate(${endTranslate}) scale(1)`]},{duration:Math.max(MIN_DURATION_MS,Math.log(radius)*radius)||0,easing:"cubic-bezier(.2, .9, .1, .9)",fill:"forwards"})}uiUpAction(){if(!this.noink){this.upAction_()}}upAction_(){if(!this.holdDown){this.hideRipple_()}}hideRipple_(){if(this.ripples_.length===0){return}this.ripples_.forEach((function(ripple){const opacity=ripple.computedStyleMap().get("opacity")??null;if(opacity===null){ripple.remove();return}const animation=ripple.animate({opacity:[opacity.value,0]},{duration:150,fill:"forwards"});animation.finished.then((()=>{ripple.remove()}))}));this.ripples_=[]}onEnterKeydown_(){this.uiDownAction();window.setTimeout((()=>{this.uiUpAction()}),1)}onSpaceKeydown_(){this.uiDownAction()}onSpaceKeyup_(){this.uiUpAction()}holdDownChanged_(newHoldDown,oldHoldDown){if(oldHoldDown===undefined){return}if(newHoldDown){this.downAction_()}else{this.upAction_()}}}customElements.define(CrRippleElement.is,CrRippleElement);const CrRippleMixin=superClass=>{class CrRippleMixin extends superClass{static get properties(){return{noink:{type:Boolean}}}#noink_accessor_storage=false;get noink(){return this.#noink_accessor_storage}set noink(value){this.#noink_accessor_storage=value}rippleContainer=null;ripple_=null;updated(changedProperties){super.updated(changedProperties);if(changedProperties.has("noink")&&this.hasRipple()){assert(this.ripple_);this.ripple_.noink=this.noink}}ensureRippleOnPointerdown(){this.addEventListener("pointerdown",(()=>this.ensureRipple()),{capture:true})}ensureRipple(){if(this.hasRipple()){return}this.ripple_=this.createRipple();this.ripple_.noink=this.noink;const rippleContainer=this.rippleContainer||this.shadowRoot;assert(rippleContainer);rippleContainer.appendChild(this.ripple_)}getRipple(){this.ensureRipple();assert(this.ripple_);return this.ripple_}hasRipple(){return Boolean(this.ripple_)}createRipple(){const ripple=document.createElement("cr-ripple");ripple.id="ink";return ripple}}return CrRippleMixin};let instance$6=null;function getCss$5(){return instance$6||(instance$6=[...[],css`[hidden],:host([hidden]){display:none !important}`])}const sheet=new CSSStyleSheet;sheet.replaceSync(`html{--google-blue-50-rgb:232,240,254;--google-blue-50:rgb(var(--google-blue-50-rgb));--google-blue-100-rgb:210,227,252;--google-blue-100:rgb(var(--google-blue-100-rgb));--google-blue-200-rgb:174,203,250;--google-blue-200:rgb(var(--google-blue-200-rgb));--google-blue-300-rgb:138,180,248;--google-blue-300:rgb(var(--google-blue-300-rgb));--google-blue-400-rgb:102,157,246;--google-blue-400:rgb(var(--google-blue-400-rgb));--google-blue-500-rgb:66,133,244;--google-blue-500:rgb(var(--google-blue-500-rgb));--google-blue-600-rgb:26,115,232;--google-blue-600:rgb(var(--google-blue-600-rgb));--google-blue-700-rgb:25,103,210;--google-blue-700:rgb(var(--google-blue-700-rgb));--google-blue-800-rgb:24,90,188;--google-blue-800:rgb(var(--google-blue-800-rgb));--google-blue-900-rgb:23,78,166;--google-blue-900:rgb(var(--google-blue-900-rgb));--google-green-50-rgb:230,244,234;--google-green-50:rgb(var(--google-green-50-rgb));--google-green-200-rgb:168,218,181;--google-green-200:rgb(var(--google-green-200-rgb));--google-green-300-rgb:129,201,149;--google-green-300:rgb(var(--google-green-300-rgb));--google-green-400-rgb:91,185,116;--google-green-400:rgb(var(--google-green-400-rgb));--google-green-500-rgb:52,168,83;--google-green-500:rgb(var(--google-green-500-rgb));--google-green-600-rgb:30,142,62;--google-green-600:rgb(var(--google-green-600-rgb));--google-green-700-rgb:24,128,56;--google-green-700:rgb(var(--google-green-700-rgb));--google-green-800-rgb:19,115,51;--google-green-800:rgb(var(--google-green-800-rgb));--google-green-900-rgb:13,101,45;--google-green-900:rgb(var(--google-green-900-rgb));--google-grey-50-rgb:248,249,250;--google-grey-50:rgb(var(--google-grey-50-rgb));--google-grey-100-rgb:241,243,244;--google-grey-100:rgb(var(--google-grey-100-rgb));--google-grey-200-rgb:232,234,237;--google-grey-200:rgb(var(--google-grey-200-rgb));--google-grey-300-rgb:218,220,224;--google-grey-300:rgb(var(--google-grey-300-rgb));--google-grey-400-rgb:189,193,198;--google-grey-400:rgb(var(--google-grey-400-rgb));--google-grey-500-rgb:154,160,166;--google-grey-500:rgb(var(--google-grey-500-rgb));--google-grey-600-rgb:128,134,139;--google-grey-600:rgb(var(--google-grey-600-rgb));--google-grey-700-rgb:95,99,104;--google-grey-700:rgb(var(--google-grey-700-rgb));--google-grey-800-rgb:60,64,67;--google-grey-800:rgb(var(--google-grey-800-rgb));--google-grey-900-rgb:32,33,36;--google-grey-900:rgb(var(--google-grey-900-rgb));--google-grey-900-white-4-percent:#292a2d;--google-purple-200-rgb:215,174,251;--google-purple-200:rgb(var(--google-purple-200-rgb));--google-purple-900-rgb:104,29,168;--google-purple-900:rgb(var(--google-purple-900-rgb));--google-red-100-rgb:244,199,195;--google-red-100:rgb(var(--google-red-100-rgb));--google-red-300-rgb:242,139,130;--google-red-300:rgb(var(--google-red-300-rgb));--google-red-500-rgb:234,67,53;--google-red-500:rgb(var(--google-red-500-rgb));--google-red-600-rgb:217,48,37;--google-red-600:rgb(var(--google-red-600-rgb));--google-red-700-rgb:197,57,41;--google-red-700:rgb(var(--google-red-700-rgb));--google-yellow-50-rgb:254,247,224;--google-yellow-50:rgb(var(--google-yellow-50-rgb));--google-yellow-100-rgb:254,239,195;--google-yellow-100:rgb(var(--google-yellow-100-rgb));--google-yellow-200-rgb:253,226,147;--google-yellow-200:rgb(var(--google-yellow-200-rgb));--google-yellow-300-rgb:253,214,51;--google-yellow-300:rgb(var(--google-yellow-300-rgb));--google-yellow-400-rgb:252,201,52;--google-yellow-400:rgb(var(--google-yellow-400-rgb));--google-yellow-500-rgb:251,188,4;--google-yellow-500:rgb(var(--google-yellow-500-rgb));--google-yellow-700-rgb:240,147,0;--google-yellow-700:rgb(var(--google-yellow-700-rgb));--cr-card-background-color:white;--cr-shadow-key-color_:color-mix(in srgb,var(--cr-shadow-color) 30%,transparent);--cr-shadow-ambient-color_:color-mix(in srgb,var(--cr-shadow-color) 15%,transparent);--cr-elevation-1:var(--cr-shadow-key-color_) 0 1px 2px 0,var(--cr-shadow-ambient-color_) 0 1px 3px 1px;--cr-elevation-2:var(--cr-shadow-key-color_) 0 1px 2px 0,var(--cr-shadow-ambient-color_) 0 2px 6px 2px;--cr-elevation-3:var(--cr-shadow-key-color_) 0 1px 3px 0,var(--cr-shadow-ambient-color_) 0 4px 8px 3px;--cr-elevation-4:var(--cr-shadow-key-color_) 0 2px 3px 0,var(--cr-shadow-ambient-color_) 0 6px 10px 4px;--cr-elevation-5:var(--cr-shadow-key-color_) 0 4px 4px 0,var(--cr-shadow-ambient-color_) 0 8px 12px 6px;--cr-card-shadow:var(--cr-elevation-2);--cr-focused-item-color:var(--google-grey-300);--cr-form-field-label-color:var(--google-grey-700);--cr-hairline-rgb:0,0,0;--cr-iph-anchor-highlight-color:rgba(var(--google-blue-600-rgb),0.1);--cr-menu-background-color:white;--cr-menu-background-focus-color:var(--google-grey-400);--cr-menu-shadow:var(--cr-elevation-2);--cr-separator-color:rgba(0,0,0,.06);--cr-title-text-color:rgb(90,90,90);--cr-scrollable-border-color:var(--google-grey-300);--cr-button-edge-spacing:12px;--cr-controlled-by-spacing:24px;--cr-default-input-max-width:264px;--cr-icon-ripple-size:36px;--cr-icon-ripple-padding:8px;--cr-icon-size:20px;--cr-icon-button-margin-start:16px;--cr-icon-ripple-margin:calc(var(--cr-icon-ripple-padding) * -1);--cr-section-min-height:48px;--cr-section-two-line-min-height:64px;--cr-section-padding:20px;--cr-section-vertical-padding:12px;--cr-section-indent-width:40px;--cr-section-indent-padding:calc(var(--cr-section-padding) + var(--cr-section-indent-width));--cr-section-vertical-margin:21px;--cr-centered-card-max-width:680px;--cr-centered-card-width-percentage:0.96;--cr-hairline:1px solid rgba(var(--cr-hairline-rgb),.14);--cr-separator-height:1px;--cr-separator-line:var(--cr-separator-height) solid var(--cr-separator-color);--cr-toolbar-overlay-animation-duration:150ms;--cr-toolbar-height:56px;--cr-card-border-radius:8px;--cr-disabled-opacity:.38;--cr-form-field-bottom-spacing:16px;--cr-form-field-label-font-size:.625rem;--cr-form-field-label-height:1em;--cr-form-field-label-line-height:1;--cr-fallback-color-outline:rgb(116,119,117);--cr-fallback-color-primary:rgb(11,87,208);--cr-fallback-color-on-primary:rgb(255,255,255);--cr-fallback-color-primary-container:rgb(211,227,253);--cr-fallback-color-on-primary-container:rgb(4,30,73);--cr-fallback-color-secondary-container:rgb(194,231,255);--cr-fallback-color-on-secondary-container:rgb(0,29,53);--cr-fallback-color-neutral-container:rgb(242,242,242);--cr-fallback-color-neutral-outline:rgb(199,199,199);--cr-fallback-color-surface:rgb(255,255,255);--cr-fallback-color-surface1:rgb(248,250,253);--cr-fallback-color-surface2:rgb(243,246,252);--cr-fallback-color-surface3:rgb(239,243,250);--cr-fallback-color-surface4:rgb(237,242,250);--cr-fallback-color-surface5:rgb(234,240,249);--cr-fallback-color-on-surface-rgb:31,31,31;--cr-fallback-color-on-surface:rgb(var(--cr-fallback-color-on-surface-rgb));--cr-fallback-color-surface-variant:rgb(225,227,225);--cr-fallback-color-on-surface-variant:rgb(68,71,70);--cr-fallback-color-on-surface-subtle:rgb(71,71,71);--cr-fallback-color-inverse-primary:rgb(168,199,250);--cr-fallback-color-inverse-surface:rgb(48,48,48);--cr-fallback-color-inverse-on-surface:rgb(242,242,242);--cr-fallback-color-tonal-container:rgb(211,227,253);--cr-fallback-color-on-tonal-container:rgb(4,30,73);--cr-fallback-color-tonal-outline:rgb(168,199,250);--cr-fallback-color-error:rgb(179,38,30);--cr-fallback-color-divider:rgb(211,227,253);--cr-fallback-color-state-hover-on-prominent_:rgba(253,252,251,.1);--cr-fallback-color-state-on-subtle-rgb_:31,31,31;--cr-fallback-color-state-hover-on-subtle_:rgba(var(--cr-fallback-color-state-on-subtle-rgb_),.06);--cr-fallback-color-state-ripple-neutral-on-subtle_:rgba(var(--cr-fallback-color-state-on-subtle-rgb_),.08);--cr-fallback-color-state-ripple-primary-rgb_:124,172,248;--cr-fallback-color-state-ripple-primary_:rgba(var(--cr-fallback-color-state-ripple-primary-rgb_),0.32);--cr-fallback-color-base-container:rgb(236,239,247);--cr-fallback-color-disabled-background:rgba(var(--cr-fallback-color-on-surface-rgb),.12);--cr-fallback-color-disabled-foreground:rgba(var(--cr-fallback-color-on-surface-rgb),var(--cr-disabled-opacity));--cr-hover-background-color:var(--color-sys-state-hover,rgba(var(--cr-fallback-color-on-surface-rgb),.08));--cr-hover-on-prominent-background-color:var(--color-sys-state-hover-on-prominent,var(--cr-fallback-color-state-hover-on-prominent_));--cr-hover-on-subtle-background-color:var(--color-sys-state-hover-on-subtle,var(--cr-fallback-color-state-hover-on-subtle_));--cr-active-background-color:var(--color-sys-state-pressed,rgba(var(--cr-fallback-color-on-surface-rgb),.12));--cr-active-on-primary-background-color:var(--color-sys-state-ripple-primary,var(--cr-fallback-color-state-ripple-primary_));--cr-active-neutral-on-subtle-background-color:var(--color-sys-state-ripple-neutral-on-subtle,var(--cr-fallback-color-state-ripple-neutral-on-subtle_));--cr-focus-outline-color:var(--color-sys-state-focus-ring,var(--cr-fallback-color-primary));--cr-focus-outline-inverse-color:var(--color-sys-state-focus-ring-inverse,var(--cr-fallback-color-inverse-primary));--cr-primary-text-color:var(--color-primary-foreground,var(--cr-fallback-color-on-surface));--cr-secondary-text-color:var(--color-secondary-foreground,var(--cr-fallback-color-on-surface-variant));--cr-link-color:var(--color-link-foreground-default,var(--cr-fallback-color-primary));--cr-button-height:36px;--cr-shadow-color:var(--color-sys-shadow,rgb(0,0,0));--cr-checked-color:var(--color-checkbox-foreground-checked,var(--cr-fallback-color-primary))}html[webui-refresh-2026]{--cr-card-background-color:var(--color-webui-card-background)}@media (prefers-color-scheme:dark){html{--cr-fallback-color-outline:rgb(142,145,143);--cr-fallback-color-primary:rgb(168,199,250);--cr-fallback-color-on-primary:rgb(6,46,111);--cr-fallback-color-primary-container:rgb(8,66,160);--cr-fallback-color-on-primary-container:rgb(211,227,253);--cr-fallback-color-secondary-container:rgb(0,74,119);--cr-fallback-color-on-secondary-container:rgb(194,231,255);--cr-fallback-color-neutral-container:rgb(40,40,40);--cr-fallback-color-neutral-outline:rgb(117,117,117);--cr-fallback-color-surface:rgb(31,31,31);--cr-fallback-color-surface1:rgb(39,40,42);--cr-fallback-color-surface2:rgb(45,47,49);--cr-fallback-color-surface3:rgb(51,52,56);--cr-fallback-color-surface4:rgb(52,54,58);--cr-fallback-color-surface5:rgb(56,58,62);--cr-fallback-color-on-surface-rgb:227,227,227;--cr-fallback-color-surface-variant:rgb(68,71,70);--cr-fallback-color-on-surface-variant:rgb(196,199,197);--cr-fallback-color-on-surface-subtle:rgb(199,199,199);--cr-fallback-color-inverse-primary:rgb(11,87,208);--cr-fallback-color-inverse-surface:rgb(227,227,227);--cr-fallback-color-inverse-on-surface:rgb(31,31,31);--cr-fallback-color-tonal-container:rgb(0,74,119);--cr-fallback-color-on-tonal-container:rgb(194,231,255);--cr-fallback-color-tonal-outline:rgb(4,125,183);--cr-fallback-color-error:rgb(242,184,181);--cr-fallback-color-divider:rgb(94,94,94);--cr-fallback-color-state-hover-on-prominent_:rgba(31,31,31,.06);--cr-fallback-color-state-on-subtle-rgb_:253,252,251;--cr-fallback-color-state-hover-on-subtle_:rgba(var(--cr-fallback-color-state-on-subtle-rgb_),.10);--cr-fallback-color-state-ripple-neutral-on-subtle_:rgba(var(--cr-fallback-color-state-on-subtle-rgb_),.16);--cr-fallback-color-state-ripple-primary-rgb_:76,141,246;--cr-fallback-color-base-container:rgba(40,40,40,1);--cr-card-background-color:var(--google-grey-900-white-4-percent);--cr-focused-item-color:var(--google-grey-800);--cr-form-field-label-color:var(--dark-secondary-color);--cr-hairline-rgb:255,255,255;--cr-iph-anchor-highlight-color:rgba(var(--google-grey-100-rgb),0.1);--cr-menu-background-color:var(--google-grey-900);--cr-menu-background-focus-color:var(--google-grey-700);--cr-menu-background-sheen:rgba(255,255,255,.06);--cr-menu-shadow:rgba(0,0,0,.3) 0 1px 2px 0,rgba(0,0,0,.15) 0 3px 6px 2px;--cr-separator-color:rgba(255,255,255,.1);--cr-title-text-color:var(--cr-primary-text-color);--cr-scrollable-border-color:var(--google-grey-700)}}@media (forced-colors:active){html{--cr-focus-outline-hcm:2px solid transparent;--cr-border-hcm:2px solid transparent;--cr-fallback-color-disabled-background:Canvas;--cr-fallback-color-disabled-foreground:GrayText}}@media (prefers-reduced-motion:reduce){html{--cr-animations-disabled:1}}`);document.adoptedStyleSheets=[...document.adoptedStyleSheets,sheet];let instance$5=null;function getCss$4(){return instance$5||(instance$5=[...[getCss$5()],css`:host{--cr-button-background-color:transparent;--cr-button-border-color:var(--color-button-border,var(--cr-fallback-color-tonal-outline));--cr-button-text-color:var(--color-button-foreground,var(--cr-fallback-color-primary));--cr-button-ripple-opacity:1;--cr-button-ripple-color:var(--cr-active-background-color);--cr-button-disabled-background-color:transparent;--cr-button-disabled-border-color:var(--color-button-border-disabled,var(--cr-fallback-color-disabled-background));--cr-button-disabled-text-color:var(--color-button-foreground-disabled,var(--cr-fallback-color-disabled-foreground));flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:5.14em;height:var(--cr-button-height);padding:8px 16px;outline-width:0;overflow:hidden;position:relative;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border:var(--cr-button-border,1px solid var(--cr-button-border-color));border-radius:100px;background:var(--cr-button-background-color);color:var(--cr-button-text-color);font-weight:500;line-height:20px;isolation:isolate}:host(.action-button){--cr-button-background-color:var(--color-button-background-prominent,var(--cr-fallback-color-primary));--cr-button-text-color:var(--color-button-foreground-prominent,var(--cr-fallback-color-on-primary));--cr-button-ripple-color:var(--cr-active-on-primary-background-color);--cr-button-border:none;--cr-button-disabled-background-color:var(--color-button-background-prominent-disabled,var(--cr-fallback-color-disabled-background));--cr-button-disabled-text-color:var(--color-button-foreground-disabled,var(--cr-fallback-color-disabled-foreground));--cr-button-disabled-border:none}:host(.tonal-button),:host(.floating-button){--cr-button-background-color:var(--color-button-background-tonal,var(--cr-fallback-color-secondary-container));--cr-button-text-color:var(--color-button-foreground-tonal,var(--cr-fallback-color-on-tonal-container));--cr-button-border:none;--cr-button-disabled-background-color:var(--color-button-background-tonal-disabled,var(--cr-fallback-color-disabled-background));--cr-button-disabled-text-color:var(--color-button-foreground-disabled,var(--cr-fallback-color-disabled-foreground));--cr-button-disabled-border:none}@media (forced-colors:active){@container style(--color-button-foreground){:host{forced-color-adjust:none}}}:host(.floating-button){border-radius:8px;height:40px;transition:box-shadow 80ms linear}:host(.floating-button:hover){box-shadow:var(--cr-elevation-3)}:host([has-prefix-icon_]),:host([has-suffix-icon_]){--iron-icon-height:20px;--iron-icon-width:20px;--icon-block-padding-large:16px;--icon-block-padding-small:12px;gap:8px;padding-block-end:8px;padding-block-start:8px}:host([has-prefix-icon_]){padding-inline-end:var(--icon-block-padding-large);padding-inline-start:var(--icon-block-padding-small)}:host([has-suffix-icon_]){padding-inline-end:var(--icon-block-padding-small);padding-inline-start:var(--icon-block-padding-large)}:host-context(.focus-outline-visible):host(:focus){box-shadow:none;outline:2px solid var(--cr-focus-outline-color);outline-offset:2px}#background{border-radius:inherit;inset:0;pointer-events:none;position:absolute;z-index:0}#content{display:inline}#hoverBackground{content:'';display:none;inset:0;pointer-events:none;position:absolute;z-index:1}:host(:hover) #hoverBackground{background:var(--cr-hover-background-color);display:block}:host(.action-button:hover) #hoverBackground{background:var(--cr-hover-on-prominent-background-color)}:host([disabled]){background:var(--cr-button-disabled-background-color);border:var(--cr-button-disabled-border,1px solid var(--cr-button-disabled-border-color));color:var(--cr-button-disabled-text-color);cursor:auto;pointer-events:none}:host(.cancel-button){margin-inline-end:8px}:host(.action-button),:host(.cancel-button){line-height:154%}#ink{color:var(--cr-button-ripple-color);--paper-ripple-opacity:var(--cr-button-ripple-opacity)}#hoverBackground,cr-ripple{z-index:1}#content,::slotted(*){z-index:2}`])}function getHtml$3(){return html`
-<div id="background"></div>
-<slot id="prefixIcon" name="prefix-icon"
-    @slotchange="${this.onPrefixIconSlotchange_}">
-</slot>
-<span id="content">
-  <slot></slot>
-</span>
-<slot id="suffixIcon" name="suffix-icon"
-    @slotchange="${this.onSuffixIconSlotchange_}">
-</slot>
-<div id="hoverBackground" part="hoverBackground"></div>`}const CrButtonElementBase=CrRippleMixin(CrLitElement);class CrButtonElement extends CrButtonElementBase{static get is(){return"cr-button"}static get styles(){return getCss$4()}render(){return getHtml$3.bind(this)()}static get properties(){return{disabled:{type:Boolean,reflect:true},hasPrefixIcon_:{type:Boolean,reflect:true},hasSuffixIcon_:{type:Boolean,reflect:true}}}#disabled_accessor_storage=false;get disabled(){return this.#disabled_accessor_storage}set disabled(value){this.#disabled_accessor_storage=value}#hasPrefixIcon__accessor_storage=false;get hasPrefixIcon_(){return this.#hasPrefixIcon__accessor_storage}set hasPrefixIcon_(value){this.#hasPrefixIcon__accessor_storage=value}#hasSuffixIcon__accessor_storage=false;get hasSuffixIcon_(){return this.#hasSuffixIcon__accessor_storage}set hasSuffixIcon_(value){this.#hasSuffixIcon__accessor_storage=value}spaceKeyDown_=false;timeoutIds_=new Set;constructor(){super();this.addEventListener("blur",this.onBlur_.bind(this));this.addEventListener("click",this.onClick_.bind(this));this.addEventListener("keydown",this.onKeyDown_.bind(this));this.addEventListener("keyup",this.onKeyUp_.bind(this));this.ensureRippleOnPointerdown()}disconnectedCallback(){super.disconnectedCallback();this.timeoutIds_.forEach(clearTimeout);this.timeoutIds_.clear()}firstUpdated(){if(!this.hasAttribute("role")){this.setAttribute("role","button")}if(!this.hasAttribute("tabindex")){this.setAttribute("tabindex","0")}FocusOutlineManager.forDocument(document)}updated(changedProperties){super.updated(changedProperties);if(changedProperties.has("disabled")){this.setAttribute("aria-disabled",this.disabled?"true":"false");this.disabledChanged_(this.disabled,changedProperties.get("disabled"))}}setTimeout_(fn,delay){if(!this.isConnected){return}const id=setTimeout((()=>{this.timeoutIds_.delete(id);fn()}),delay);this.timeoutIds_.add(id)}disabledChanged_(newValue,oldValue){if(!newValue&&oldValue===undefined){return}if(this.disabled){this.blur()}this.setAttribute("tabindex",String(this.disabled?-1:0))}onBlur_(){this.spaceKeyDown_=false;this.setTimeout_((()=>this.getRipple().uiUpAction()),100)}onClick_(e){if(this.disabled){e.stopImmediatePropagation()}}onPrefixIconSlotchange_(){this.hasPrefixIcon_=this.$.prefixIcon.assignedElements().length>0}onSuffixIconSlotchange_(){this.hasSuffixIcon_=this.$.suffixIcon.assignedElements().length>0}onKeyDown_(e){if(e.key!==" "&&(e.key!=="Enter"||isMac&&e.ctrlKey)){return}e.preventDefault();e.stopPropagation();if(e.repeat){return}this.getRipple().uiDownAction();if(e.key==="Enter"){this.click();this.setTimeout_((()=>this.getRipple().uiUpAction()),100)}else if(e.key===" "){this.spaceKeyDown_=true}}onKeyUp_(e){if(e.key!==" "&&(e.key!=="Enter"||isMac&&e.ctrlKey)){return}e.preventDefault();e.stopPropagation();if(this.spaceKeyDown_&&e.key===" "){this.spaceKeyDown_=false;this.click();this.getRipple().uiUpAction()}}}customElements.define(CrButtonElement.is,CrButtonElement);let instance$4=null;function getCss$3(){return instance$4||(instance$4=[...[],css`:host{display:none}`])}function getHtml$2(){return html`
-<svg id="baseSvg" xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 ${this.size} ${this.size}" preserveAspectRatio="xMidYMid meet"
-    focusable="false">
-</svg>
-<slot></slot>`}let iconsetMap=null;class IconsetMap extends EventTarget{iconsets_=new Map;static getInstance(){return iconsetMap||(iconsetMap=new IconsetMap)}static resetInstanceForTesting(instance){iconsetMap=instance}get(id){return this.iconsets_.get(id)||null}set(id,iconset){assert(!this.iconsets_.has(id),`Tried to add a second iconset with id '${id}'`);this.iconsets_.set(id,iconset);this.dispatchEvent(new CustomEvent("cr-iconset-added",{detail:id}))}}const APPLIED_ICON_CLASS="cr-iconset-svg-icon_";class CrIconsetElement extends CrLitElement{static get is(){return"cr-iconset"}static get styles(){return getCss$3()}render(){return getHtml$2.bind(this)()}static get properties(){return{name:{type:String},size:{type:Number}}}#name_accessor_storage="";get name(){return this.#name_accessor_storage}set name(value){this.#name_accessor_storage=value}#size_accessor_storage=24;get size(){return this.#size_accessor_storage}set size(value){this.#size_accessor_storage=value}updated(changedProperties){super.updated(changedProperties);if(changedProperties.has("name")){assert(changedProperties.get("name")===undefined);IconsetMap.getInstance().set(this.name,this)}}applyIcon(element,iconName){this.removeIcon(element);const svg=this.cloneIcon_(iconName);if(svg){svg.classList.add(APPLIED_ICON_CLASS);element.shadowRoot.insertBefore(svg,element.shadowRoot.childNodes[0]);return svg}return null}createIcon(iconName){return this.cloneIcon_(iconName)}removeIcon(element){const oldSvg=element.shadowRoot.querySelector(`.${APPLIED_ICON_CLASS}`);if(oldSvg){oldSvg.remove()}}cloneIcon_(id){const sourceSvg=this.querySelector(`g[id="${id}"]`);if(!sourceSvg){return null}const svgClone=this.$.baseSvg.cloneNode(true);const content=sourceSvg.cloneNode(true);content.removeAttribute("id");const contentViewBox=content.getAttribute("viewBox");if(contentViewBox){svgClone.setAttribute("viewBox",contentViewBox)}svgClone.style.display="block";svgClone.style.height="100%";svgClone.style.width="100%";svgClone.style.pointerEvents="none";svgClone.appendChild(content);return svgClone}}customElements.define(CrIconsetElement.is,CrIconsetElement);function isValidArray(arr){if(arr instanceof Array&&Object.isFrozen(arr)){return true}return false}function getStaticString(literal){const isStaticString=isValidArray(literal)&&!!literal.raw&&isValidArray(literal.raw)&&literal.length===literal.raw.length&&literal.length===1;assert(isStaticString,"static_types.js only allows static strings");return literal.join("")}function createTypes(_ignore,literal){return getStaticString(literal)}const rules={createHTML:createTypes,createScript:createTypes,createScriptURL:createTypes};let staticPolicy;if(window.trustedTypes){staticPolicy=window.trustedTypes.createPolicy("static-types",rules)}else{staticPolicy=rules}function getTrustedHTML(literal){return staticPolicy.createHTML("",literal)}const div$1=document.createElement("div");div$1.innerHTML=getTrustedHTML`
+import {
+  css,
+  CrLitElement,
+  html,
+} from "chrome://resources/lit/v3_0/lit.rollup.js";
+import { mojo } from "chrome://resources/mojo/mojo/public/js/bindings.js";
+const CLASS_NAME = "focus-outline-visible";
+const docsToManager = new Map();
+class FocusOutlineManager {
+  focusByKeyboard_ = true;
+  classList_;
+  constructor(doc) {
+    this.classList_ = doc.documentElement.classList;
+    doc.addEventListener("keydown", (e) => this.onEvent_(true, e), true);
+    doc.addEventListener("mousedown", (e) => this.onEvent_(false, e), true);
+    this.updateVisibility();
+  }
+  onEvent_(focusByKeyboard, e) {
+    if (this.focusByKeyboard_ === focusByKeyboard) {
+      return;
+    }
+    if (e instanceof KeyboardEvent && e.repeat) {
+      return;
+    }
+    this.focusByKeyboard_ = focusByKeyboard;
+    this.updateVisibility();
+  }
+  updateVisibility() {
+    this.visible = this.focusByKeyboard_;
+  }
+  set visible(visible) {
+    this.classList_.toggle(CLASS_NAME, visible);
+  }
+  get visible() {
+    return this.classList_.contains(CLASS_NAME);
+  }
+  static forDocument(doc) {
+    let manager = docsToManager.get(doc);
+    if (!manager) {
+      manager = new FocusOutlineManager(doc);
+      docsToManager.set(doc, manager);
+    }
+    return manager;
+  }
+}
+const isMac = /Mac/.test(navigator.platform);
+function assert(value, message) {
+  if (value) {
+    return;
+  }
+  throw new Error("Assertion failed" + (message ? `: ${message}` : ""));
+}
+function assertNotReached(message = "Unreachable code hit") {
+  assert(false, message);
+}
+function assertNotReachedCase(_param, message) {
+  assertNotReached(message);
+}
+class EventTracker {
+  listeners_ = [];
+  add(target, eventType, listener, capture = false) {
+    const h = {
+      target: target,
+      eventType: eventType,
+      listener: listener,
+      capture: capture,
+    };
+    this.listeners_.push(h);
+    target.addEventListener(eventType, listener, capture);
+  }
+  remove(target, eventType) {
+    this.listeners_ = this.listeners_.filter((listener) => {
+      if (
+        listener.target === target &&
+        (!eventType || listener.eventType === eventType)
+      ) {
+        EventTracker.removeEventListener(listener);
+        return false;
+      }
+      return true;
+    });
+  }
+  removeAll() {
+    this.listeners_.forEach((listener) =>
+      EventTracker.removeEventListener(listener),
+    );
+    this.listeners_ = [];
+  }
+  static removeEventListener(entry) {
+    entry.target.removeEventListener(
+      entry.eventType,
+      entry.listener,
+      entry.capture,
+    );
+  }
+}
+let instance$7 = null;
+function getCss$6() {
+  return (
+    instance$7 ||
+    (instance$7 = [
+      ...[],
+      css`
+        :host {
+          bottom: 0;
+          display: block;
+          left: 0;
+          overflow: hidden;
+          pointer-events: none;
+          position: absolute;
+          right: 0;
+          top: 0;
+          transform: translate3d(0, 0, 0);
+        }
+        .ripple {
+          background-color: currentcolor;
+          left: 0;
+          opacity: var(--paper-ripple-opacity, 0.25);
+          pointer-events: none;
+          position: absolute;
+          will-change: height, transform, width;
+        }
+        .ripple,
+        :host(.circle) {
+          border-radius: 50%;
+        }
+      `,
+    ])
+  );
+}
+const MAX_RADIUS_PX = 300;
+const MIN_DURATION_MS = 800;
+function distance(x1, y1, x2, y2) {
+  const xDelta = x1 - x2;
+  const yDelta = y1 - y2;
+  return Math.sqrt(xDelta * xDelta + yDelta * yDelta);
+}
+class CrRippleElement extends CrLitElement {
+  static get is() {
+    return "cr-ripple";
+  }
+  static get styles() {
+    return getCss$6();
+  }
+  static get properties() {
+    return {
+      holdDown: { type: Boolean },
+      recenters: { type: Boolean },
+      noink: { type: Boolean },
+    };
+  }
+  #holdDown_accessor_storage = false;
+  get holdDown() {
+    return this.#holdDown_accessor_storage;
+  }
+  set holdDown(value) {
+    this.#holdDown_accessor_storage = value;
+  }
+  #recenters_accessor_storage = false;
+  get recenters() {
+    return this.#recenters_accessor_storage;
+  }
+  set recenters(value) {
+    this.#recenters_accessor_storage = value;
+  }
+  #noink_accessor_storage = false;
+  get noink() {
+    return this.#noink_accessor_storage;
+  }
+  set noink(value) {
+    this.#noink_accessor_storage = value;
+  }
+  ripples_ = [];
+  eventTracker_ = new EventTracker();
+  connectedCallback() {
+    super.connectedCallback();
+    assert(this.parentNode);
+    const keyEventTarget =
+      this.parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE
+        ? this.parentNode.host
+        : this.parentElement;
+    this.eventTracker_.add(keyEventTarget, "pointerdown", (e) =>
+      this.uiDownAction(e),
+    );
+    this.eventTracker_.add(keyEventTarget, "pointerup", () =>
+      this.uiUpAction(),
+    );
+    this.eventTracker_.add(keyEventTarget, "pointerout", () =>
+      this.uiUpAction(),
+    );
+    this.eventTracker_.add(keyEventTarget, "keydown", (e) => {
+      if (e.defaultPrevented) {
+        return;
+      }
+      if (e.key === "Enter") {
+        this.onEnterKeydown_();
+        return;
+      }
+      if (e.key === " ") {
+        this.onSpaceKeydown_();
+      }
+    });
+    this.eventTracker_.add(keyEventTarget, "keyup", (e) => {
+      if (e.defaultPrevented) {
+        return;
+      }
+      if (e.key === " ") {
+        this.onSpaceKeyup_();
+      }
+    });
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.eventTracker_.removeAll();
+  }
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    if (changedProperties.has("holdDown")) {
+      this.holdDownChanged_(this.holdDown, changedProperties.get("holdDown"));
+    }
+  }
+  uiDownAction(e) {
+    if (e !== undefined && e.button !== 0) {
+      return;
+    }
+    if (!this.noink) {
+      this.downAction_(e);
+    }
+  }
+  downAction_(e) {
+    if (this.ripples_.length && this.holdDown) {
+      return;
+    }
+    this.showRipple_(e);
+  }
+  clear() {
+    this.hideRipple_();
+    this.holdDown = false;
+  }
+  showAndHoldDown() {
+    this.ripples_.forEach((ripple) => {
+      ripple.remove();
+    });
+    this.ripples_ = [];
+    this.holdDown = true;
+  }
+  showRipple_(e) {
+    const rect = this.getBoundingClientRect();
+    const roundedCenterX = function () {
+      return Math.round(rect.width / 2);
+    };
+    const roundedCenterY = function () {
+      return Math.round(rect.height / 2);
+    };
+    let x = 0;
+    let y = 0;
+    const centered = !e;
+    if (centered) {
+      x = roundedCenterX();
+      y = roundedCenterY();
+    } else {
+      x = Math.round(e.clientX - rect.left);
+      y = Math.round(e.clientY - rect.top);
+    }
+    const corners = [
+      { x: 0, y: 0 },
+      { x: rect.width, y: 0 },
+      { x: 0, y: rect.height },
+      { x: rect.width, y: rect.height },
+    ];
+    const cornerDistances = corners.map(function (corner) {
+      return Math.round(distance(x, y, corner.x, corner.y));
+    });
+    const radius = Math.min(
+      MAX_RADIUS_PX,
+      Math.max.apply(Math, cornerDistances),
+    );
+    const startTranslate = `${x - radius}px, ${y - radius}px`;
+    let endTranslate = startTranslate;
+    if (this.recenters && !centered) {
+      endTranslate = `${roundedCenterX() - radius}px, ${roundedCenterY() - radius}px`;
+    }
+    const ripple = document.createElement("div");
+    ripple.classList.add("ripple");
+    ripple.style.height = ripple.style.width = 2 * radius + "px";
+    this.ripples_.push(ripple);
+    this.shadowRoot.appendChild(ripple);
+    ripple.animate(
+      {
+        transform: [
+          `translate(${startTranslate}) scale(0)`,
+          `translate(${endTranslate}) scale(1)`,
+        ],
+      },
+      {
+        duration: Math.max(MIN_DURATION_MS, Math.log(radius) * radius) || 0,
+        easing: "cubic-bezier(.2, .9, .1, .9)",
+        fill: "forwards",
+      },
+    );
+  }
+  uiUpAction() {
+    if (!this.noink) {
+      this.upAction_();
+    }
+  }
+  upAction_() {
+    if (!this.holdDown) {
+      this.hideRipple_();
+    }
+  }
+  hideRipple_() {
+    if (this.ripples_.length === 0) {
+      return;
+    }
+    this.ripples_.forEach(function (ripple) {
+      const opacity = ripple.computedStyleMap().get("opacity") ?? null;
+      if (opacity === null) {
+        ripple.remove();
+        return;
+      }
+      const animation = ripple.animate(
+        { opacity: [opacity.value, 0] },
+        { duration: 150, fill: "forwards" },
+      );
+      animation.finished.then(() => {
+        ripple.remove();
+      });
+    });
+    this.ripples_ = [];
+  }
+  onEnterKeydown_() {
+    this.uiDownAction();
+    window.setTimeout(() => {
+      this.uiUpAction();
+    }, 1);
+  }
+  onSpaceKeydown_() {
+    this.uiDownAction();
+  }
+  onSpaceKeyup_() {
+    this.uiUpAction();
+  }
+  holdDownChanged_(newHoldDown, oldHoldDown) {
+    if (oldHoldDown === undefined) {
+      return;
+    }
+    if (newHoldDown) {
+      this.downAction_();
+    } else {
+      this.upAction_();
+    }
+  }
+}
+customElements.define(CrRippleElement.is, CrRippleElement);
+const CrRippleMixin = (superClass) => {
+  class CrRippleMixin extends superClass {
+    static get properties() {
+      return { noink: { type: Boolean } };
+    }
+    #noink_accessor_storage = false;
+    get noink() {
+      return this.#noink_accessor_storage;
+    }
+    set noink(value) {
+      this.#noink_accessor_storage = value;
+    }
+    rippleContainer = null;
+    ripple_ = null;
+    updated(changedProperties) {
+      super.updated(changedProperties);
+      if (changedProperties.has("noink") && this.hasRipple()) {
+        assert(this.ripple_);
+        this.ripple_.noink = this.noink;
+      }
+    }
+    ensureRippleOnPointerdown() {
+      this.addEventListener("pointerdown", () => this.ensureRipple(), {
+        capture: true,
+      });
+    }
+    ensureRipple() {
+      if (this.hasRipple()) {
+        return;
+      }
+      this.ripple_ = this.createRipple();
+      this.ripple_.noink = this.noink;
+      const rippleContainer = this.rippleContainer || this.shadowRoot;
+      assert(rippleContainer);
+      rippleContainer.appendChild(this.ripple_);
+    }
+    getRipple() {
+      this.ensureRipple();
+      assert(this.ripple_);
+      return this.ripple_;
+    }
+    hasRipple() {
+      return Boolean(this.ripple_);
+    }
+    createRipple() {
+      const ripple = document.createElement("cr-ripple");
+      ripple.id = "ink";
+      return ripple;
+    }
+  }
+  return CrRippleMixin;
+};
+let instance$6 = null;
+function getCss$5() {
+  return (
+    instance$6 ||
+    (instance$6 = [
+      ...[],
+      css`
+        [hidden],
+        :host([hidden]) {
+          display: none !important;
+        }
+      `,
+    ])
+  );
+}
+const sheet = new CSSStyleSheet();
+sheet.replaceSync(
+  `html{--google-blue-50-rgb:232,240,254;--google-blue-50:rgb(var(--google-blue-50-rgb));--google-blue-100-rgb:210,227,252;--google-blue-100:rgb(var(--google-blue-100-rgb));--google-blue-200-rgb:174,203,250;--google-blue-200:rgb(var(--google-blue-200-rgb));--google-blue-300-rgb:138,180,248;--google-blue-300:rgb(var(--google-blue-300-rgb));--google-blue-400-rgb:102,157,246;--google-blue-400:rgb(var(--google-blue-400-rgb));--google-blue-500-rgb:66,133,244;--google-blue-500:rgb(var(--google-blue-500-rgb));--google-blue-600-rgb:26,115,232;--google-blue-600:rgb(var(--google-blue-600-rgb));--google-blue-700-rgb:25,103,210;--google-blue-700:rgb(var(--google-blue-700-rgb));--google-blue-800-rgb:24,90,188;--google-blue-800:rgb(var(--google-blue-800-rgb));--google-blue-900-rgb:23,78,166;--google-blue-900:rgb(var(--google-blue-900-rgb));--google-green-50-rgb:230,244,234;--google-green-50:rgb(var(--google-green-50-rgb));--google-green-200-rgb:168,218,181;--google-green-200:rgb(var(--google-green-200-rgb));--google-green-300-rgb:129,201,149;--google-green-300:rgb(var(--google-green-300-rgb));--google-green-400-rgb:91,185,116;--google-green-400:rgb(var(--google-green-400-rgb));--google-green-500-rgb:52,168,83;--google-green-500:rgb(var(--google-green-500-rgb));--google-green-600-rgb:30,142,62;--google-green-600:rgb(var(--google-green-600-rgb));--google-green-700-rgb:24,128,56;--google-green-700:rgb(var(--google-green-700-rgb));--google-green-800-rgb:19,115,51;--google-green-800:rgb(var(--google-green-800-rgb));--google-green-900-rgb:13,101,45;--google-green-900:rgb(var(--google-green-900-rgb));--google-grey-50-rgb:248,249,250;--google-grey-50:rgb(var(--google-grey-50-rgb));--google-grey-100-rgb:241,243,244;--google-grey-100:rgb(var(--google-grey-100-rgb));--google-grey-200-rgb:232,234,237;--google-grey-200:rgb(var(--google-grey-200-rgb));--google-grey-300-rgb:218,220,224;--google-grey-300:rgb(var(--google-grey-300-rgb));--google-grey-400-rgb:189,193,198;--google-grey-400:rgb(var(--google-grey-400-rgb));--google-grey-500-rgb:154,160,166;--google-grey-500:rgb(var(--google-grey-500-rgb));--google-grey-600-rgb:128,134,139;--google-grey-600:rgb(var(--google-grey-600-rgb));--google-grey-700-rgb:95,99,104;--google-grey-700:rgb(var(--google-grey-700-rgb));--google-grey-800-rgb:60,64,67;--google-grey-800:rgb(var(--google-grey-800-rgb));--google-grey-900-rgb:32,33,36;--google-grey-900:rgb(var(--google-grey-900-rgb));--google-grey-900-white-4-percent:#292a2d;--google-purple-200-rgb:215,174,251;--google-purple-200:rgb(var(--google-purple-200-rgb));--google-purple-900-rgb:104,29,168;--google-purple-900:rgb(var(--google-purple-900-rgb));--google-red-100-rgb:244,199,195;--google-red-100:rgb(var(--google-red-100-rgb));--google-red-300-rgb:242,139,130;--google-red-300:rgb(var(--google-red-300-rgb));--google-red-500-rgb:234,67,53;--google-red-500:rgb(var(--google-red-500-rgb));--google-red-600-rgb:217,48,37;--google-red-600:rgb(var(--google-red-600-rgb));--google-red-700-rgb:197,57,41;--google-red-700:rgb(var(--google-red-700-rgb));--google-yellow-50-rgb:254,247,224;--google-yellow-50:rgb(var(--google-yellow-50-rgb));--google-yellow-100-rgb:254,239,195;--google-yellow-100:rgb(var(--google-yellow-100-rgb));--google-yellow-200-rgb:253,226,147;--google-yellow-200:rgb(var(--google-yellow-200-rgb));--google-yellow-300-rgb:253,214,51;--google-yellow-300:rgb(var(--google-yellow-300-rgb));--google-yellow-400-rgb:252,201,52;--google-yellow-400:rgb(var(--google-yellow-400-rgb));--google-yellow-500-rgb:251,188,4;--google-yellow-500:rgb(var(--google-yellow-500-rgb));--google-yellow-700-rgb:240,147,0;--google-yellow-700:rgb(var(--google-yellow-700-rgb));--cr-card-background-color:white;--cr-shadow-key-color_:color-mix(in srgb,var(--cr-shadow-color) 30%,transparent);--cr-shadow-ambient-color_:color-mix(in srgb,var(--cr-shadow-color) 15%,transparent);--cr-elevation-1:var(--cr-shadow-key-color_) 0 1px 2px 0,var(--cr-shadow-ambient-color_) 0 1px 3px 1px;--cr-elevation-2:var(--cr-shadow-key-color_) 0 1px 2px 0,var(--cr-shadow-ambient-color_) 0 2px 6px 2px;--cr-elevation-3:var(--cr-shadow-key-color_) 0 1px 3px 0,var(--cr-shadow-ambient-color_) 0 4px 8px 3px;--cr-elevation-4:var(--cr-shadow-key-color_) 0 2px 3px 0,var(--cr-shadow-ambient-color_) 0 6px 10px 4px;--cr-elevation-5:var(--cr-shadow-key-color_) 0 4px 4px 0,var(--cr-shadow-ambient-color_) 0 8px 12px 6px;--cr-card-shadow:var(--cr-elevation-2);--cr-focused-item-color:var(--google-grey-300);--cr-form-field-label-color:var(--google-grey-700);--cr-hairline-rgb:0,0,0;--cr-iph-anchor-highlight-color:rgba(var(--google-blue-600-rgb),0.1);--cr-menu-background-color:white;--cr-menu-background-focus-color:var(--google-grey-400);--cr-menu-shadow:var(--cr-elevation-2);--cr-separator-color:rgba(0,0,0,.06);--cr-title-text-color:rgb(90,90,90);--cr-scrollable-border-color:var(--google-grey-300);--cr-button-edge-spacing:12px;--cr-controlled-by-spacing:24px;--cr-default-input-max-width:264px;--cr-icon-ripple-size:36px;--cr-icon-ripple-padding:8px;--cr-icon-size:20px;--cr-icon-button-margin-start:16px;--cr-icon-ripple-margin:calc(var(--cr-icon-ripple-padding) * -1);--cr-section-min-height:48px;--cr-section-two-line-min-height:64px;--cr-section-padding:20px;--cr-section-vertical-padding:12px;--cr-section-indent-width:40px;--cr-section-indent-padding:calc(var(--cr-section-padding) + var(--cr-section-indent-width));--cr-section-vertical-margin:21px;--cr-centered-card-max-width:680px;--cr-centered-card-width-percentage:0.96;--cr-hairline:1px solid rgba(var(--cr-hairline-rgb),.14);--cr-separator-height:1px;--cr-separator-line:var(--cr-separator-height) solid var(--cr-separator-color);--cr-toolbar-overlay-animation-duration:150ms;--cr-toolbar-height:56px;--cr-card-border-radius:8px;--cr-disabled-opacity:.38;--cr-form-field-bottom-spacing:16px;--cr-form-field-label-font-size:.625rem;--cr-form-field-label-height:1em;--cr-form-field-label-line-height:1;--cr-fallback-color-outline:rgb(116,119,117);--cr-fallback-color-primary:rgb(11,87,208);--cr-fallback-color-on-primary:rgb(255,255,255);--cr-fallback-color-primary-container:rgb(211,227,253);--cr-fallback-color-on-primary-container:rgb(4,30,73);--cr-fallback-color-secondary-container:rgb(194,231,255);--cr-fallback-color-on-secondary-container:rgb(0,29,53);--cr-fallback-color-neutral-container:rgb(242,242,242);--cr-fallback-color-neutral-outline:rgb(199,199,199);--cr-fallback-color-surface:rgb(255,255,255);--cr-fallback-color-surface1:rgb(248,250,253);--cr-fallback-color-surface2:rgb(243,246,252);--cr-fallback-color-surface3:rgb(239,243,250);--cr-fallback-color-surface4:rgb(237,242,250);--cr-fallback-color-surface5:rgb(234,240,249);--cr-fallback-color-on-surface-rgb:31,31,31;--cr-fallback-color-on-surface:rgb(var(--cr-fallback-color-on-surface-rgb));--cr-fallback-color-surface-variant:rgb(225,227,225);--cr-fallback-color-on-surface-variant:rgb(68,71,70);--cr-fallback-color-on-surface-subtle:rgb(71,71,71);--cr-fallback-color-inverse-primary:rgb(168,199,250);--cr-fallback-color-inverse-surface:rgb(48,48,48);--cr-fallback-color-inverse-on-surface:rgb(242,242,242);--cr-fallback-color-tonal-container:rgb(211,227,253);--cr-fallback-color-on-tonal-container:rgb(4,30,73);--cr-fallback-color-tonal-outline:rgb(168,199,250);--cr-fallback-color-error:rgb(179,38,30);--cr-fallback-color-divider:rgb(211,227,253);--cr-fallback-color-state-hover-on-prominent_:rgba(253,252,251,.1);--cr-fallback-color-state-on-subtle-rgb_:31,31,31;--cr-fallback-color-state-hover-on-subtle_:rgba(var(--cr-fallback-color-state-on-subtle-rgb_),.06);--cr-fallback-color-state-ripple-neutral-on-subtle_:rgba(var(--cr-fallback-color-state-on-subtle-rgb_),.08);--cr-fallback-color-state-ripple-primary-rgb_:124,172,248;--cr-fallback-color-state-ripple-primary_:rgba(var(--cr-fallback-color-state-ripple-primary-rgb_),0.32);--cr-fallback-color-base-container:rgb(236,239,247);--cr-fallback-color-disabled-background:rgba(var(--cr-fallback-color-on-surface-rgb),.12);--cr-fallback-color-disabled-foreground:rgba(var(--cr-fallback-color-on-surface-rgb),var(--cr-disabled-opacity));--cr-hover-background-color:var(--color-sys-state-hover,rgba(var(--cr-fallback-color-on-surface-rgb),.08));--cr-hover-on-prominent-background-color:var(--color-sys-state-hover-on-prominent,var(--cr-fallback-color-state-hover-on-prominent_));--cr-hover-on-subtle-background-color:var(--color-sys-state-hover-on-subtle,var(--cr-fallback-color-state-hover-on-subtle_));--cr-active-background-color:var(--color-sys-state-pressed,rgba(var(--cr-fallback-color-on-surface-rgb),.12));--cr-active-on-primary-background-color:var(--color-sys-state-ripple-primary,var(--cr-fallback-color-state-ripple-primary_));--cr-active-neutral-on-subtle-background-color:var(--color-sys-state-ripple-neutral-on-subtle,var(--cr-fallback-color-state-ripple-neutral-on-subtle_));--cr-focus-outline-color:var(--color-sys-state-focus-ring,var(--cr-fallback-color-primary));--cr-focus-outline-inverse-color:var(--color-sys-state-focus-ring-inverse,var(--cr-fallback-color-inverse-primary));--cr-primary-text-color:var(--color-primary-foreground,var(--cr-fallback-color-on-surface));--cr-secondary-text-color:var(--color-secondary-foreground,var(--cr-fallback-color-on-surface-variant));--cr-link-color:var(--color-link-foreground-default,var(--cr-fallback-color-primary));--cr-button-height:36px;--cr-shadow-color:var(--color-sys-shadow,rgb(0,0,0));--cr-checked-color:var(--color-checkbox-foreground-checked,var(--cr-fallback-color-primary))}html[webui-refresh-2026]{--cr-card-background-color:var(--color-webui-card-background)}@media (prefers-color-scheme:dark){html{--cr-fallback-color-outline:rgb(142,145,143);--cr-fallback-color-primary:rgb(168,199,250);--cr-fallback-color-on-primary:rgb(6,46,111);--cr-fallback-color-primary-container:rgb(8,66,160);--cr-fallback-color-on-primary-container:rgb(211,227,253);--cr-fallback-color-secondary-container:rgb(0,74,119);--cr-fallback-color-on-secondary-container:rgb(194,231,255);--cr-fallback-color-neutral-container:rgb(40,40,40);--cr-fallback-color-neutral-outline:rgb(117,117,117);--cr-fallback-color-surface:rgb(31,31,31);--cr-fallback-color-surface1:rgb(39,40,42);--cr-fallback-color-surface2:rgb(45,47,49);--cr-fallback-color-surface3:rgb(51,52,56);--cr-fallback-color-surface4:rgb(52,54,58);--cr-fallback-color-surface5:rgb(56,58,62);--cr-fallback-color-on-surface-rgb:227,227,227;--cr-fallback-color-surface-variant:rgb(68,71,70);--cr-fallback-color-on-surface-variant:rgb(196,199,197);--cr-fallback-color-on-surface-subtle:rgb(199,199,199);--cr-fallback-color-inverse-primary:rgb(11,87,208);--cr-fallback-color-inverse-surface:rgb(227,227,227);--cr-fallback-color-inverse-on-surface:rgb(31,31,31);--cr-fallback-color-tonal-container:rgb(0,74,119);--cr-fallback-color-on-tonal-container:rgb(194,231,255);--cr-fallback-color-tonal-outline:rgb(4,125,183);--cr-fallback-color-error:rgb(242,184,181);--cr-fallback-color-divider:rgb(94,94,94);--cr-fallback-color-state-hover-on-prominent_:rgba(31,31,31,.06);--cr-fallback-color-state-on-subtle-rgb_:253,252,251;--cr-fallback-color-state-hover-on-subtle_:rgba(var(--cr-fallback-color-state-on-subtle-rgb_),.10);--cr-fallback-color-state-ripple-neutral-on-subtle_:rgba(var(--cr-fallback-color-state-on-subtle-rgb_),.16);--cr-fallback-color-state-ripple-primary-rgb_:76,141,246;--cr-fallback-color-base-container:rgba(40,40,40,1);--cr-card-background-color:var(--google-grey-900-white-4-percent);--cr-focused-item-color:var(--google-grey-800);--cr-form-field-label-color:var(--dark-secondary-color);--cr-hairline-rgb:255,255,255;--cr-iph-anchor-highlight-color:rgba(var(--google-grey-100-rgb),0.1);--cr-menu-background-color:var(--google-grey-900);--cr-menu-background-focus-color:var(--google-grey-700);--cr-menu-background-sheen:rgba(255,255,255,.06);--cr-menu-shadow:rgba(0,0,0,.3) 0 1px 2px 0,rgba(0,0,0,.15) 0 3px 6px 2px;--cr-separator-color:rgba(255,255,255,.1);--cr-title-text-color:var(--cr-primary-text-color);--cr-scrollable-border-color:var(--google-grey-700)}}@media (forced-colors:active){html{--cr-focus-outline-hcm:2px solid transparent;--cr-border-hcm:2px solid transparent;--cr-fallback-color-disabled-background:Canvas;--cr-fallback-color-disabled-foreground:GrayText}}@media (prefers-reduced-motion:reduce){html{--cr-animations-disabled:1}}`,
+);
+document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+let instance$5 = null;
+function getCss$4() {
+  return (
+    instance$5 ||
+    (instance$5 = [
+      ...[getCss$5()],
+      css`
+        :host {
+          --cr-button-background-color: transparent;
+          --cr-button-border-color: var(
+            --color-button-border,
+            var(--cr-fallback-color-tonal-outline)
+          );
+          --cr-button-text-color: var(
+            --color-button-foreground,
+            var(--cr-fallback-color-primary)
+          );
+          --cr-button-ripple-opacity: 1;
+          --cr-button-ripple-color: var(--cr-active-background-color);
+          --cr-button-disabled-background-color: transparent;
+          --cr-button-disabled-border-color: var(
+            --color-button-border-disabled,
+            var(--cr-fallback-color-disabled-background)
+          );
+          --cr-button-disabled-text-color: var(
+            --color-button-foreground-disabled,
+            var(--cr-fallback-color-disabled-foreground)
+          );
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          box-sizing: border-box;
+          min-width: 5.14em;
+          height: var(--cr-button-height);
+          padding: 8px 16px;
+          outline-width: 0;
+          overflow: hidden;
+          position: relative;
+          cursor: pointer;
+          user-select: none;
+          -webkit-tap-highlight-color: transparent;
+          border: var(
+            --cr-button-border,
+            1px solid var(--cr-button-border-color)
+          );
+          border-radius: 100px;
+          background: var(--cr-button-background-color);
+          color: var(--cr-button-text-color);
+          font-weight: 500;
+          line-height: 20px;
+          isolation: isolate;
+        }
+        :host(.action-button) {
+          --cr-button-background-color: var(
+            --color-button-background-prominent,
+            var(--cr-fallback-color-primary)
+          );
+          --cr-button-text-color: var(
+            --color-button-foreground-prominent,
+            var(--cr-fallback-color-on-primary)
+          );
+          --cr-button-ripple-color: var(
+            --cr-active-on-primary-background-color
+          );
+          --cr-button-border: none;
+          --cr-button-disabled-background-color: var(
+            --color-button-background-prominent-disabled,
+            var(--cr-fallback-color-disabled-background)
+          );
+          --cr-button-disabled-text-color: var(
+            --color-button-foreground-disabled,
+            var(--cr-fallback-color-disabled-foreground)
+          );
+          --cr-button-disabled-border: none;
+        }
+        :host(.tonal-button),
+        :host(.floating-button) {
+          --cr-button-background-color: var(
+            --color-button-background-tonal,
+            var(--cr-fallback-color-secondary-container)
+          );
+          --cr-button-text-color: var(
+            --color-button-foreground-tonal,
+            var(--cr-fallback-color-on-tonal-container)
+          );
+          --cr-button-border: none;
+          --cr-button-disabled-background-color: var(
+            --color-button-background-tonal-disabled,
+            var(--cr-fallback-color-disabled-background)
+          );
+          --cr-button-disabled-text-color: var(
+            --color-button-foreground-disabled,
+            var(--cr-fallback-color-disabled-foreground)
+          );
+          --cr-button-disabled-border: none;
+        }
+        @media (forced-colors: active) {
+          @container style(--color-button-foreground) {
+            :host {
+              forced-color-adjust: none;
+            }
+          }
+        }
+        :host(.floating-button) {
+          border-radius: 8px;
+          height: 40px;
+          transition: box-shadow 80ms linear;
+        }
+        :host(.floating-button:hover) {
+          box-shadow: var(--cr-elevation-3);
+        }
+        :host([has-prefix-icon_]),
+        :host([has-suffix-icon_]) {
+          --iron-icon-height: 20px;
+          --iron-icon-width: 20px;
+          --icon-block-padding-large: 16px;
+          --icon-block-padding-small: 12px;
+          gap: 8px;
+          padding-block-end: 8px;
+          padding-block-start: 8px;
+        }
+        :host([has-prefix-icon_]) {
+          padding-inline-end: var(--icon-block-padding-large);
+          padding-inline-start: var(--icon-block-padding-small);
+        }
+        :host([has-suffix-icon_]) {
+          padding-inline-end: var(--icon-block-padding-small);
+          padding-inline-start: var(--icon-block-padding-large);
+        }
+        :host-context(.focus-outline-visible):host(:focus) {
+          box-shadow: none;
+          outline: 2px solid var(--cr-focus-outline-color);
+          outline-offset: 2px;
+        }
+        #background {
+          border-radius: inherit;
+          inset: 0;
+          pointer-events: none;
+          position: absolute;
+          z-index: 0;
+        }
+        #content {
+          display: inline;
+        }
+        #hoverBackground {
+          content: "";
+          display: none;
+          inset: 0;
+          pointer-events: none;
+          position: absolute;
+          z-index: 1;
+        }
+        :host(:hover) #hoverBackground {
+          background: var(--cr-hover-background-color);
+          display: block;
+        }
+        :host(.action-button:hover) #hoverBackground {
+          background: var(--cr-hover-on-prominent-background-color);
+        }
+        :host([disabled]) {
+          background: var(--cr-button-disabled-background-color);
+          border: var(
+            --cr-button-disabled-border,
+            1px solid var(--cr-button-disabled-border-color)
+          );
+          color: var(--cr-button-disabled-text-color);
+          cursor: auto;
+          pointer-events: none;
+        }
+        :host(.cancel-button) {
+          margin-inline-end: 8px;
+        }
+        :host(.action-button),
+        :host(.cancel-button) {
+          line-height: 154%;
+        }
+        #ink {
+          color: var(--cr-button-ripple-color);
+          --paper-ripple-opacity: var(--cr-button-ripple-opacity);
+        }
+        #hoverBackground,
+        cr-ripple {
+          z-index: 1;
+        }
+        #content,
+        ::slotted(*) {
+          z-index: 2;
+        }
+      `,
+    ])
+  );
+}
+function getHtml$3() {
+  return html` <div id="background"></div>
+    <slot
+      id="prefixIcon"
+      name="prefix-icon"
+      @slotchange="${this.onPrefixIconSlotchange_}"
+    >
+    </slot>
+    <span id="content">
+      <slot></slot>
+    </span>
+    <slot
+      id="suffixIcon"
+      name="suffix-icon"
+      @slotchange="${this.onSuffixIconSlotchange_}"
+    >
+    </slot>
+    <div id="hoverBackground" part="hoverBackground"></div>`;
+}
+const CrButtonElementBase = CrRippleMixin(CrLitElement);
+class CrButtonElement extends CrButtonElementBase {
+  static get is() {
+    return "cr-button";
+  }
+  static get styles() {
+    return getCss$4();
+  }
+  render() {
+    return getHtml$3.bind(this)();
+  }
+  static get properties() {
+    return {
+      disabled: { type: Boolean, reflect: true },
+      hasPrefixIcon_: { type: Boolean, reflect: true },
+      hasSuffixIcon_: { type: Boolean, reflect: true },
+    };
+  }
+  #disabled_accessor_storage = false;
+  get disabled() {
+    return this.#disabled_accessor_storage;
+  }
+  set disabled(value) {
+    this.#disabled_accessor_storage = value;
+  }
+  #hasPrefixIcon__accessor_storage = false;
+  get hasPrefixIcon_() {
+    return this.#hasPrefixIcon__accessor_storage;
+  }
+  set hasPrefixIcon_(value) {
+    this.#hasPrefixIcon__accessor_storage = value;
+  }
+  #hasSuffixIcon__accessor_storage = false;
+  get hasSuffixIcon_() {
+    return this.#hasSuffixIcon__accessor_storage;
+  }
+  set hasSuffixIcon_(value) {
+    this.#hasSuffixIcon__accessor_storage = value;
+  }
+  spaceKeyDown_ = false;
+  timeoutIds_ = new Set();
+  constructor() {
+    super();
+    this.addEventListener("blur", this.onBlur_.bind(this));
+    this.addEventListener("click", this.onClick_.bind(this));
+    this.addEventListener("keydown", this.onKeyDown_.bind(this));
+    this.addEventListener("keyup", this.onKeyUp_.bind(this));
+    this.ensureRippleOnPointerdown();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.timeoutIds_.forEach(clearTimeout);
+    this.timeoutIds_.clear();
+  }
+  firstUpdated() {
+    if (!this.hasAttribute("role")) {
+      this.setAttribute("role", "button");
+    }
+    if (!this.hasAttribute("tabindex")) {
+      this.setAttribute("tabindex", "0");
+    }
+    FocusOutlineManager.forDocument(document);
+  }
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    if (changedProperties.has("disabled")) {
+      this.setAttribute("aria-disabled", this.disabled ? "true" : "false");
+      this.disabledChanged_(this.disabled, changedProperties.get("disabled"));
+    }
+  }
+  setTimeout_(fn, delay) {
+    if (!this.isConnected) {
+      return;
+    }
+    const id = setTimeout(() => {
+      this.timeoutIds_.delete(id);
+      fn();
+    }, delay);
+    this.timeoutIds_.add(id);
+  }
+  disabledChanged_(newValue, oldValue) {
+    if (!newValue && oldValue === undefined) {
+      return;
+    }
+    if (this.disabled) {
+      this.blur();
+    }
+    this.setAttribute("tabindex", String(this.disabled ? -1 : 0));
+  }
+  onBlur_() {
+    this.spaceKeyDown_ = false;
+    this.setTimeout_(() => this.getRipple().uiUpAction(), 100);
+  }
+  onClick_(e) {
+    if (this.disabled) {
+      e.stopImmediatePropagation();
+    }
+  }
+  onPrefixIconSlotchange_() {
+    this.hasPrefixIcon_ = this.$.prefixIcon.assignedElements().length > 0;
+  }
+  onSuffixIconSlotchange_() {
+    this.hasSuffixIcon_ = this.$.suffixIcon.assignedElements().length > 0;
+  }
+  onKeyDown_(e) {
+    if (e.key !== " " && (e.key !== "Enter" || (isMac && e.ctrlKey))) {
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.repeat) {
+      return;
+    }
+    this.getRipple().uiDownAction();
+    if (e.key === "Enter") {
+      this.click();
+      this.setTimeout_(() => this.getRipple().uiUpAction(), 100);
+    } else if (e.key === " ") {
+      this.spaceKeyDown_ = true;
+    }
+  }
+  onKeyUp_(e) {
+    if (e.key !== " " && (e.key !== "Enter" || (isMac && e.ctrlKey))) {
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    if (this.spaceKeyDown_ && e.key === " ") {
+      this.spaceKeyDown_ = false;
+      this.click();
+      this.getRipple().uiUpAction();
+    }
+  }
+}
+customElements.define(CrButtonElement.is, CrButtonElement);
+let instance$4 = null;
+function getCss$3() {
+  return (
+    instance$4 ||
+    (instance$4 = [
+      ...[],
+      css`
+        :host {
+          display: none;
+        }
+      `,
+    ])
+  );
+}
+function getHtml$2() {
+  return html` <svg
+      id="baseSvg"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 ${this.size} ${this.size}"
+      preserveAspectRatio="xMidYMid meet"
+      focusable="false"
+    ></svg>
+    <slot></slot>`;
+}
+let iconsetMap = null;
+class IconsetMap extends EventTarget {
+  iconsets_ = new Map();
+  static getInstance() {
+    return iconsetMap || (iconsetMap = new IconsetMap());
+  }
+  static resetInstanceForTesting(instance) {
+    iconsetMap = instance;
+  }
+  get(id) {
+    return this.iconsets_.get(id) || null;
+  }
+  set(id, iconset) {
+    assert(
+      !this.iconsets_.has(id),
+      `Tried to add a second iconset with id '${id}'`,
+    );
+    this.iconsets_.set(id, iconset);
+    this.dispatchEvent(new CustomEvent("cr-iconset-added", { detail: id }));
+  }
+}
+const APPLIED_ICON_CLASS = "cr-iconset-svg-icon_";
+class CrIconsetElement extends CrLitElement {
+  static get is() {
+    return "cr-iconset";
+  }
+  static get styles() {
+    return getCss$3();
+  }
+  render() {
+    return getHtml$2.bind(this)();
+  }
+  static get properties() {
+    return { name: { type: String }, size: { type: Number } };
+  }
+  #name_accessor_storage = "";
+  get name() {
+    return this.#name_accessor_storage;
+  }
+  set name(value) {
+    this.#name_accessor_storage = value;
+  }
+  #size_accessor_storage = 24;
+  get size() {
+    return this.#size_accessor_storage;
+  }
+  set size(value) {
+    this.#size_accessor_storage = value;
+  }
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    if (changedProperties.has("name")) {
+      assert(changedProperties.get("name") === undefined);
+      IconsetMap.getInstance().set(this.name, this);
+    }
+  }
+  applyIcon(element, iconName) {
+    this.removeIcon(element);
+    const svg = this.cloneIcon_(iconName);
+    if (svg) {
+      svg.classList.add(APPLIED_ICON_CLASS);
+      element.shadowRoot.insertBefore(svg, element.shadowRoot.childNodes[0]);
+      return svg;
+    }
+    return null;
+  }
+  createIcon(iconName) {
+    return this.cloneIcon_(iconName);
+  }
+  removeIcon(element) {
+    const oldSvg = element.shadowRoot.querySelector(`.${APPLIED_ICON_CLASS}`);
+    if (oldSvg) {
+      oldSvg.remove();
+    }
+  }
+  cloneIcon_(id) {
+    const sourceSvg = this.querySelector(`g[id="${id}"]`);
+    if (!sourceSvg) {
+      return null;
+    }
+    const svgClone = this.$.baseSvg.cloneNode(true);
+    const content = sourceSvg.cloneNode(true);
+    content.removeAttribute("id");
+    const contentViewBox = content.getAttribute("viewBox");
+    if (contentViewBox) {
+      svgClone.setAttribute("viewBox", contentViewBox);
+    }
+    svgClone.style.display = "block";
+    svgClone.style.height = "100%";
+    svgClone.style.width = "100%";
+    svgClone.style.pointerEvents = "none";
+    svgClone.appendChild(content);
+    return svgClone;
+  }
+}
+customElements.define(CrIconsetElement.is, CrIconsetElement);
+function isValidArray(arr) {
+  if (arr instanceof Array && Object.isFrozen(arr)) {
+    return true;
+  }
+  return false;
+}
+function getStaticString(literal) {
+  const isStaticString =
+    isValidArray(literal) &&
+    !!literal.raw &&
+    isValidArray(literal.raw) &&
+    literal.length === literal.raw.length &&
+    literal.length === 1;
+  assert(isStaticString, "static_types.js only allows static strings");
+  return literal.join("");
+}
+function createTypes(_ignore, literal) {
+  return getStaticString(literal);
+}
+const rules = {
+  createHTML: createTypes,
+  createScript: createTypes,
+  createScriptURL: createTypes,
+};
+let staticPolicy;
+if (window.trustedTypes) {
+  staticPolicy = window.trustedTypes.createPolicy("static-types", rules);
+} else {
+  staticPolicy = rules;
+}
+function getTrustedHTML(literal) {
+  return staticPolicy.createHTML("", literal);
+}
+const div$1 = document.createElement("div");
+div$1.innerHTML = getTrustedHTML`
 <cr-iconset name="glic">
   <svg>
     <defs>
@@ -164,7 +1076,14 @@ fill="currentColor"/>
       </g>
     </defs>
   </svg>
-</cr-iconset>`;const iconsets$1=div$1.querySelectorAll("cr-iconset");for(const iconset of iconsets$1){document.head.appendChild(iconset)}const div=document.createElement("div");if(document.documentElement.hasAttribute("webui-rounded-icons")){div.innerHTML=getTrustedHTML`
+</cr-iconset>`;
+const iconsets$1 = div$1.querySelectorAll("cr-iconset");
+for (const iconset of iconsets$1) {
+  document.head.appendChild(iconset);
+}
+const div = document.createElement("div");
+if (document.documentElement.hasAttribute("webui-rounded-icons")) {
+  div.innerHTML = getTrustedHTML`
 <cr-iconset name="cr20" size="20">
   <svg>
     <defs>
@@ -365,7 +1284,9 @@ fill="currentColor"/>
       </g>
     </defs>
   </svg>
-</cr-iconset>`}else{div.innerHTML=getTrustedHTML`
+</cr-iconset>`;
+} else {
+  div.innerHTML = getTrustedHTML`
 <cr-iconset name="cr20" size="20">
   <svg>
     <defs>
@@ -653,10 +1574,808 @@ fill="currentColor"/>
       </g>
     </defs>
   </svg>
-</cr-iconset>`}const iconsets=div.querySelectorAll("cr-iconset");for(const iconset of iconsets){document.head.appendChild(iconset)}let instance$3=null;function getCss$2(){return instance$3||(instance$3=[...[getCss$5()],css`:host{align-items:center;display:inline-flex;justify-content:center;position:relative;vertical-align:middle;fill:var(--iron-icon-fill-color,currentcolor);stroke:var(--iron-icon-stroke-color,none);width:var(--iron-icon-width,24px);height:var(--iron-icon-height,24px)}:host-context([webui-refresh-2026]){&:host(:focus){border-radius:2px;outline:solid 2px var(--cr-focus-outline-color)}}`])}class CrIconElement extends CrLitElement{static get is(){return"cr-icon"}static get styles(){return getCss$2()}static get properties(){return{icon:{type:String}}}#icon_accessor_storage="";get icon(){return this.#icon_accessor_storage}set icon(value){this.#icon_accessor_storage=value}iconsetName_="";iconName_="";iconset_=null;updated(changedProperties){super.updated(changedProperties);if(changedProperties.has("icon")){const[iconsetName,iconName]=this.icon.split(":");this.iconName_=iconName||"";this.iconsetName_=iconsetName||"";this.updateIcon_()}}updateIcon_(){if(this.iconName_===""&&this.iconset_){this.iconset_.removeIcon(this)}else if(this.iconsetName_){const iconsetMap=IconsetMap.getInstance();this.iconset_=iconsetMap.get(this.iconsetName_);assert(this.iconset_,`Could not find iconset for: '${this.iconsetName_}:${this.iconName_}'`);this.iconset_.applyIcon(this,this.iconName_)}}}customElements.define(CrIconElement.is,CrIconElement);let instance$2=null;function getCss$1(){return instance$2||(instance$2=[...[],css`:host{--cr-icon-button-fill-color:currentColor;--cr-icon-button-icon-start-offset:0;--cr-icon-button-icon-size:20px;--cr-icon-button-size:32px;--cr-icon-button-height:var(--cr-icon-button-size);--cr-icon-button-transition:150ms ease-in-out;--cr-icon-button-width:var(--cr-icon-button-size);-webkit-tap-highlight-color:transparent;border-radius:50%;color:var(--cr-icon-button-stroke-color,var(--cr-icon-button-fill-color));cursor:pointer;display:inline-flex;flex-shrink:0;height:var(--cr-icon-button-height);margin-inline-end:var(--cr-icon-button-margin-end,var(--cr-icon-ripple-margin));margin-inline-start:var(--cr-icon-button-margin-start);outline:none;overflow:hidden;pointer-events:auto;position:relative;user-select:none;vertical-align:middle;width:var(--cr-icon-button-width)}:host(:hover:not([disabled])){background-color:var(--cr-icon-button-hover-background-color,var(--cr-hover-background-color))}:host(:focus-visible:focus){box-shadow:inset 0 0 0 2px var(--cr-icon-button-focus-outline-color,var(--cr-focus-outline-color))}@media (forced-colors:active){:host(:focus-visible:focus){outline:var(--cr-focus-outline-hcm)}}#ink{--paper-ripple-opacity:1;color:var(--cr-icon-button-active-background-color,var(--cr-active-background-color))}:host([disabled]){cursor:initial;opacity:var(--cr-disabled-opacity);pointer-events:none}:host(.no-overlap){--cr-icon-button-margin-end:0;--cr-icon-button-margin-start:0}:host-context([dir=rtl]):host(:not([suppress-rtl-flip]):not([multiple-icons_])){transform:scaleX(-1)}:host-context([dir=rtl]):host(:not([suppress-rtl-flip])[multiple-icons_]) cr-icon{transform:scaleX(-1)}:host(:not([iron-icon])) #maskedImage{-webkit-mask-image:var(--cr-icon-image);-webkit-mask-position:center;-webkit-mask-repeat:no-repeat;-webkit-mask-size:var(--cr-icon-button-icon-size);-webkit-transform:var(--cr-icon-image-transform,none);background-color:var(--cr-icon-button-fill-color);height:100%;transition:background-color var(--cr-icon-button-transition);width:100%}@media (forced-colors:active){:host(:not([iron-icon])) #maskedImage{background-color:ButtonText}}#icon{align-items:center;border-radius:4px;display:flex;height:100%;justify-content:center;padding-inline-start:var(--cr-icon-button-icon-start-offset);pointer-events:none;position:relative;width:100%}cr-icon{--iron-icon-fill-color:var(--cr-icon-button-fill-color);--iron-icon-stroke-color:var(--cr-icon-button-stroke-color,none);--iron-icon-height:var(--cr-icon-button-icon-size);--iron-icon-width:var(--cr-icon-button-icon-size);transition:fill var(--cr-icon-button-transition),stroke var(--cr-icon-button-transition)}@media (prefers-color-scheme:dark){:host{--cr-icon-button-fill-color:var(--google-grey-500)}}`])}function getHtml$1(){return html`
-<div id="icon">
-  <div id="maskedImage"></div>
-</div>`}const CrIconbuttonElementBase=CrRippleMixin(CrLitElement);class CrIconButtonElement extends CrIconbuttonElementBase{static get is(){return"cr-icon-button"}static get styles(){return getCss$1()}render(){return getHtml$1.bind(this)()}static get properties(){return{disabled:{type:Boolean,reflect:true},ironIcon:{type:String,reflect:true},suppressRtlFlip:{type:Boolean,value:false,reflect:true},multipleIcons_:{type:Boolean,reflect:true}}}#disabled_accessor_storage=false;get disabled(){return this.#disabled_accessor_storage}set disabled(value){this.#disabled_accessor_storage=value}#ironIcon_accessor_storage;get ironIcon(){return this.#ironIcon_accessor_storage}set ironIcon(value){this.#ironIcon_accessor_storage=value}#suppressRtlFlip_accessor_storage=false;get suppressRtlFlip(){return this.#suppressRtlFlip_accessor_storage}set suppressRtlFlip(value){this.#suppressRtlFlip_accessor_storage=value}#multipleIcons__accessor_storage=false;get multipleIcons_(){return this.#multipleIcons__accessor_storage}set multipleIcons_(value){this.#multipleIcons__accessor_storage=value}spaceKeyDown_=false;constructor(){super();this.addEventListener("blur",this.onBlur_.bind(this));this.addEventListener("click",this.onClick_.bind(this));this.addEventListener("keydown",this.onKeyDown_.bind(this));this.addEventListener("keyup",this.onKeyUp_.bind(this));this.ensureRippleOnPointerdown()}willUpdate(changedProperties){super.willUpdate(changedProperties);if(changedProperties.has("ironIcon")){const icons=(this.ironIcon||"").split(",");this.multipleIcons_=icons.length>1}}firstUpdated(){if(!this.hasAttribute("role")){this.setAttribute("role","button")}if(!this.hasAttribute("tabindex")){this.setAttribute("tabindex","0")}}updated(changedProperties){super.updated(changedProperties);if(changedProperties.has("disabled")){this.setAttribute("aria-disabled",this.disabled?"true":"false");this.disabledChanged_(this.disabled,changedProperties.get("disabled"))}if(changedProperties.has("ironIcon")){this.onIronIconChanged_()}}disabledChanged_(newValue,oldValue){if(!newValue&&oldValue===undefined){return}if(this.disabled){this.blur()}this.setAttribute("tabindex",String(this.disabled?-1:0))}onBlur_(){this.spaceKeyDown_=false}onClick_(e){if(this.disabled){e.stopImmediatePropagation()}}onIronIconChanged_(){this.shadowRoot.querySelectorAll("cr-icon").forEach((el=>el.remove()));if(!this.ironIcon){return}const icons=(this.ironIcon||"").split(",");icons.forEach((async icon=>{const crIcon=document.createElement("cr-icon");crIcon.icon=icon;crIcon.setAttribute("part","icon");this.$.icon.appendChild(crIcon);await crIcon.updateComplete;crIcon.shadowRoot.querySelectorAll("svg, img").forEach((child=>child.setAttribute("role","none")))}))}onKeyDown_(e){if(e.key!==" "&&(e.key!=="Enter"||isMac&&e.ctrlKey)){return}e.preventDefault();e.stopPropagation();if(e.repeat){return}if(e.key==="Enter"){this.click()}else if(e.key===" "){this.spaceKeyDown_=true}}onKeyUp_(e){if(e.key===" "||e.key==="Enter"&&!(isMac&&e.ctrlKey)){e.preventDefault();e.stopPropagation()}if(this.spaceKeyDown_&&e.key===" "){this.spaceKeyDown_=false;this.click()}}}customElements.define(CrIconButtonElement.is,CrIconButtonElement);let instance$1=null;function getCss(){return instance$1||(instance$1=[...[getCss$5()],css`:host{display:block;width:200px;position:relative;overflow:hidden}#progressContainer{position:relative}#progressContainer,:host([indeterminate]) #primaryProgress::after{height:var(--cr-progress-height,4px);background:var(--cr-progress-container-color,var(--google-grey-300))}#primaryProgress,:host([indeterminate]) #primaryProgress::after{position:absolute;top:0;right:0;bottom:0;left:0}#primaryProgress{transform-origin:left center;transform:scaleX(0);will-change:transform;background:var(--cr-progress-active-color,var(--google-green-500))}:host([disabled]) #primaryProgress{background:var(--cr-progress-disabled-active-color,var(--google-grey-500))}:host([indeterminate]:not([disabled])) #primaryProgress{transform-origin:right center;animation:indeterminate-bar var(--cr-progress-indeterminate-cycle-duration,2s) linear infinite}:host([indeterminate]:not([disabled])) #primaryProgress::after{content:'';transform-origin:center center;animation:indeterminate-splitter var(--cr-progress-indeterminate-cycle-duration,2s) linear infinite}@keyframes indeterminate-bar{0%{transform:scaleX(1) translateX(-100%)}50%{transform:scaleX(1) translateX(0%)}75%{transform:scaleX(1) translateX(0%);animation-timing-function:cubic-bezier(.28,.62,.37,.91)}100%{transform:scaleX(0) translateX(0%)}}@keyframes indeterminate-splitter{0%{transform:scaleX(.75) translateX(-125%)}30%{transform:scaleX(.75) translateX(-125%);animation-timing-function:cubic-bezier(.42,0,.6,.8)}90%{transform:scaleX(.75) translateX(125%)}100%{transform:scaleX(.75) translateX(125%)}}`])}function getHtml(){return html`
-<div id="progressContainer">
-  <div id="primaryProgress"></div>
-</div>`}class CrProgressElement extends CrLitElement{static get is(){return"cr-progress"}static get styles(){return getCss()}render(){return getHtml.bind(this)()}static get properties(){return{value:{type:Number},min:{type:Number},max:{type:Number},step:{type:Number},indeterminate:{type:Boolean,reflect:true},disabled:{type:Boolean,reflect:true}}}#value_accessor_storage=0;get value(){return this.#value_accessor_storage}set value(value){this.#value_accessor_storage=value}#min_accessor_storage=0;get min(){return this.#min_accessor_storage}set min(value){this.#min_accessor_storage=value}#max_accessor_storage=100;get max(){return this.#max_accessor_storage}set max(value){this.#max_accessor_storage=value}#step_accessor_storage=1;get step(){return this.#step_accessor_storage}set step(value){this.#step_accessor_storage=value}#indeterminate_accessor_storage=false;get indeterminate(){return this.#indeterminate_accessor_storage}set indeterminate(value){this.#indeterminate_accessor_storage=value}#disabled_accessor_storage=false;get disabled(){return this.#disabled_accessor_storage}set disabled(value){this.#disabled_accessor_storage=value}willUpdate(changedProperties){super.willUpdate(changedProperties);if(changedProperties.has("min")||changedProperties.has("max")||changedProperties.has("value")||changedProperties.has("step")){const previous=changedProperties.get("value")||0;const clampedValue=this.clampValue_(this.value);this.value=Number.isNaN(clampedValue)?previous:clampedValue}}firstUpdated(changedProperties){super.firstUpdated(changedProperties);if(!this.hasAttribute("role")){this.setAttribute("role","progressbar")}}updated(changedProperties){super.updated(changedProperties);if(changedProperties.has("min")||changedProperties.has("max")||changedProperties.has("value")||changedProperties.has("step")){const ratio=(this.value-this.min)/(this.max-this.min);this.$.primaryProgress.style.transform=`scaleX(${ratio})`;this.setAttribute("aria-valuemin",this.min.toString());this.setAttribute("aria-valuemax",this.max.toString())}if(changedProperties.has("indeterminate")||changedProperties.has("value")){if(this.indeterminate){this.removeAttribute("aria-valuenow")}else{this.setAttribute("aria-valuenow",this.value.toString())}}if(changedProperties.has("disabled")){this.setAttribute("aria-disabled",this.disabled?"true":"false")}}clampValue_(value){return Math.min(this.max,Math.max(this.min,this.calcStep_(value)))}calcStep_(value){value=Number.parseFloat(value.toString());if(!this.step){return value}const numSteps=Math.round((value-this.min)/this.step);if(this.step<1){return numSteps/(1/this.step)+this.min}else{return numSteps*this.step+this.min}}}customElements.define(CrProgressElement.is,CrProgressElement);class PageHandlerPendingReceiver{handle;constructor(handle){this.handle=mojo.internal.interfaceSupport.getEndpointForReceiver(handle)}bindInBrowser(scope="context"){mojo.internal.interfaceSupport.bind(this.handle,"color_change_listener.mojom.PageHandler",scope)}}class PageHandlerRemote{proxy;$;onConnectionError;constructor(handle){this.proxy=new mojo.internal.interfaceSupport.InterfaceRemoteBase(PageHandlerPendingReceiver,handle);this.$=new mojo.internal.interfaceSupport.InterfaceRemoteBaseWrapper(this.proxy);this.onConnectionError=this.proxy.getConnectionErrorEventRouter()}setPage(page){this.proxy.sendMessage(2060450267,PageHandler_SetPage_ParamsSpec.$,null,[page],false)}}class PageHandler{static get $interfaceName(){return"color_change_listener.mojom.PageHandler"}static getRemote(){let remote=new PageHandlerRemote;remote.$.bindNewPipeAndPassReceiver().bindInBrowser();return remote}}class PagePendingReceiver{handle;constructor(handle){this.handle=mojo.internal.interfaceSupport.getEndpointForReceiver(handle)}bindInBrowser(scope="context"){mojo.internal.interfaceSupport.bind(this.handle,"color_change_listener.mojom.Page",scope)}}class PageRemote{proxy;$;onConnectionError;constructor(handle){this.proxy=new mojo.internal.interfaceSupport.InterfaceRemoteBase(PagePendingReceiver,handle);this.$=new mojo.internal.interfaceSupport.InterfaceRemoteBaseWrapper(this.proxy);this.onConnectionError=this.proxy.getConnectionErrorEventRouter()}onColorProviderChanged(){this.proxy.sendMessage(1926319016,Page_OnColorProviderChanged_ParamsSpec.$,null,[],false)}}class PageCallbackRouter{helper_internal_;$;router_;onColorProviderChanged;onConnectionError;constructor(){this.helper_internal_=new mojo.internal.interfaceSupport.InterfaceReceiverHelperInternal(PageRemote);this.$=new mojo.internal.interfaceSupport.InterfaceReceiverHelper(this.helper_internal_);this.router_=new mojo.internal.interfaceSupport.CallbackRouter;this.onColorProviderChanged=new mojo.internal.interfaceSupport.InterfaceCallbackReceiver(this.router_);this.helper_internal_.registerHandler(1926319016,Page_OnColorProviderChanged_ParamsSpec.$,null,this.onColorProviderChanged.createReceiverHandler(false),false);this.onConnectionError=this.helper_internal_.getConnectionErrorEventRouter()}removeListener(id){return this.router_.removeListener(id)}}const PageHandler_SetPage_ParamsSpec={$:{}};const Page_OnColorProviderChanged_ParamsSpec={$:{}};mojo.internal.Struct(PageHandler_SetPage_ParamsSpec.$,"PageHandler_SetPage_Params",[mojo.internal.StructField("page",0,0,mojo.internal.InterfaceProxy(PageRemote),null,false,0,undefined,undefined)],[[0,16]]);mojo.internal.Struct(Page_OnColorProviderChanged_ParamsSpec.$,"Page_OnColorProviderChanged_Params",[],[[0,8]]);let instance=null;class BrowserProxy{callbackRouter;constructor(){this.callbackRouter=new PageCallbackRouter;const pageHandlerRemote=PageHandler.getRemote();pageHandlerRemote.setPage(this.callbackRouter.$.bindNewPipeAndPassRemote())}static getInstance(){return instance||(instance=new BrowserProxy)}static setInstance(newInstance){instance=newInstance}}const COLORS_CSS_SELECTOR="link[href*='//theme/colors.css']";let documentInstance=null;const COLOR_PROVIDER_CHANGED="color-provider-changed";class ColorChangeUpdater{listenerId_=null;root_;eventTarget=new EventTarget;constructor(root){assert(documentInstance===null||root!==document);this.root_=root}start(){if(this.listenerId_!==null){return}this.listenerId_=BrowserProxy.getInstance().callbackRouter.onColorProviderChanged.addListener(this.onColorProviderChanged.bind(this))}async onColorProviderChanged(){await this.refreshColorsCss();this.eventTarget.dispatchEvent(new CustomEvent(COLOR_PROVIDER_CHANGED))}async refreshColorsCss(){const colorCssNode=this.root_.querySelector(COLORS_CSS_SELECTOR);if(!colorCssNode){return false}const href=colorCssNode.getAttribute("href");if(!href){return false}const hrefURL=new URL(href,location.href);const params=new URLSearchParams(hrefURL.search);params.set("version",(new Date).getTime().toString());const newHref=`${hrefURL.origin}${hrefURL.pathname}?${params.toString()}`;const newColorsCssLink=document.createElement("link");newColorsCssLink.setAttribute("href",newHref);newColorsCssLink.rel="stylesheet";newColorsCssLink.type="text/css";const newColorsLoaded=new Promise((resolve=>{newColorsCssLink.onload=resolve}));if(this.root_===document){document.getElementsByTagName("body")[0].appendChild(newColorsCssLink)}else{this.root_.appendChild(newColorsCssLink)}await newColorsLoaded;const oldColorCssNode=document.querySelector(COLORS_CSS_SELECTOR);if(oldColorCssNode){oldColorCssNode.remove()}return true}static forDocument(){return documentInstance||(documentInstance=new ColorChangeUpdater(document))}}function getRequiredElement(id){const el=document.querySelector(`#${id}`);assert(el);assert(el instanceof HTMLElement);return el}export{ColorChangeUpdater as C,EventTracker as E,assert as a,assertNotReachedCase as b,getRequiredElement as g};
+</cr-iconset>`;
+}
+const iconsets = div.querySelectorAll("cr-iconset");
+for (const iconset of iconsets) {
+  document.head.appendChild(iconset);
+}
+let instance$3 = null;
+function getCss$2() {
+  return (
+    instance$3 ||
+    (instance$3 = [
+      ...[getCss$5()],
+      css`
+        :host {
+          align-items: center;
+          display: inline-flex;
+          justify-content: center;
+          position: relative;
+          vertical-align: middle;
+          fill: var(--iron-icon-fill-color, currentcolor);
+          stroke: var(--iron-icon-stroke-color, none);
+          width: var(--iron-icon-width, 24px);
+          height: var(--iron-icon-height, 24px);
+        }
+        :host-context([webui-refresh-2026]) {
+          &:host(:focus) {
+            border-radius: 2px;
+            outline: solid 2px var(--cr-focus-outline-color);
+          }
+        }
+      `,
+    ])
+  );
+}
+class CrIconElement extends CrLitElement {
+  static get is() {
+    return "cr-icon";
+  }
+  static get styles() {
+    return getCss$2();
+  }
+  static get properties() {
+    return { icon: { type: String } };
+  }
+  #icon_accessor_storage = "";
+  get icon() {
+    return this.#icon_accessor_storage;
+  }
+  set icon(value) {
+    this.#icon_accessor_storage = value;
+  }
+  iconsetName_ = "";
+  iconName_ = "";
+  iconset_ = null;
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    if (changedProperties.has("icon")) {
+      const [iconsetName, iconName] = this.icon.split(":");
+      this.iconName_ = iconName || "";
+      this.iconsetName_ = iconsetName || "";
+      this.updateIcon_();
+    }
+  }
+  updateIcon_() {
+    if (this.iconName_ === "" && this.iconset_) {
+      this.iconset_.removeIcon(this);
+    } else if (this.iconsetName_) {
+      const iconsetMap = IconsetMap.getInstance();
+      this.iconset_ = iconsetMap.get(this.iconsetName_);
+      assert(
+        this.iconset_,
+        `Could not find iconset for: '${this.iconsetName_}:${this.iconName_}'`,
+      );
+      this.iconset_.applyIcon(this, this.iconName_);
+    }
+  }
+}
+customElements.define(CrIconElement.is, CrIconElement);
+let instance$2 = null;
+function getCss$1() {
+  return (
+    instance$2 ||
+    (instance$2 = [
+      ...[],
+      css`
+        :host {
+          --cr-icon-button-fill-color: currentColor;
+          --cr-icon-button-icon-start-offset: 0;
+          --cr-icon-button-icon-size: 20px;
+          --cr-icon-button-size: 32px;
+          --cr-icon-button-height: var(--cr-icon-button-size);
+          --cr-icon-button-transition: 150ms ease-in-out;
+          --cr-icon-button-width: var(--cr-icon-button-size);
+          -webkit-tap-highlight-color: transparent;
+          border-radius: 50%;
+          color: var(
+            --cr-icon-button-stroke-color,
+            var(--cr-icon-button-fill-color)
+          );
+          cursor: pointer;
+          display: inline-flex;
+          flex-shrink: 0;
+          height: var(--cr-icon-button-height);
+          margin-inline-end: var(
+            --cr-icon-button-margin-end,
+            var(--cr-icon-ripple-margin)
+          );
+          margin-inline-start: var(--cr-icon-button-margin-start);
+          outline: none;
+          overflow: hidden;
+          pointer-events: auto;
+          position: relative;
+          user-select: none;
+          vertical-align: middle;
+          width: var(--cr-icon-button-width);
+        }
+        :host(:hover:not([disabled])) {
+          background-color: var(
+            --cr-icon-button-hover-background-color,
+            var(--cr-hover-background-color)
+          );
+        }
+        :host(:focus-visible:focus) {
+          box-shadow: inset 0 0 0 2px
+            var(
+              --cr-icon-button-focus-outline-color,
+              var(--cr-focus-outline-color)
+            );
+        }
+        @media (forced-colors: active) {
+          :host(:focus-visible:focus) {
+            outline: var(--cr-focus-outline-hcm);
+          }
+        }
+        #ink {
+          --paper-ripple-opacity: 1;
+          color: var(
+            --cr-icon-button-active-background-color,
+            var(--cr-active-background-color)
+          );
+        }
+        :host([disabled]) {
+          cursor: initial;
+          opacity: var(--cr-disabled-opacity);
+          pointer-events: none;
+        }
+        :host(.no-overlap) {
+          --cr-icon-button-margin-end: 0;
+          --cr-icon-button-margin-start: 0;
+        }
+        :host-context([dir="rtl"]):host(
+          :not([suppress-rtl-flip]):not([multiple-icons_])
+        ) {
+          transform: scaleX(-1);
+        }
+        :host-context([dir="rtl"]):host(
+            :not([suppress-rtl-flip])[multiple-icons_]
+          )
+          cr-icon {
+          transform: scaleX(-1);
+        }
+        :host(:not([iron-icon])) #maskedImage {
+          -webkit-mask-image: var(--cr-icon-image);
+          -webkit-mask-position: center;
+          -webkit-mask-repeat: no-repeat;
+          -webkit-mask-size: var(--cr-icon-button-icon-size);
+          -webkit-transform: var(--cr-icon-image-transform, none);
+          background-color: var(--cr-icon-button-fill-color);
+          height: 100%;
+          transition: background-color var(--cr-icon-button-transition);
+          width: 100%;
+        }
+        @media (forced-colors: active) {
+          :host(:not([iron-icon])) #maskedImage {
+            background-color: ButtonText;
+          }
+        }
+        #icon {
+          align-items: center;
+          border-radius: 4px;
+          display: flex;
+          height: 100%;
+          justify-content: center;
+          padding-inline-start: var(--cr-icon-button-icon-start-offset);
+          pointer-events: none;
+          position: relative;
+          width: 100%;
+        }
+        cr-icon {
+          --iron-icon-fill-color: var(--cr-icon-button-fill-color);
+          --iron-icon-stroke-color: var(--cr-icon-button-stroke-color, none);
+          --iron-icon-height: var(--cr-icon-button-icon-size);
+          --iron-icon-width: var(--cr-icon-button-icon-size);
+          transition:
+            fill var(--cr-icon-button-transition),
+            stroke var(--cr-icon-button-transition);
+        }
+        @media (prefers-color-scheme: dark) {
+          :host {
+            --cr-icon-button-fill-color: var(--google-grey-500);
+          }
+        }
+      `,
+    ])
+  );
+}
+function getHtml$1() {
+  return html` <div id="icon">
+    <div id="maskedImage"></div>
+  </div>`;
+}
+const CrIconbuttonElementBase = CrRippleMixin(CrLitElement);
+class CrIconButtonElement extends CrIconbuttonElementBase {
+  static get is() {
+    return "cr-icon-button";
+  }
+  static get styles() {
+    return getCss$1();
+  }
+  render() {
+    return getHtml$1.bind(this)();
+  }
+  static get properties() {
+    return {
+      disabled: { type: Boolean, reflect: true },
+      ironIcon: { type: String, reflect: true },
+      suppressRtlFlip: { type: Boolean, value: false, reflect: true },
+      multipleIcons_: { type: Boolean, reflect: true },
+    };
+  }
+  #disabled_accessor_storage = false;
+  get disabled() {
+    return this.#disabled_accessor_storage;
+  }
+  set disabled(value) {
+    this.#disabled_accessor_storage = value;
+  }
+  #ironIcon_accessor_storage;
+  get ironIcon() {
+    return this.#ironIcon_accessor_storage;
+  }
+  set ironIcon(value) {
+    this.#ironIcon_accessor_storage = value;
+  }
+  #suppressRtlFlip_accessor_storage = false;
+  get suppressRtlFlip() {
+    return this.#suppressRtlFlip_accessor_storage;
+  }
+  set suppressRtlFlip(value) {
+    this.#suppressRtlFlip_accessor_storage = value;
+  }
+  #multipleIcons__accessor_storage = false;
+  get multipleIcons_() {
+    return this.#multipleIcons__accessor_storage;
+  }
+  set multipleIcons_(value) {
+    this.#multipleIcons__accessor_storage = value;
+  }
+  spaceKeyDown_ = false;
+  constructor() {
+    super();
+    this.addEventListener("blur", this.onBlur_.bind(this));
+    this.addEventListener("click", this.onClick_.bind(this));
+    this.addEventListener("keydown", this.onKeyDown_.bind(this));
+    this.addEventListener("keyup", this.onKeyUp_.bind(this));
+    this.ensureRippleOnPointerdown();
+  }
+  willUpdate(changedProperties) {
+    super.willUpdate(changedProperties);
+    if (changedProperties.has("ironIcon")) {
+      const icons = (this.ironIcon || "").split(",");
+      this.multipleIcons_ = icons.length > 1;
+    }
+  }
+  firstUpdated() {
+    if (!this.hasAttribute("role")) {
+      this.setAttribute("role", "button");
+    }
+    if (!this.hasAttribute("tabindex")) {
+      this.setAttribute("tabindex", "0");
+    }
+  }
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    if (changedProperties.has("disabled")) {
+      this.setAttribute("aria-disabled", this.disabled ? "true" : "false");
+      this.disabledChanged_(this.disabled, changedProperties.get("disabled"));
+    }
+    if (changedProperties.has("ironIcon")) {
+      this.onIronIconChanged_();
+    }
+  }
+  disabledChanged_(newValue, oldValue) {
+    if (!newValue && oldValue === undefined) {
+      return;
+    }
+    if (this.disabled) {
+      this.blur();
+    }
+    this.setAttribute("tabindex", String(this.disabled ? -1 : 0));
+  }
+  onBlur_() {
+    this.spaceKeyDown_ = false;
+  }
+  onClick_(e) {
+    if (this.disabled) {
+      e.stopImmediatePropagation();
+    }
+  }
+  onIronIconChanged_() {
+    this.shadowRoot.querySelectorAll("cr-icon").forEach((el) => el.remove());
+    if (!this.ironIcon) {
+      return;
+    }
+    const icons = (this.ironIcon || "").split(",");
+    icons.forEach(async (icon) => {
+      const crIcon = document.createElement("cr-icon");
+      crIcon.icon = icon;
+      crIcon.setAttribute("part", "icon");
+      this.$.icon.appendChild(crIcon);
+      await crIcon.updateComplete;
+      crIcon.shadowRoot
+        .querySelectorAll("svg, img")
+        .forEach((child) => child.setAttribute("role", "none"));
+    });
+  }
+  onKeyDown_(e) {
+    if (e.key !== " " && (e.key !== "Enter" || (isMac && e.ctrlKey))) {
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.repeat) {
+      return;
+    }
+    if (e.key === "Enter") {
+      this.click();
+    } else if (e.key === " ") {
+      this.spaceKeyDown_ = true;
+    }
+  }
+  onKeyUp_(e) {
+    if (e.key === " " || (e.key === "Enter" && !(isMac && e.ctrlKey))) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (this.spaceKeyDown_ && e.key === " ") {
+      this.spaceKeyDown_ = false;
+      this.click();
+    }
+  }
+}
+customElements.define(CrIconButtonElement.is, CrIconButtonElement);
+let instance$1 = null;
+function getCss() {
+  return (
+    instance$1 ||
+    (instance$1 = [
+      ...[getCss$5()],
+      css`
+        :host {
+          display: block;
+          width: 200px;
+          position: relative;
+          overflow: hidden;
+        }
+        #progressContainer {
+          position: relative;
+        }
+        #progressContainer,
+        :host([indeterminate]) #primaryProgress::after {
+          height: var(--cr-progress-height, 4px);
+          background: var(
+            --cr-progress-container-color,
+            var(--google-grey-300)
+          );
+        }
+        #primaryProgress,
+        :host([indeterminate]) #primaryProgress::after {
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+        }
+        #primaryProgress {
+          transform-origin: left center;
+          transform: scaleX(0);
+          will-change: transform;
+          background: var(--cr-progress-active-color, var(--google-green-500));
+        }
+        :host([disabled]) #primaryProgress {
+          background: var(
+            --cr-progress-disabled-active-color,
+            var(--google-grey-500)
+          );
+        }
+        :host([indeterminate]:not([disabled])) #primaryProgress {
+          transform-origin: right center;
+          animation: indeterminate-bar
+            var(--cr-progress-indeterminate-cycle-duration, 2s) linear infinite;
+        }
+        :host([indeterminate]:not([disabled])) #primaryProgress::after {
+          content: "";
+          transform-origin: center center;
+          animation: indeterminate-splitter
+            var(--cr-progress-indeterminate-cycle-duration, 2s) linear infinite;
+        }
+        @keyframes indeterminate-bar {
+          0% {
+            transform: scaleX(1) translateX(-100%);
+          }
+          50% {
+            transform: scaleX(1) translateX(0%);
+          }
+          75% {
+            transform: scaleX(1) translateX(0%);
+            animation-timing-function: cubic-bezier(0.28, 0.62, 0.37, 0.91);
+          }
+          100% {
+            transform: scaleX(0) translateX(0%);
+          }
+        }
+        @keyframes indeterminate-splitter {
+          0% {
+            transform: scaleX(0.75) translateX(-125%);
+          }
+          30% {
+            transform: scaleX(0.75) translateX(-125%);
+            animation-timing-function: cubic-bezier(0.42, 0, 0.6, 0.8);
+          }
+          90% {
+            transform: scaleX(0.75) translateX(125%);
+          }
+          100% {
+            transform: scaleX(0.75) translateX(125%);
+          }
+        }
+      `,
+    ])
+  );
+}
+function getHtml() {
+  return html` <div id="progressContainer">
+    <div id="primaryProgress"></div>
+  </div>`;
+}
+class CrProgressElement extends CrLitElement {
+  static get is() {
+    return "cr-progress";
+  }
+  static get styles() {
+    return getCss();
+  }
+  render() {
+    return getHtml.bind(this)();
+  }
+  static get properties() {
+    return {
+      value: { type: Number },
+      min: { type: Number },
+      max: { type: Number },
+      step: { type: Number },
+      indeterminate: { type: Boolean, reflect: true },
+      disabled: { type: Boolean, reflect: true },
+    };
+  }
+  #value_accessor_storage = 0;
+  get value() {
+    return this.#value_accessor_storage;
+  }
+  set value(value) {
+    this.#value_accessor_storage = value;
+  }
+  #min_accessor_storage = 0;
+  get min() {
+    return this.#min_accessor_storage;
+  }
+  set min(value) {
+    this.#min_accessor_storage = value;
+  }
+  #max_accessor_storage = 100;
+  get max() {
+    return this.#max_accessor_storage;
+  }
+  set max(value) {
+    this.#max_accessor_storage = value;
+  }
+  #step_accessor_storage = 1;
+  get step() {
+    return this.#step_accessor_storage;
+  }
+  set step(value) {
+    this.#step_accessor_storage = value;
+  }
+  #indeterminate_accessor_storage = false;
+  get indeterminate() {
+    return this.#indeterminate_accessor_storage;
+  }
+  set indeterminate(value) {
+    this.#indeterminate_accessor_storage = value;
+  }
+  #disabled_accessor_storage = false;
+  get disabled() {
+    return this.#disabled_accessor_storage;
+  }
+  set disabled(value) {
+    this.#disabled_accessor_storage = value;
+  }
+  willUpdate(changedProperties) {
+    super.willUpdate(changedProperties);
+    if (
+      changedProperties.has("min") ||
+      changedProperties.has("max") ||
+      changedProperties.has("value") ||
+      changedProperties.has("step")
+    ) {
+      const previous = changedProperties.get("value") || 0;
+      const clampedValue = this.clampValue_(this.value);
+      this.value = Number.isNaN(clampedValue) ? previous : clampedValue;
+    }
+  }
+  firstUpdated(changedProperties) {
+    super.firstUpdated(changedProperties);
+    if (!this.hasAttribute("role")) {
+      this.setAttribute("role", "progressbar");
+    }
+  }
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    if (
+      changedProperties.has("min") ||
+      changedProperties.has("max") ||
+      changedProperties.has("value") ||
+      changedProperties.has("step")
+    ) {
+      const ratio = (this.value - this.min) / (this.max - this.min);
+      this.$.primaryProgress.style.transform = `scaleX(${ratio})`;
+      this.setAttribute("aria-valuemin", this.min.toString());
+      this.setAttribute("aria-valuemax", this.max.toString());
+    }
+    if (
+      changedProperties.has("indeterminate") ||
+      changedProperties.has("value")
+    ) {
+      if (this.indeterminate) {
+        this.removeAttribute("aria-valuenow");
+      } else {
+        this.setAttribute("aria-valuenow", this.value.toString());
+      }
+    }
+    if (changedProperties.has("disabled")) {
+      this.setAttribute("aria-disabled", this.disabled ? "true" : "false");
+    }
+  }
+  clampValue_(value) {
+    return Math.min(this.max, Math.max(this.min, this.calcStep_(value)));
+  }
+  calcStep_(value) {
+    value = Number.parseFloat(value.toString());
+    if (!this.step) {
+      return value;
+    }
+    const numSteps = Math.round((value - this.min) / this.step);
+    if (this.step < 1) {
+      return numSteps / (1 / this.step) + this.min;
+    } else {
+      return numSteps * this.step + this.min;
+    }
+  }
+}
+customElements.define(CrProgressElement.is, CrProgressElement);
+class PageHandlerPendingReceiver {
+  handle;
+  constructor(handle) {
+    this.handle = mojo.internal.interfaceSupport.getEndpointForReceiver(handle);
+  }
+  bindInBrowser(scope = "context") {
+    mojo.internal.interfaceSupport.bind(
+      this.handle,
+      "color_change_listener.mojom.PageHandler",
+      scope,
+    );
+  }
+}
+class PageHandlerRemote {
+  proxy;
+  $;
+  onConnectionError;
+  constructor(handle) {
+    this.proxy = new mojo.internal.interfaceSupport.InterfaceRemoteBase(
+      PageHandlerPendingReceiver,
+      handle,
+    );
+    this.$ = new mojo.internal.interfaceSupport.InterfaceRemoteBaseWrapper(
+      this.proxy,
+    );
+    this.onConnectionError = this.proxy.getConnectionErrorEventRouter();
+  }
+  setPage(page) {
+    this.proxy.sendMessage(
+      2060450267,
+      PageHandler_SetPage_ParamsSpec.$,
+      null,
+      [page],
+      false,
+    );
+  }
+}
+class PageHandler {
+  static get $interfaceName() {
+    return "color_change_listener.mojom.PageHandler";
+  }
+  static getRemote() {
+    let remote = new PageHandlerRemote();
+    remote.$.bindNewPipeAndPassReceiver().bindInBrowser();
+    return remote;
+  }
+}
+class PagePendingReceiver {
+  handle;
+  constructor(handle) {
+    this.handle = mojo.internal.interfaceSupport.getEndpointForReceiver(handle);
+  }
+  bindInBrowser(scope = "context") {
+    mojo.internal.interfaceSupport.bind(
+      this.handle,
+      "color_change_listener.mojom.Page",
+      scope,
+    );
+  }
+}
+class PageRemote {
+  proxy;
+  $;
+  onConnectionError;
+  constructor(handle) {
+    this.proxy = new mojo.internal.interfaceSupport.InterfaceRemoteBase(
+      PagePendingReceiver,
+      handle,
+    );
+    this.$ = new mojo.internal.interfaceSupport.InterfaceRemoteBaseWrapper(
+      this.proxy,
+    );
+    this.onConnectionError = this.proxy.getConnectionErrorEventRouter();
+  }
+  onColorProviderChanged() {
+    this.proxy.sendMessage(
+      1926319016,
+      Page_OnColorProviderChanged_ParamsSpec.$,
+      null,
+      [],
+      false,
+    );
+  }
+}
+class PageCallbackRouter {
+  helper_internal_;
+  $;
+  router_;
+  onColorProviderChanged;
+  onConnectionError;
+  constructor() {
+    this.helper_internal_ =
+      new mojo.internal.interfaceSupport.InterfaceReceiverHelperInternal(
+        PageRemote,
+      );
+    this.$ = new mojo.internal.interfaceSupport.InterfaceReceiverHelper(
+      this.helper_internal_,
+    );
+    this.router_ = new mojo.internal.interfaceSupport.CallbackRouter();
+    this.onColorProviderChanged =
+      new mojo.internal.interfaceSupport.InterfaceCallbackReceiver(
+        this.router_,
+      );
+    this.helper_internal_.registerHandler(
+      1926319016,
+      Page_OnColorProviderChanged_ParamsSpec.$,
+      null,
+      this.onColorProviderChanged.createReceiverHandler(false),
+      false,
+    );
+    this.onConnectionError =
+      this.helper_internal_.getConnectionErrorEventRouter();
+  }
+  removeListener(id) {
+    return this.router_.removeListener(id);
+  }
+}
+const PageHandler_SetPage_ParamsSpec = { $: {} };
+const Page_OnColorProviderChanged_ParamsSpec = { $: {} };
+mojo.internal.Struct(
+  PageHandler_SetPage_ParamsSpec.$,
+  "PageHandler_SetPage_Params",
+  [
+    mojo.internal.StructField(
+      "page",
+      0,
+      0,
+      mojo.internal.InterfaceProxy(PageRemote),
+      null,
+      false,
+      0,
+      undefined,
+      undefined,
+    ),
+  ],
+  [[0, 16]],
+);
+mojo.internal.Struct(
+  Page_OnColorProviderChanged_ParamsSpec.$,
+  "Page_OnColorProviderChanged_Params",
+  [],
+  [[0, 8]],
+);
+let instance = null;
+class BrowserProxy {
+  callbackRouter;
+  constructor() {
+    this.callbackRouter = new PageCallbackRouter();
+    const pageHandlerRemote = PageHandler.getRemote();
+    pageHandlerRemote.setPage(this.callbackRouter.$.bindNewPipeAndPassRemote());
+  }
+  static getInstance() {
+    return instance || (instance = new BrowserProxy());
+  }
+  static setInstance(newInstance) {
+    instance = newInstance;
+  }
+}
+const COLORS_CSS_SELECTOR = "link[href*='//theme/colors.css']";
+let documentInstance = null;
+const COLOR_PROVIDER_CHANGED = "color-provider-changed";
+class ColorChangeUpdater {
+  listenerId_ = null;
+  root_;
+  eventTarget = new EventTarget();
+  constructor(root) {
+    assert(documentInstance === null || root !== document);
+    this.root_ = root;
+  }
+  start() {
+    if (this.listenerId_ !== null) {
+      return;
+    }
+    this.listenerId_ =
+      BrowserProxy.getInstance().callbackRouter.onColorProviderChanged.addListener(
+        this.onColorProviderChanged.bind(this),
+      );
+  }
+  async onColorProviderChanged() {
+    await this.refreshColorsCss();
+    this.eventTarget.dispatchEvent(new CustomEvent(COLOR_PROVIDER_CHANGED));
+  }
+  async refreshColorsCss() {
+    const colorCssNode = this.root_.querySelector(COLORS_CSS_SELECTOR);
+    if (!colorCssNode) {
+      return false;
+    }
+    const href = colorCssNode.getAttribute("href");
+    if (!href) {
+      return false;
+    }
+    const hrefURL = new URL(href, location.href);
+    const params = new URLSearchParams(hrefURL.search);
+    params.set("version", new Date().getTime().toString());
+    const newHref = `${hrefURL.origin}${hrefURL.pathname}?${params.toString()}`;
+    const newColorsCssLink = document.createElement("link");
+    newColorsCssLink.setAttribute("href", newHref);
+    newColorsCssLink.rel = "stylesheet";
+    newColorsCssLink.type = "text/css";
+    const newColorsLoaded = new Promise((resolve) => {
+      newColorsCssLink.onload = resolve;
+    });
+    if (this.root_ === document) {
+      document.getElementsByTagName("body")[0].appendChild(newColorsCssLink);
+    } else {
+      this.root_.appendChild(newColorsCssLink);
+    }
+    await newColorsLoaded;
+    const oldColorCssNode = document.querySelector(COLORS_CSS_SELECTOR);
+    if (oldColorCssNode) {
+      oldColorCssNode.remove();
+    }
+    return true;
+  }
+  static forDocument() {
+    return (
+      documentInstance || (documentInstance = new ColorChangeUpdater(document))
+    );
+  }
+}
+function getRequiredElement(id) {
+  const el = document.querySelector(`#${id}`);
+  assert(el);
+  assert(el instanceof HTMLElement);
+  return el;
+}
+export {
+  ColorChangeUpdater as C,
+  EventTracker as E,
+  assert as a,
+  assertNotReachedCase as b,
+  getRequiredElement as g,
+};

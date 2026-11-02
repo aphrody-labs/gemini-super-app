@@ -257,7 +257,7 @@ webview {
 }
 
 .hidden {
- display: none;
+  display: none;
 }
 
 .outerheader {
@@ -304,7 +304,7 @@ webview {
 cr-progress {
   width: 80%;
   margin: 20px 10% 0;
-  --cr-progress-active-color: #A8C7FA;
+  --cr-progress-active-color: #a8c7fa;
 }
 
 .placeholder {
@@ -340,7 +340,7 @@ cr-progress {
   position: absolute;
   top: 0;
   left: 0;
-  background-color: rgba(0, 0, 0, .6);
+  background-color: rgba(0, 0, 0, 0.6);
   width: 100%;
   height: 100vh;
   display: block;
@@ -390,7 +390,6 @@ cr-progress {
   width: 20px;
   height: 20px;
 }
-
 
 #showError {
   position: absolute;
@@ -448,4 +447,3 @@ cr-progress {
   --cr-icon-button-margin-end: -20px;
   margin-block: -12px;
 }
-

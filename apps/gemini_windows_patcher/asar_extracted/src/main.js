@@ -1,21 +1,8768 @@
-var wf=Object.create;var Mo=Object.defineProperty;var _f=Object.getOwnPropertyDescriptor;var yf=Object.getOwnPropertyNames;var bf=Object.getPrototypeOf,vf=Object.prototype.hasOwnProperty;var W=(e,t,n)=>()=>{if(n)throw n[0];try{return e&&(t=e(e=0)),t}catch(o){throw n=[o],o}};var Fo=(e,t)=>{for(var n in t)Mo(e,n,{get:t[n],enumerable:!0})},Na=(e,t,n,o)=>{if(t&&typeof t=="object"||typeof t=="function")for(let r of yf(t))!vf.call(e,r)&&r!==n&&Mo(e,r,{get:()=>t[r],enumerable:!(o=_f(t,r))||o.enumerable});return e};var A=(e,t,n)=>(n=e!=null?wf(bf(e)):{},Na(t||!e||!e.__esModule?Mo(n,"default",{value:e,enumerable:!0}):n,e)),Cf=e=>Na(Mo({},"__esModule",{value:!0}),e);var w,f=W(()=>{w=require("url").pathToFileURL(__filename)});function Ua(){_i.protocol.registerSchemesAsPrivileged([{scheme:et,privileges:{standard:!0,secure:!0,supportFetchAPI:!0}}])}function Bo(e=_i.protocol){e.handle(et,async t=>{let n;try{let d=new URL(t.url);if(d.host!==ka)return new Response("Forbidden",{status:403});n=decodeURIComponent(d.pathname)}catch{return new Response("Bad Request",{status:400})}let o=Ve.join(Oa,n),r=Ve.relative(Oa,o);if(r.startsWith("..")||Ve.isAbsolute(r))return new Response("Forbidden",{status:403});let i;try{i=await Wa.promises.readFile(o)}catch{return new Response("Not Found",{status:404})}let s=Sf.get(Ve.extname(o).toLowerCase())??"application/octet-stream",l=new Uint8Array(i.buffer,i.byteOffset,i.byteLength),a={"content-type":s};return s.startsWith("text/html")&&(a["content-security-policy"]=Ef),new Response(l,{headers:a})})}function z(...e){return`${et}://${ka}/src/${e.join("/")}`}var _i,Wa,Ve,et,ka,Oa,Sf,Ef,Se=W(()=>{f();_i=require("electron"),Wa=A(require("fs")),Ve=A(require("path")),et="app",ka="bundle",Oa=Ve.resolve(__dirname,".."),Sf=new Map([[".html","text/html; charset=utf-8"],[".js","text/javascript; charset=utf-8"],[".css","text/css; charset=utf-8"],[".json","application/json; charset=utf-8"],[".svg","image/svg+xml"],[".png","image/png"],[".jpg","image/jpeg"],[".jpeg","image/jpeg"],[".gif","image/gif"],[".ico","image/x-icon"],[".woff2","font/woff2"],[".woff","font/woff"]]),Ef="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'self'; base-uri 'none';"});var O,Ma,Fa=W(()=>{f();O="prod",Ma="https://gemini.google.com/app"});function Ba(){return null}function Ha(e){return[]}var yi=W(()=>{f()});function Af(e,t,n){let o=e==="dev"?n():null;return{devTarget:o,startUrl:o?.startUrl??t,geminiHosts:[bi,...o?[o.host]:[]]}}function G(e){return Ho.includes(e.toLowerCase())}var bi,vi,Ie,me,Tf,Ho,Va,Ci,Gn,Ga,xf,Si,$a,za,he=W(()=>{f();Fa();yi();bi="gemini.google.com";vi=Af(O,Ma,Ba),Ie=vi.devTarget,me=vi.startUrl,Tf=[...vi.geminiHosts],Ho=Tf;Va=14400*1e3,Ci="Gemini",Gn="com.google.gemini.windows",Ga=[...Ho,"accounts.google.com","accounts.youtube.com","myaccount.google.com","gstatic.com",...O!=="prod"?["login.corp.google.com"]:[]],xf="oauth-redirect.googleusercontent.com",Si=[xf,...O!=="prod"?["oauth-redirect-sandbox.googleusercontent.com"]:[]],$a=[...Ho,"accounts.google.com","gstatic.com"],za=[...Ho]});var ja=W(()=>{f()});function qo(){qn=!0,Go=0}function Ja(){return qn}function Pi(e){zo=e}function Ko(){dt()}function dt(){if(qn=!1,Di=!1,il(),!(ut.length===0||!Ee))try{Ge&&$.mkdirSync(Ge,{recursive:!0});let e=ut.join("");ut=[],$.appendFileSync(Ee,e,"utf8")}catch{}}function Za(e){jo=e,il()}function Yo(){return Ii}function el(e){Ii=e}function Df(){return Ee||Ni(),Ee}function ie(e){if(!e)return"";try{let t=new URL(e);if(t.protocol==="file:"){let n=M(t.pathname);return`file://${t.host}${n}`}return`${t.protocol}//${t.host}${t.pathname}`}catch{let n=e.split("?")[0].split("#")[0].replace(/\/\/[^@]+@/,"//");return n.startsWith("file:")?M(n):n}}function Pf(){if(kt===null){try{kt=ke.homedir()||""}catch{kt=""}if(kt&&kt.length>2){let e=kt.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");Ti=new RegExp(e,"gi");let n=kt.replace(/\\/g,"/").replace(/[.*+?^${}()|[\]\\]/g,"\\$&");xi=new RegExp(n,"gi")}}}function M(e){if(!e)return"";let t=e;try{Pf(),Ti&&(t=t.replace(Ti,"%USERPROFILE%")),xi&&(t=t.replace(xi,"%USERPROFILE%"))}catch{}return t=t.replace(/(?:[A-Za-z]:[\\/]|(?<=[\\/])[A-Za-z]:[\\/])Users[\\/](?!Public(?:[\\/]|$)|Default(?:[\\/]|$))[^\\/\r\n"']+(?=[\\/]|$|[\s"'])/gi,"%USERPROFILE%"),t=t.replace(/(?<=^|[\s"']|[\\/])Users[\\/](?!Public(?:[\\/]|$)|Default(?:[\\/]|$))[^\\/\r\n"']+(?=[\\/]|$|[\s"'])/gi,"%USERPROFILE%"),t}function Kn(){return Ge||Ni(),Ge}function tl(e){let t=e||Ee;!t||!$.existsSync(t)||qn||zo!==null&&(qo(),zo()||Ko())}function Nf(e){let t=e||Ee;if(!(!t||!$.existsSync(t)))try{$.statSync(t).size>0&&(Di=!0,zo!==null?tl(t):qo())}catch{}}function nl(e){let t;try{t=$.lstatSync(e)}catch{return}if(t.isDirectory()&&!t.isSymbolicLink()){try{let n=$.readdirSync(e);for(let o of n)nl(Ut.join(e,o))}catch{}try{$.rmdirSync(e)}catch{}return}try{$.unlinkSync(e)}catch{}}function Ni(e){if(!(Ge&&!e))try{if(e)Ge=e;else{let t=process.env.LOCALAPPDATA||(process.platform==="win32"?Ut.join(ke.homedir(),"AppData","Local"):ke.tmpdir()),n=Ut.join(t,"Google","Gemini");Ge=Ut.join(n,"logs");let o=Ut.join(t,"Gemini","logs");$.existsSync(o)&&nl(o)}Ge&&($.mkdirSync(Ge,{recursive:!0}),Ee=Ut.join(Ge,Ai),Nf(Ee))}catch{}}function Of(e){let t=e||Ee;if(!(!t||!$.existsSync(t)))try{if($.statSync(t).size<5242880)return;tl(t)}catch{}}function Wf(e,t,n,o,r){let i=Lf[t]||"INFO",s=M(n),l=M(o),a=`[${e}] [${i}] [${s}] ${l}`;return r!=null&&(r instanceof Error?a+=`
-  ${M(r.stack||r.message)}`:a+=`
-  ${M(String(r))}`),a}function $e(e,t,n,o){if(e<Ii)return;let r=new Date().toISOString(),i=Wf(r,e,t,n,o);if(e===3?console.error(i):e===2?console.warn(i):console.log(i),Ee||Ni(),Ee)try{if(qn){ut.push(i+`
-`);return}Go+=Buffer.byteLength(i+`
-`,"utf8"),Go>=If&&(Go=0,Of(Ee)),$.appendFileSync(Ee,i+`
-`,"utf8")}catch{}}function tt(e){return{isAnnotated:!0,isPii:!0,value:e}}function Ei(e=jo){return e==="prod"||e==="dogfood"}function ol(e,t,n=jo){if(e&&typeof e=="object"&&e.isAnnotated===!0){let o=e,r=o.isPii&&Ei(n);return o.value instanceof Error?qa(o.value,r):r?Ka(o.value):String(o.value)}return e instanceof Error?qa(e,t&&Ei(n)):t&&Ei(n)?Ka(e):String(e)}function qa(e,t){return t?"[REDACTED:Error]":M(e.stack||e.message)}function Ka(e){return e==null?`[REDACTED:${e===null?"null":"undefined"}]`:`[REDACTED:${typeof e}]`}function ln(e,t,n,...o){let r=o.map(i=>ol(i,!0)).join(" ");$e(e,t,`${n} ${r}`.trim())}function Vo(e,t,n,...o){let r=o.map(i=>ol(i,!1)).join(" ");$e(e,t,`${n} ${r}`.trim())}function il(){Ri++,$o=0,Li=""}function sl(e,t=Ya){if($n!==null)return $n;let n=t===Ya,o=Date.now();if(n&&$o>0&&o-$o<kf)return Promise.resolve(Li);let r=Ri,i=jf(e,t).then(s=>(n&&r===Ri&&(Li=s,$o=Date.now()),s)).catch(()=>"").finally(()=>{$n===i&&($n=null)});return $n=i,i}async function jf(e,t){let n=Math.max(t*Uf,rl),{lines:o,truncated:r}=await qf(n);if(o.length===0)return"";let i=new Date().toISOString(),s=Xa(Ai,!0),l=t-jn(Qa(e,i,Mf))-jn(s)-1,a=[],d=o.length-1;for(;d>=0&&l>0;d--){let k=Yf(o[d]),D=jn(k)+1;if(D>l)break;l-=D,a.push(k)}if(a.length===0)return"";a.reverse();let g=d>=0||r,m=Qa(e,i,a.length),S=Xa(Ai,g),E=`${m}${S}
+var wf = Object.create;
+var Mo = Object.defineProperty;
+var _f = Object.getOwnPropertyDescriptor;
+var yf = Object.getOwnPropertyNames;
+var bf = Object.getPrototypeOf,
+  vf = Object.prototype.hasOwnProperty;
+var W = (e, t, n) => () => {
+  if (n) throw n[0];
+  try {
+    return (e && (t = e((e = 0))), t);
+  } catch (o) {
+    throw ((n = [o]), o);
+  }
+};
+var Fo = (e, t) => {
+    for (var n in t) Mo(e, n, { get: t[n], enumerable: !0 });
+  },
+  Na = (e, t, n, o) => {
+    if ((t && typeof t == "object") || typeof t == "function")
+      for (let r of yf(t))
+        !vf.call(e, r) &&
+          r !== n &&
+          Mo(e, r, {
+            get: () => t[r],
+            enumerable: !(o = _f(t, r)) || o.enumerable,
+          });
+    return e;
+  };
+var A = (e, t, n) => (
+    (n = e != null ? wf(bf(e)) : {}),
+    Na(
+      t || !e || !e.__esModule
+        ? Mo(n, "default", { value: e, enumerable: !0 })
+        : n,
+      e,
+    )
+  ),
+  Cf = (e) => Na(Mo({}, "__esModule", { value: !0 }), e);
+var w,
+  f = W(() => {
+    w = require("url").pathToFileURL(__filename);
+  });
+function Ua() {
+  _i.protocol.registerSchemesAsPrivileged([
+    {
+      scheme: et,
+      privileges: { standard: !0, secure: !0, supportFetchAPI: !0 },
+    },
+  ]);
+}
+function Bo(e = _i.protocol) {
+  e.handle(et, async (t) => {
+    let n;
+    try {
+      let d = new URL(t.url);
+      if (d.host !== ka) return new Response("Forbidden", { status: 403 });
+      n = decodeURIComponent(d.pathname);
+    } catch {
+      return new Response("Bad Request", { status: 400 });
+    }
+    let o = Ve.join(Oa, n),
+      r = Ve.relative(Oa, o);
+    if (r.startsWith("..") || Ve.isAbsolute(r))
+      return new Response("Forbidden", { status: 403 });
+    let i;
+    try {
+      i = await Wa.promises.readFile(o);
+    } catch {
+      return new Response("Not Found", { status: 404 });
+    }
+    let s = Sf.get(Ve.extname(o).toLowerCase()) ?? "application/octet-stream",
+      l = new Uint8Array(i.buffer, i.byteOffset, i.byteLength),
+      a = { "content-type": s };
+    return (
+      s.startsWith("text/html") && (a["content-security-policy"] = Ef),
+      new Response(l, { headers: a })
+    );
+  });
+}
+function z(...e) {
+  return `${et}://${ka}/src/${e.join("/")}`;
+}
+var _i,
+  Wa,
+  Ve,
+  et,
+  ka,
+  Oa,
+  Sf,
+  Ef,
+  Se = W(() => {
+    f();
+    ((_i = require("electron")),
+      (Wa = A(require("fs"))),
+      (Ve = A(require("path"))),
+      (et = "app"),
+      (ka = "bundle"),
+      (Oa = Ve.resolve(__dirname, "..")),
+      (Sf = new Map([
+        [".html", "text/html; charset=utf-8"],
+        [".js", "text/javascript; charset=utf-8"],
+        [".css", "text/css; charset=utf-8"],
+        [".json", "application/json; charset=utf-8"],
+        [".svg", "image/svg+xml"],
+        [".png", "image/png"],
+        [".jpg", "image/jpeg"],
+        [".jpeg", "image/jpeg"],
+        [".gif", "image/gif"],
+        [".ico", "image/x-icon"],
+        [".woff2", "font/woff2"],
+        [".woff", "font/woff"],
+      ])),
+      (Ef =
+        "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'self'; base-uri 'none';"));
+  });
+var O,
+  Ma,
+  Fa = W(() => {
+    f();
+    ((O = "prod"), (Ma = "https://gemini.google.com/app"));
+  });
+function Ba() {
+  return null;
+}
+function Ha(e) {
+  return [];
+}
+var yi = W(() => {
+  f();
+});
+function Af(e, t, n) {
+  let o = e === "dev" ? n() : null;
+  return {
+    devTarget: o,
+    startUrl: o?.startUrl ?? t,
+    geminiHosts: [bi, ...(o ? [o.host] : [])],
+  };
+}
+function G(e) {
+  return Ho.includes(e.toLowerCase());
+}
+var bi,
+  vi,
+  Ie,
+  me,
+  Tf,
+  Ho,
+  Va,
+  Ci,
+  Gn,
+  Ga,
+  xf,
+  Si,
+  $a,
+  za,
+  he = W(() => {
+    f();
+    Fa();
+    yi();
+    bi = "gemini.google.com";
+    ((vi = Af(O, Ma, Ba)),
+      (Ie = vi.devTarget),
+      (me = vi.startUrl),
+      (Tf = [...vi.geminiHosts]),
+      (Ho = Tf));
+    ((Va = 14400 * 1e3),
+      (Ci = "Gemini"),
+      (Gn = "com.google.gemini.windows"),
+      (Ga = [
+        ...Ho,
+        "accounts.google.com",
+        "accounts.youtube.com",
+        "myaccount.google.com",
+        "gstatic.com",
+        ...(O !== "prod" ? ["login.corp.google.com"] : []),
+      ]),
+      (xf = "oauth-redirect.googleusercontent.com"),
+      (Si = [
+        xf,
+        ...(O !== "prod"
+          ? ["oauth-redirect-sandbox.googleusercontent.com"]
+          : []),
+      ]),
+      ($a = [...Ho, "accounts.google.com", "gstatic.com"]),
+      (za = [...Ho]));
+  });
+var ja = W(() => {
+  f();
+});
+function qo() {
+  ((qn = !0), (Go = 0));
+}
+function Ja() {
+  return qn;
+}
+function Pi(e) {
+  zo = e;
+}
+function Ko() {
+  dt();
+}
+function dt() {
+  if (((qn = !1), (Di = !1), il(), !(ut.length === 0 || !Ee)))
+    try {
+      Ge && $.mkdirSync(Ge, { recursive: !0 });
+      let e = ut.join("");
+      ((ut = []), $.appendFileSync(Ee, e, "utf8"));
+    } catch {}
+}
+function Za(e) {
+  ((jo = e), il());
+}
+function Yo() {
+  return Ii;
+}
+function el(e) {
+  Ii = e;
+}
+function Df() {
+  return (Ee || Ni(), Ee);
+}
+function ie(e) {
+  if (!e) return "";
+  try {
+    let t = new URL(e);
+    if (t.protocol === "file:") {
+      let n = M(t.pathname);
+      return `file://${t.host}${n}`;
+    }
+    return `${t.protocol}//${t.host}${t.pathname}`;
+  } catch {
+    let n = e
+      .split("?")[0]
+      .split("#")[0]
+      .replace(/\/\/[^@]+@/, "//");
+    return n.startsWith("file:") ? M(n) : n;
+  }
+}
+function Pf() {
+  if (kt === null) {
+    try {
+      kt = ke.homedir() || "";
+    } catch {
+      kt = "";
+    }
+    if (kt && kt.length > 2) {
+      let e = kt.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      Ti = new RegExp(e, "gi");
+      let n = kt.replace(/\\/g, "/").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      xi = new RegExp(n, "gi");
+    }
+  }
+}
+function M(e) {
+  if (!e) return "";
+  let t = e;
+  try {
+    (Pf(),
+      Ti && (t = t.replace(Ti, "%USERPROFILE%")),
+      xi && (t = t.replace(xi, "%USERPROFILE%")));
+  } catch {}
+  return (
+    (t = t.replace(
+      /(?:[A-Za-z]:[\\/]|(?<=[\\/])[A-Za-z]:[\\/])Users[\\/](?!Public(?:[\\/]|$)|Default(?:[\\/]|$))[^\\/\r\n"']+(?=[\\/]|$|[\s"'])/gi,
+      "%USERPROFILE%",
+    )),
+    (t = t.replace(
+      /(?<=^|[\s"']|[\\/])Users[\\/](?!Public(?:[\\/]|$)|Default(?:[\\/]|$))[^\\/\r\n"']+(?=[\\/]|$|[\s"'])/gi,
+      "%USERPROFILE%",
+    )),
+    t
+  );
+}
+function Kn() {
+  return (Ge || Ni(), Ge);
+}
+function tl(e) {
+  let t = e || Ee;
+  !t || !$.existsSync(t) || qn || (zo !== null && (qo(), zo() || Ko()));
+}
+function Nf(e) {
+  let t = e || Ee;
+  if (!(!t || !$.existsSync(t)))
+    try {
+      $.statSync(t).size > 0 && ((Di = !0), zo !== null ? tl(t) : qo());
+    } catch {}
+}
+function nl(e) {
+  let t;
+  try {
+    t = $.lstatSync(e);
+  } catch {
+    return;
+  }
+  if (t.isDirectory() && !t.isSymbolicLink()) {
+    try {
+      let n = $.readdirSync(e);
+      for (let o of n) nl(Ut.join(e, o));
+    } catch {}
+    try {
+      $.rmdirSync(e);
+    } catch {}
+    return;
+  }
+  try {
+    $.unlinkSync(e);
+  } catch {}
+}
+function Ni(e) {
+  if (!(Ge && !e))
+    try {
+      if (e) Ge = e;
+      else {
+        let t =
+            process.env.LOCALAPPDATA ||
+            (process.platform === "win32"
+              ? Ut.join(ke.homedir(), "AppData", "Local")
+              : ke.tmpdir()),
+          n = Ut.join(t, "Google", "Gemini");
+        Ge = Ut.join(n, "logs");
+        let o = Ut.join(t, "Gemini", "logs");
+        $.existsSync(o) && nl(o);
+      }
+      Ge &&
+        ($.mkdirSync(Ge, { recursive: !0 }), (Ee = Ut.join(Ge, Ai)), Nf(Ee));
+    } catch {}
+}
+function Of(e) {
+  let t = e || Ee;
+  if (!(!t || !$.existsSync(t)))
+    try {
+      if ($.statSync(t).size < 5242880) return;
+      tl(t);
+    } catch {}
+}
+function Wf(e, t, n, o, r) {
+  let i = Lf[t] || "INFO",
+    s = M(n),
+    l = M(o),
+    a = `[${e}] [${i}] [${s}] ${l}`;
+  return (
+    r != null &&
+      (r instanceof Error
+        ? (a += `
+  ${M(r.stack || r.message)}`)
+        : (a += `
+  ${M(String(r))}`)),
+    a
+  );
+}
+function $e(e, t, n, o) {
+  if (e < Ii) return;
+  let r = new Date().toISOString(),
+    i = Wf(r, e, t, n, o);
+  if (
+    (e === 3 ? console.error(i) : e === 2 ? console.warn(i) : console.log(i),
+    Ee || Ni(),
+    Ee)
+  )
+    try {
+      if (qn) {
+        ut.push(
+          i +
+            `
+`,
+        );
+        return;
+      }
+      ((Go += Buffer.byteLength(
+        i +
+          `
+`,
+        "utf8",
+      )),
+        Go >= If && ((Go = 0), Of(Ee)),
+        $.appendFileSync(
+          Ee,
+          i +
+            `
+`,
+          "utf8",
+        ));
+    } catch {}
+}
+function tt(e) {
+  return { isAnnotated: !0, isPii: !0, value: e };
+}
+function Ei(e = jo) {
+  return e === "prod" || e === "dogfood";
+}
+function ol(e, t, n = jo) {
+  if (e && typeof e == "object" && e.isAnnotated === !0) {
+    let o = e,
+      r = o.isPii && Ei(n);
+    return o.value instanceof Error
+      ? qa(o.value, r)
+      : r
+        ? Ka(o.value)
+        : String(o.value);
+  }
+  return e instanceof Error
+    ? qa(e, t && Ei(n))
+    : t && Ei(n)
+      ? Ka(e)
+      : String(e);
+}
+function qa(e, t) {
+  return t ? "[REDACTED:Error]" : M(e.stack || e.message);
+}
+function Ka(e) {
+  return e == null
+    ? `[REDACTED:${e === null ? "null" : "undefined"}]`
+    : `[REDACTED:${typeof e}]`;
+}
+function ln(e, t, n, ...o) {
+  let r = o.map((i) => ol(i, !0)).join(" ");
+  $e(e, t, `${n} ${r}`.trim());
+}
+function Vo(e, t, n, ...o) {
+  let r = o.map((i) => ol(i, !1)).join(" ");
+  $e(e, t, `${n} ${r}`.trim());
+}
+function il() {
+  (Ri++, ($o = 0), (Li = ""));
+}
+function sl(e, t = Ya) {
+  if ($n !== null) return $n;
+  let n = t === Ya,
+    o = Date.now();
+  if (n && $o > 0 && o - $o < kf) return Promise.resolve(Li);
+  let r = Ri,
+    i = jf(e, t)
+      .then((s) => (n && r === Ri && ((Li = s), ($o = Date.now())), s))
+      .catch(() => "")
+      .finally(() => {
+        $n === i && ($n = null);
+      });
+  return (($n = i), i);
+}
+async function jf(e, t) {
+  let n = Math.max(t * Uf, rl),
+    { lines: o, truncated: r } = await qf(n);
+  if (o.length === 0) return "";
+  let i = new Date().toISOString(),
+    s = Xa(Ai, !0),
+    l = t - jn(Qa(e, i, Mf)) - jn(s) - 1,
+    a = [],
+    d = o.length - 1;
+  for (; d >= 0 && l > 0; d--) {
+    let k = Yf(o[d]),
+      D = jn(k) + 1;
+    if (D > l) break;
+    ((l -= D), a.push(k));
+  }
+  if (a.length === 0) return "";
+  a.reverse();
+  let g = d >= 0 || r,
+    m = Qa(e, i, a.length),
+    S = Xa(Ai, g),
+    E = `${m}${S}
 ${a.join(`
 `)}
-`;return u.info("feedback_logs","Prepared feedback log export (bytes, lines):",jn(E),a.length),E}async function qf(e){let t=e,n="",o=!1;if(ut.length>0){let s=ut.length;for(;s>0&&t>0;)s--,t-=jn(ut[s]);n=ut.slice(s).join(""),o=s>0}let r=Df();if(!r||o||Di)return{lines:zn(n),truncated:o};let i;try{i=await $.promises.open(r,"r")}catch{return{lines:zn(n),truncated:!1}}try{let{size:s}=await i.stat(),l=Math.max(t,rl),a=Math.min(s,l),d=s-a,g=await Kf(i,d,a);if(d>0){let E=g.indexOf(10),k=E===-1?g.length:E+1;g=g.subarray(k)}let m=zn(new TextDecoder().decode(g)),S=zn(n);return{lines:[...m,...S],truncated:d>0}}catch{return{lines:zn(n),truncated:!1}}finally{await i.close().catch(()=>{})}}async function Kf(e,t,n){let o=new Uint8Array(n),r=0;for(;r<n;){let{bytesRead:i}=await e.read(o,r,n-r,t+r);if(i===0)break;r+=i}return o.subarray(0,r)}function zn(e){return e.split(`
-`).map(t=>t.endsWith("\r")?t.slice(0,-1):t).filter(t=>t.length>0)}function Yf(e){return M(e).replace(Ff,t=>Xf(t)).replace(Bf,"[REDACTED:email]").replace(Hf,"%USERPROFILE%$1[REDACTED:path]").replace(Vf,"$1[REDACTED:token]").replace(Gf,"[REDACTED:token]")}function Xf(e){let t;try{t=new URL(e)}catch{return"[REDACTED:url]"}if(t.protocol==="app:")return`app://${t.host}${t.pathname}`;if(t.protocol!=="https:"&&t.protocol!=="http:")return`${t.protocol}//[REDACTED:url]`;let n=t.hostname.toLowerCase();if(!zf.some(i=>n===i||n.endsWith(`.${i}`)))return`${t.protocol}//[REDACTED:host]`;let r=t.pathname.split("/").map(i=>$f.test(i)?i:"[id]").join("/");return`${t.protocol}//${t.host}${r}`}function Xa(e,t){return`=== ${e}${t?" (older lines omitted)":""} ===`}function Qa(e,t,n){return["=== Gemini for Windows diagnostics ===",`App version: ${e.appVersion}`,`Channel: ${jo}`,`OS: ${ke.platform()} ${ke.release()} ${ke.arch()}`,`Electron: ${process.versions.electron||"unknown"}`,`Helper: ${e.helperConnected?"connected":"not connected"}`,`Generated: ${t}`,`Lines: ${n}`].join(`
-`)+`
-`}function jn(e){return Buffer.byteLength(e,"utf8")}var $,ke,Ut,Lf,Ai,If,Ii,jo,Ge,Ee,Go,zo,qn,Di,ut,kt,Ti,xi,u,Mt,Ya,kf,Uf,rl,Mf,Ff,Bf,Hf,Vf,Gf,$f,zf,$n,Ri,$o,Li,F=W(()=>{f();$=A(require("fs")),ke=A(require("os")),Ut=A(require("path"));ja();Lf={0:"DEBUG",1:"INFO",2:"WARN",3:"ERROR"},Ai="gemini.log",If=64*1024,Ii=1,jo="prod",Ge=null,Ee=null,Go=0,zo=null,qn=!1,Di=!1,ut=[];kt=null,Ti=null,xi=null;u={debug:(e,t,n,...o)=>{o.length>0||n!==void 0&&!(n instanceof Error)?Vo(0,e,t,n,...o):$e(0,e,t,n)},info:(e,t,n,...o)=>{o.length>0||n!==void 0&&!(n instanceof Error)?Vo(1,e,t,n,...o):$e(1,e,t,n)},warn:(e,t,n,...o)=>{o.length>0||n!==void 0&&!(n instanceof Error)?Vo(2,e,t,n,...o):$e(2,e,t,n)},error:(e,t,n,...o)=>{o.length>0||n!==void 0&&!(n instanceof Error)?Vo(3,e,t,n,...o):$e(3,e,t,n)}},Mt={debug:(e,t,n,...o)=>{o.length>0||n!==void 0?ln(0,e,t,n,...o):$e(0,e,t)},info:(e,t,n,...o)=>{o.length>0||n!==void 0?ln(1,e,t,n,...o):$e(1,e,t)},warn:(e,t,n,...o)=>{o.length>0||n!==void 0?ln(2,e,t,n,...o):$e(2,e,t)},error:(e,t,n,...o)=>{o.length>0||n!==void 0?ln(3,e,t,n,...o):$e(3,e,t)}},Ya=1024*1024,kf=5e3,Uf=2,rl=64*1024,Mf=9999999,Ff=/\b[a-z][a-z0-9+.-]*:\/\/[^\s"'<>()[\]{}`]+/gi,Bf=/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g,Hf=/%USERPROFILE%([\\/])(?!AppData(?:[\\/]|$))[^\r\n]*/gi,Vf=/\b(Bearer\s+)[A-Za-z0-9._~+/-]+=*/gi,Gf=/\bya29\.[A-Za-z0-9._-]+/g,$f=/^[A-Za-z._-]{0,32}$/,zf=["google.com","googleapis.com","googleusercontent.com","gstatic.com","youtube.com"],$n=null,Ri=0,$o=0,Li=""});function Zf(e){return typeof e!="string"||e.length===0||e.length>Jf?!1:Qf.includes(e)}function cn(e){if(e==null)return"";let t=typeof e=="string"?e:String(e);if(t.startsWith("http://")||t.startsWith("https://")||t.startsWith("file://"))try{t=ie(t)}catch{t="[redacted-url]"}t=M(t).replace(/[\r\n]+/g," ").trim();let n=[...t];return n.length>ll?n.slice(0,ll).join(""):t}function Yn(e){return e?cn(e):"unknown"}function ae(e,t){return t!=null&&String(t).length>0?cn(`${e}:${t}`):cn(e)}function ul(e,t,n,o){let r=`${e}:${t}:${n}`;return o===void 0?r:`${r}#${o}`}function dl(e){return e==="GPU"?"gpu-process":e==="Utility"?"utility":"helper"}function fl(e){let t=e||process.env.LOCALAPPDATA||(process.env.USERPROFILE||process.env.HOME?Oi.win32.join(process.env.USERPROFILE||process.env.HOME,"AppData","Local"):cl.tmpdir());return Oi.win32.join(t,"Google","Gemini","Crashpad")}function pl(e,t,n,o){let r=al.includes("?")?"&":"?";return{submitURL:`${al}${r}product=${encodeURIComponent(Ft)}&version=${encodeURIComponent(e)}&prod=${encodeURIComponent(Ft)}&ver=${encodeURIComponent(e)}`,productName:Ft,uploadToServer:n,compress:!0,rateLimit:o!==void 0?o:t==="prod",extra:{prod:Ft,ver:e,product:Ft,version:e,process_type:"main",channel:t},globalExtra:{prod:Ft,ver:e,product:Ft,version:e,channel:t}}}function gl(e,t){if(!Zf(e))return null;let n=cn(t);return{cmd:"SET_CRASH_ANNOTATION",key:e,value:n}}function Wi(){return{cmd:"DUMP_WITHOUT_CRASH"}}function Xo(e){return ep.has(e)?e:"unknown"}var cl,Oi,al,Ft,Qf,Jf,ll,ep,Xn=W(()=>{f();cl=A(require("os")),Oi=A(require("path"));F();al="https://clients2.google.com/cr/report",Ft="GeminiWindows",Qf=["active_window","channel","surface","navigation_state"],Jf=32,ll=64;ep=new Set(["crashed","oom","killed","launch-failed","integrity-failure","abnormal-exit","uncaught-exception","unknown"])});function _l(e){return Qo.push(e),()=>{let t=Qo.indexOf(e);t!==-1&&Qo.splice(t,1)}}function er(e){for(Ko();Qn.length>0;){let t=Qn.shift();try{t?.(e)}catch{}}}function op(e){return JSON.stringify(e)+`
-`}function yl(e){if(e.cmd==="CONFIG_CHANGED"&&typeof e.key=="string")return`${e.cmd} (key=${e.key})`;if(e.cmd==="HOTKEY_SUPPRESSED"){let t=[];return typeof e.shortcut=="string"&&e.shortcut&&t.push(`shortcut=${e.shortcut}`),typeof e.reason=="string"&&e.reason&&t.push(`reason=${e.reason}`),t.length>0?`${e.cmd} (${t.join(", ")})`:e.cmd}return e.cmd}function rp(e,t){return{cmd:"CONFIG_CHANGED",key:e,value:t}}function ip(e){try{let t=e.trim();return t.length===0?null:JSON.parse(t)}catch{return null}}function bl(){try{let e=fn.dirname(process.execPath),t=fn.dirname(e),n=fn.join(t,"GeminiAppLauncher.exe"),o=fn.join(e,"GeminiAppLauncher.exe"),r=null;Ui.existsSync(n)?r=n:Ui.existsSync(o)&&(r=o),r&&(u.info("helper_ipc","Spawning native Win32 background helper daemon:",M(r)),hl.spawn(r,[],{detached:!0,stdio:"ignore"}).unref())}catch(e){u.warn("helper_ipc","Failed to spawn native Win32 background helper daemon",e)}}function Hi(e){for(let t of[...Qo])try{t(e)}catch(n){u.warn("helper_ipc","Error in helper command listener callback",n)}}function sp(e){if(u.info("helper_ipc","Received command from helper:",yl(e)),Hi(e),e.cmd==="LOGS_ROTATED"){er(!0);return}Ht&&Ht(e)}function vl(e){u.info("helper_ipc","Initializing Named Pipe IPC client to GeminiAppLauncher"),Ht=e,Pi(lp),bl(),Cl()}function Cl(){if(le){le.removeAllListeners();try{le.destroy()}catch{}le=null}u.info("helper_ipc","Connecting to named pipe:",ml),le=wl.createConnection(ml),le.on("connect",()=>{ze=!0,Bt=0,un="",u.info("helper_ipc","Connected to GeminiAppLauncher Named Pipe server"),_e({cmd:"HELLO"});for(let[t,n]of Jo.entries())_e({cmd:"SET_CRASH_ANNOTATION",key:t,value:n});let e=Jo.get("navigation_state")??"";Bi("navigation_state",e),Zo&&(Zo=!1,_e(Wi())),Mi||(Mi=!0,Ja()&&Sl())}),le.on("data",e=>{un+=e.toString("utf8");let t;for(;(t=un.indexOf(`
-`))!==-1;){let n=un.substring(0,t).trim();un=un.substring(t+1);let o=ip(n);o&&sp(o)}}),le.on("error",e=>{u.debug("helper_ipc","Helper named pipe client socket error",e),er(!1)}),le.on("close",()=>{let e=ze;u.info("helper_ipc","Helper named pipe connection closed; scheduling reconnect"),e&&Bi("navigation_state",ae("crashed","helper_pipe_disconnected")),ze=!1,le=null,er(!1),Hi({cmd:"PIPE_DISCONNECTED"}),Ht&&Ht({cmd:"PIPE_DISCONNECTED"}),ap()})}function ap(){if(dn)return;let e=Bt<ki.length?ki[Bt]:Math.min(tp*Math.pow(1.5,Bt-ki.length),np);Bt++,u.info("helper_ipc","Scheduling helper reconnect attempt:",`#${Bt} in ${e}ms`),dn=setTimeout(()=>{dn=null,bl(),Cl()},e)}function _e(e){if(le&&ze)try{u.info("helper_ipc","Sending command to helper:",yl(e)),le.write(op(e))}catch(t){u.warn("helper_ipc","Failed to write command to helper pipe:",e.cmd,t)}}function Sl(){return le&&ze?(qo(),new Promise(e=>{let t=null,n=o=>{t&&(clearTimeout(t),t=null),e(o)};t=setTimeout(()=>{let o=Qn.indexOf(n);o!==-1&&Qn.splice(o,1),Ko(),e(!1)},5e3),Qn.push(n),_e({cmd:"ROTATE_LOGS"})})):Promise.resolve(!1)}function lp(){return le&&ze?(Sl(),!0):!1}function El(e,t){_e(rp(e,t))}function Bi(e,t){if(Fi)try{Fi(e,t)}catch{}}function Al(e){Fi=e}function Tl(e,t){let n=gl(e,t);n&&(Jo.set(n.key,n.value),_e(n),Bi(n.key,n.value))}function xl(){le&&ze?_e(Wi()):Zo=!0}function Jn(){return ze}function Vi(){if(u.info("helper_ipc","Cleaning up helper IPC connection"),Pi(null),dn&&(clearTimeout(dn),dn=null),Bt=0,Zo=!1,le){let e=le;if(e.removeAllListeners(),e.on("error",()=>{}),ze)try{_e({cmd:"BYE"}),e.end()}catch{}else try{e.destroy()}catch{}}le=null,ze=!1,Mi=!1,Jo.clear(),Hi({cmd:"PIPE_DISCONNECTED"}),Ht&&Ht({cmd:"PIPE_DISCONNECTED"}),er(!1)}var hl,Ui,wl,fn,ml,ki,tp,np,le,ze,Mi,dn,Bt,Ht,un,Jo,Zo,Qn,Qo,Fi,pn=W(()=>{f();hl=A(require("child_process")),Ui=A(require("fs")),wl=A(require("net")),fn=A(require("path"));Xn();F();ml="\\\\.\\pipe\\Google.Gemini.AppLauncher",ki=[100,250,500,1e3],tp=2e3,np=3e4,le=null,ze=!1,Mi=!1,dn=null,Bt=0,Ht=null,un="",Jo=new Map,Zo=!1,Qn=[],Qo=[];Fi=null});function cp(){let e=[];e.push(Gi.join(__dirname,"gemini_native.node"));try{e.push(Gi.join(process.resourcesPath,"app","src","gemini_native.node"))}catch{}return e}function Rl(){if(Zn!==void 0)return Zn;Zn=null;for(let e of cp())try{let t=require(e);if(t&&typeof t.ping=="function"){Zn=t;break}}catch{}return Zn}var Gi,Zn,Ll=W(()=>{f();Gi=A(require("path"))});function Ae(){return eo!==void 0||(eo=Rl()??null,eo?u.info("native_addon","Loaded gemini_native N-API addon"):u.warn("native_addon","gemini_native addon unavailable; Will use fallbacks")),eo}var eo,gn=W(()=>{f();F();Ll()});function Dl(){return $i.win}var $i,tr,Il,lw,nr=W(()=>{f();$i={win:"{533DD80C-942A-4464-B6A9-2E59428D784E}"},tr=`HKCU\\Software\\Google\\Update\\Clients\\${$i.win}`,Il=`HKLM\\Software\\Google\\Update\\Clients\\${$i.win}`,lw=process.env.GEMINI_UPDATE_URL||void 0});function or(e,t){return Math.max(0,e-t)}function qi(e,t=36){return{x:Math.max(0,e-Pl-Nl-gp),y:t,width:fp,height:pp}}function Ki(e,t){let n=Math.max(0,e-zi-Wl),o=Math.max(0,t-ji-Ol);return{x:n,y:o,width:zi,height:ji}}var Pl,up,Nl,dp,fp,pp,gp,zi,ji,Ol,Wl,mn=W(()=>{f();Pl=360,up=36,Nl=16,dp=16,fp=Pl+Nl*2,pp=up+dp*2,gp=20;zi=440,ji=88,Ol=16,Wl=16});function je(e,t){let n=e.split(".").map(Number),o=t.split(".").map(Number),r=Math.max(n.length,o.length);for(let i=0;i<r;i++){let s=n[i]||0,l=o[i]||0;if(s!==l)return s-l}return 0}function rr(e,t){let n=/^\d+(\.\d+)+$/,o=[];for(let r of t){let i=r.startsWith("app-")?r.substring(4):r;n.test(i)&&je(i,e)>0&&o.push(i)}return o.length===0?null:(o.sort(je),o[o.length-1])}function Ul(e,t,n,o){let r=t||e,i=/^\d+(\.\d+)+$/,s=[],l=o?o.startsWith("app-")?o.substring(4):o:null;for(let a of n){let d=a.startsWith("app-")?a.substring(4):a;i.test(d)&&(d===e||d===r||a===o||l!==null&&d===l||je(d,r)<0&&s.push(a))}return s}function kl(e){let t=e.trim().toLowerCase().replace(/^["']|["']$/g,"").trim();return t==="1"||t==="true"?!0:t==="0"||t==="false"?!1:null}function to(e){for(let t=0;t<e.length;t++){let o=e[t].toLowerCase();if(o.startsWith("--set-suppress-quit-confirmation=")){let r=o.substring(33),i=kl(r);return i!==null?i:!0}if(o==="--set-suppress-quit-confirmation"){if(t+1<e.length){let r=e[t+1];if(!r.startsWith("-")){let i=kl(r);if(i!==null)return i}}return!0}}return null}var ir=W(()=>{f();mn()});function Bl(e){try{Ae()?.removeTreeBestEffort(e)}catch{}}function Hl(e){Xi=e}function wp(e){let t=process.noAsar;process.noAsar=!0;try{return e()}finally{process.noAsar=t}}function Ji(e,t){if(!t.startsWith("app-"))return!1;try{return wp(()=>{let n=ye.statSync(J.join(e,t,"Gemini.exe")),o=ye.statSync(J.join(e,t,"resources","app.asar"));return n.isFile()&&o.isFile()&&n.size>mp&&o.size>hp})}catch{return!1}}function Zi(e){if(!ye.existsSync(e))return[];try{return ye.readdirSync(e,{withFileTypes:!0}).filter(n=>n.isDirectory()).map(n=>n.name).filter(n=>Ji(e,n))}catch{return[]}}function bp(e,t){for(let n of e.split(/\r?\n/)){let o=n.trim(),r=o.split(/\s{2,}|\t+/);if(r.length>=3&&r[0].toLowerCase()===t.toLowerCase()&&r[1]==="REG_SZ"){let i=o.indexOf("REG_SZ");return o.substring(i+6).trim()}}return null}function Ml(e,t=[]){try{let n=J.join(process.env.SystemRoot||"C:\\Windows","System32","reg.exe"),o=(0,Fl.execFileSync)(n,["query",e,"/v","pv",...t],{encoding:"utf8",windowsHide:!0,timeout:_p}),r=bp(o,"pv");return r&&Gt.test(r)?r:null}catch{return null}}function vp(){return Ml(tr)??Ml(Il,["/reg:32"])}function Sp(){return process.platform==="win32"?vp:null}function es(e){let t=Date.now();if(Vt!==null&&t-Vt.readAtMs<Cp)return Vt.value;let n=e();return Vt={value:n,readAtMs:t},n}function Ep(e){if(!_n)return!0;let t=es(_n);return t!==null&&je(e,t)<=0}function Vl(e,t){let n=rr(e,t);if(!n||!_n)return n;let o=es(_n);if(o===null)return null;if(je(n,o)<=0)return n;let r=t.filter(i=>{let s=i.substring(4);return Gt.test(s)&&je(s,o)<=0});return rr(e,r)}function lr(e=wn.app.getPath("exe")){let t=J.dirname(e),n=J.basename(t),o=n.substring(4);return!n.startsWith("app-")||!Gt.test(o)?null:{rootDir:J.dirname(t),currentVersion:o}}function pt(){try{let e=lr();if(!e)return null;let t=Zi(e.rootDir);return Vl(e.currentVersion,t)}catch{return null}}function Gl(){try{let e=lr();return e?rr(e.currentVersion,Zi(e.rootDir)):null}catch{return null}}function ts(e){try{let t=lr();if(!t||!ye.existsSync(t.rootDir))return;let{rootDir:n,currentVersion:o}=t,i=ye.readdirSync(n,{withFileTypes:!0}).filter(d=>d.isDirectory()).map(d=>d.name),s=Zi(n),l=Vl(o,s),a=Ul(o,l,i,e);for(let d of a)Bl(J.join(n,d))}catch{}}function $l(){try{let e=lr();if(!e||!_n)return!1;Vt=null;let t=es(_n);return t===null||!Gt.test(t)||je(t,e.currentVersion)<=0||Ji(e.rootDir,`app-${t}`)?!1:(u.info("update_detector","Removing incomplete install of version:",t),Bl(J.join(e.rootDir,`app-${t}`)),Vt=null,!0)}catch{return!1}}function Ap(e){let t=wn.app.getPath("exe"),n=J.dirname(t),o=J.dirname(n),r=J.basename(t),i=J.basename(n),s=i.startsWith("app-"),l=i.substring(4),a=s&&Gt.test(l)?l:null,d=pt();if(d){let g=J.join(o,`app-${d}`,r);if(ye.existsSync(g))return g}if(e&&Gt.test(e)&&(a===null||je(e,a)>0)&&Ji(o,`app-${e}`)&&Ep(e))return J.join(o,`app-${e}`,r);if(s){let g=J.join(o,r);if(ye.existsSync(g))return g}return t}function yn(e){if(Xi)try{Xi()}catch{}let t=Ap(e);_e({cmd:"QUIT_FOR_UPDATE"}),u.info("update_detector",`Relaunching application to target executable: ${M(t)}`),wn.app.relaunch({execPath:t,args:process.argv.slice(1)}),wn.app.quit()}function zl(e){Lp(),u.info("update_detector","Starting Omaha background update watcher (filesystem watch + 15m polling)");let t=null,n=()=>{let o=pt();return o?(o!==t&&(t=o,u.info("update_detector","Detected newly staged Omaha update version:",o),e(o),ts()),t):(t=null,null)};ns=n,Qi=setTimeout(n,Tp),sr=setInterval(n,Rp);try{let o=J.dirname(wn.app.getPath("exe")),r=J.dirname(o);J.basename(o).startsWith("app-")&&ye.existsSync(r)&&(ar=ye.watch(r,()=>{hn&&clearTimeout(hn),hn=setTimeout(()=>{hn=null,n()},xp)}),ar.on?.("error",s=>{Mt.warn("update_detector","Filesystem watcher error:",s)}))}catch{}}function jl(e){let t=ns;if(!t)return;ft&&(clearTimeout(ft),ft=null);let n=e&&Gt.test(e)?e:null,o=i=>i!==null&&(n===null||je(i,n)>=0),r=i=>{if(ft=null,o(t()))return;let s=i+1;if(s>=Yi.length){u.warn("update_detector","Helper reported a staged update that is not finalized on disk");return}let l=Yi[s]-Yi[i];ft=setTimeout(()=>{r(s)},l)};Vt=null,r(0)}function Lp(){for(let e of[Qi,hn])e&&clearTimeout(e);Qi=null,hn=null,sr&&clearInterval(sr),sr=null,ar?.close(),ar=null,ft&&clearTimeout(ft),ft=null,ns=null}var Fl,ye,J,wn,Xi,mp,hp,Gt,_p,yp,_n,Cp,Vt,Yi,Tp,xp,Rp,ns,Qi,hn,sr,ar,ft,bn=W(()=>{f();Fl=require("child_process"),ye=A(require("fs")),J=A(require("path")),wn=require("electron");pn();F();gn();nr();ir();Xi=null;mp=5*1024*1024,hp=1024,Gt=/^\d+(\.\d+)+$/;_p=2e3,yp=2e3;_n=Sp(),Cp=yp,Vt=null;Yi=[0,2e3,1e4,3e4],Tp=5e3,xp=1e3,Rp=900*1e3,ns=null,Qi=null,hn=null,sr=null,ar=null,ft=null});var Xl={};Fo(Xl,{CHECK_COOLDOWN_MS:()=>Yl,DEFAULT_HARD_DEADLINE_MS:()=>vn,checkForUpdatesNow:()=>rs,downloadUpdateNow:()=>is,normalizeHelperUpdateResult:()=>dr,resetCheckCooldownForTesting:()=>Dp});function Dp(){$t=null,cr=null,gt=0,os=""}async function rs(e=Kl,t=vn){if(O==="dev")return{status:"unavailable",message:"Updates are managed by your installation."};let n=pt();if(n)return gt=0,{status:"ready_to_install",version:n,message:`Update ready (v${n}) - Restart to apply`};let o=Date.now();if(gt>0&&o-gt<Yl){let r=os;if(!r)try{r=ur.app.getVersion()}catch{}return{status:"up_to_date",version:r}}return ss("CHECK_FOR_UPDATES",e,t)}async function is(e=Kl,t=vn){if(O==="dev")return{status:"unavailable",message:"Updates are managed by your installation."};let n=pt();return n?(gt=0,{status:"ready_to_install",version:n,message:`Update ready (v${n}) - Restart to apply`}):(gt=0,ss("DOWNLOAD_UPDATE",e,t))}async function ss(e,t,n){if($t){if(e==="CHECK_FOR_UPDATES"||cr==="DOWNLOAD_UPDATE")return $t;let o=await $t;return o.status!=="available"?o:ss(e,t,n)}return cr=e,$t=(async()=>{try{let o=await ql(e,t,n);return e==="DOWNLOAD_UPDATE"&&o.status==="available"?await ql(e,t,n):o}finally{$t=null,cr=null}})(),$t}function ql(e,t,n=vn){return Jn()?new Promise(o=>{let r=null,i=null,s=null,l=!1,a=m=>{l||(l=!0,r&&(clearTimeout(r),r=null),i&&(clearTimeout(i),i=null),s&&(s(),s=null),m.status==="up_to_date"?(gt=Date.now(),os=m.version??""):(m.status==="ready_to_install"||m.status==="available"||m.status==="downloading"||m.status==="error")&&(gt=0),o(m))};s=_l(m=>{if(m.cmd==="PIPE_DISCONNECTED"){let S=pt();a(S?{status:"ready_to_install",version:S}:{status:"error",message:"Helper process disconnected.",error:"Helper process disconnected."});return}if(m.cmd==="UPDATE_CHECK_RESULT"){let S=dr(m);if(S.status==="checking"||S.status==="downloading"){r&&(clearTimeout(r),r=setTimeout(d,t));return}a(S)}});let d=()=>{u.warn("check_for_updates","Timed out waiting for UPDATE_CHECK_RESULT from helper"),a({status:"error",message:"Update check timed out.",error:"Update check timed out."})},g=()=>{u.warn("check_for_updates","Update check exceeded hard maximum deadline"),a({status:"error",message:"Update exceeded maximum duration.",error:"Update exceeded maximum duration."})};r=setTimeout(d,t),n>0&&(i=setTimeout(g,n)),_e({cmd:e})}):!Dl()||!ur.app.isPackaged?Promise.resolve({status:"unavailable",message:"Updates are managed by your installation."}):(u.warn("check_for_updates","Win32 helper pipe is disconnected on packaged build during update check"),Promise.resolve({status:"error",message:"Couldn't reach the update service. Please try again."}))}function dr(e){let t=String(e.status??"error").toLowerCase(),n;switch(t){case"checking":n="checking";break;case"available":case"update_available":n="available";break;case"downloading":n="downloading";break;case"ready_to_install":n="ready_to_install";break;case"up_to_date":n="up_to_date";break;case"unavailable":n="unavailable";break;case"error":n="error";break;default:u.warn("check_for_updates",`Encountered unexpected update status from helper: "${t}"; mapping to error`),n="error";break}let o=typeof e.version=="string"&&e.version?e.version:void 0;if(!o&&n==="up_to_date")try{o=ur.app.getVersion()}catch{}let r=typeof e.error=="string"?e.error:n==="error"?"Update check failed.":void 0,i={status:n,version:o,message:r,error:r};return n==="error"&&(e.reason==="not_registered"||e.reason==="install_incomplete")&&(i.reason=e.reason),i}var ur,Kl,vn,Yl,$t,cr,gt,os,fr=W(()=>{f();ur=require("electron");he();pn();F();bn();nr();Kl=15e3,vn=720*1e3,Yl=3e4,$t=null,cr=null,gt=0,os=""});function Pp(){Al((e,t)=>{try{Ql.crashReporter.addExtraParameter(e,t)}catch{}})}function T(e,t){let n=cn(t);Tl(e,n)}var Ql,Cn=W(()=>{f();Ql=require("electron");Xn();pn();Pp()});function no(e){try{let t=new URL(e);if(t.protocol!=="https:")return!1;let n=t.hostname.toLowerCase();return Ga.includes(n)||n.endsWith(Zl)}catch{return!1}}function Sn(e){try{let t=new URL(e);if(t.protocol!=="https:")return!1;let n=t.hostname.toLowerCase();return $a.includes(n)||n.endsWith(Zl)}catch{return!1}}function pr(e){try{let t=new URL(e);if(t.protocol!=="https:")return!1;if(Si.includes(t.hostname.toLowerCase()))return!0;let n=t.searchParams,o=n.get("client_id"),r=n.get("redirect_uri"),i=n.get("response_type");if(!o||!r||!i)return!1;try{if(new URL(r).protocol!=="https:")return!1}catch{return!1}return!0}catch{return!1}}function as(e){try{let t=new URL(e);return t.protocol==="https:"&&Si.includes(t.hostname.toLowerCase())}catch{return!1}}function ec(e){try{return new URL(e).protocol==="https:"}catch{return!1}}function mt(e){try{let t=new URL(e);return t.protocol!=="https:"?!1:za.includes(t.hostname.toLowerCase())}catch{return!1}}function zt(e){try{return Np.includes(new URL(e).protocol)}catch{return!1}}function x(e){zt(e)?(u.info("security",`Opening external URL in system browser: ${ie(e)}`),Jl.shell.openExternal(e)):u.warn("security",`Blocked unsafe external protocol navigation attempt: ${ie(e)}`)}function v(e,t){try{if(!t||"isDestroyed"in t&&t.isDestroyed())return!1;let n="webContents"in t?t.webContents:t;return!!(n&&!n.isDestroyed()&&e.sender===n)}catch{return!1}}function Ue(e){try{let t=e.senderFrame?.url??e.sender?.getURL()??"",n=new URL(t);return n.protocol==="https:"&&G(n.hostname)}catch{return!1}}function oo(e){try{let t=e.senderFrame;return t!==null&&t.parent===null&&Ue(e)}catch{return!1}}function ro(e){try{let t=e.senderFrame?.url??e.sender?.getURL()??"",n=new URL(t);return n.protocol==="app:"&&n.hostname==="bundle"}catch{return!1}}function gr(e){try{if(ro(e))return!0;let t=e.senderFrame?.url??e.sender?.getURL()??"";return no(t)}catch{return!1}}var Jl,Zl,Np,ee=W(()=>{f();Jl=require("electron");he();F();Zl=".gstatic.com",Np=["http:","https:"]});function Sc(){return qt.join(wr.app.getPath("userData"),$p)}function Ec(){try{let e=Sc();if(se.existsSync(e)){let t=se.readFileSync(e,"utf8"),n=JSON.parse(t);if(n&&typeof n=="object"&&!Array.isArray(n))return ge=Object.assign({},uo,n),ge}}catch(e){u.warn("settings","Failed to read or parse settings.json from disk, falling back to defaults",e)}return ge=Object.assign({},uo),ge}function zp(e,t){let n=qt.dirname(e);se.existsSync(n)||se.mkdirSync(n,{recursive:!0});let o=qt.join(n,`.${qt.basename(e)}.${Date.now()}.${_s.randomUUID()}.tmp`);try{se.writeFileSync(o,t,"utf8")}catch(s){try{se.existsSync(o)&&se.unlinkSync(o)}catch{}throw s}let r=5,i=25;for(let s=0;s<r;s++)try{se.renameSync(o,e);return}catch(l){let a=l;if(a.code==="EBUSY"||a.code==="EPERM"||a.code==="EACCES"){let d=Date.now();for(;Date.now()-d<i;);}else break}try{se.copyFileSync(o,e),se.unlinkSync(o)}catch{try{se.existsSync(o)&&se.unlinkSync(o)}catch{}}}function jp(){try{ge||(ge=Object.assign({},uo));let e=Sc(),t=JSON.stringify(ge,null,2);zp(e,t)}catch(e){u.warn("settings","Failed to save settings.json to disk",e)}}function Z(e,t){return ge===null&&Ec(),ge&&e in ge&&ge[e]!==void 0?ge[e]:t!==void 0?t:uo[e]}function B(e,t,n=!1){if(ge===null&&Ec(),ge||(ge=Object.assign({},uo)),ge[e]=t,jp(),e==="diagnosticConsent")try{wr.crashReporter.setUploadToServer(!!t)}catch(o){u.warn("settings",`Failed to update crashReporter uploadToServer state: ${o}`)}n||El(e,t)}function Ac(){let e=Z(Cc,"");if(e)return e;let t=_s.randomUUID();return B(Cc,t),t}var _s,wr,se,qt,$p,Cc,uo,ge,Kt=W(()=>{f();_s=A(require("crypto")),wr=require("electron"),se=A(require("fs")),qt=A(require("path"));pn();F();$p="settings.json",Cc="localDeviceId",uo=Object.freeze({shortcut:"Alt+Space",stcShortcut:"Alt+Shift+D",openAtLogin:!0,disableShortcutInFullScreen:!0,diagnosticConsent:!1,hasSeenCrashReportingNotice:!1,windowBounds:void 0}),ge=null});function yr(e,t){if(t?.attachedContentWc&&!t.attachedContentWc.isDestroyed())return t.attachedContentWc;if(e&&!e.isDestroyed()&&e.contentView){let n=e.contentView.children;if(Array.isArray(n)){let o=n.find(r=>r&&r!==t?.excludeView&&r.webContents&&!r.webContents.isDestroyed());if(o)return o.webContents}}return e&&!e.isDestroyed()?e.webContents??null:null}function ce(e,t){let n=()=>{e&&!e.isDestroyed()&&e.focus();let r=yr(e,t);r&&!r.isDestroyed()&&r.focus()};n(),(typeof setImmediate=="function"?setImmediate:r=>setTimeout(r,0))(()=>{t?.shouldSkipDeferredFocus?.()||n()})}var qe=W(()=>{f()});function Zp(){let e=fo;try{e=ys.app.getLocale()||fo}catch{}let t=e.replace("-","_"),n=t.split("_")[0];return[t,n,fo]}function eg(){for(let e of Zp())try{let t=kc.join(__dirname,"_locales",e,"messages.json");br=JSON.parse(Wc.readFileSync(t,"utf8"));return}catch{}br={}}function c(e,...t){br===null&&eg();let n=br?.[e]?.message||e;if(t.length>0)for(let o=0;o<t.length;o++)n=n.replace(new RegExp(`\\$${o+1}`,"g"),t[o]),n=n.replace(new RegExp("\\$[A-Z0-9_]+\\$","i"),t[o]);return n}function Uc(){try{return ys.app.getLocale()||fo}catch{return fo}}function ng(){let e=Uc().toLowerCase().split(/[-_]/)[0];return tg.has(e)?"rtl":"ltr"}function K(e){let t=JSON.stringify(Uc()),n=JSON.stringify(ng());e.executeJavaScript(`document.documentElement.lang=${t};document.documentElement.dir=${n};`).catch(()=>{})}var ys,Wc,kc,fo,br,tg,Te=W(()=>{f();ys=require("electron"),Wc=A(require("fs")),kc=A(require("path")),fo="en",br=null;tg=new Set(["ar","fa","he","iw","ur","ps","sd","ug","yi","ji"])});var po,og,Y,Me=W(()=>{f();po=require("electron"),og=["resize","maximize","unmaximize","restore","enter-full-screen","leave-full-screen"],Y=class{windowSubscriptions=[];webContentsSubscriptions=[];ipcSubscriptions=[];ipcHandlers=[];trackedViews=[];attachedWindow=null;onClosedCallback=null;onIpc(t,n){let o=n;this.ipcSubscriptions.push({channel:t,listener:o}),po.ipcMain.on(t,o)}handleIpc(t,n){this.ipcHandlers.push(t),po.ipcMain.handle(t,n)}onWindow(t,n,o){let r=o;this.windowSubscriptions.push({win:t,event:n,listener:r}),t.on(n,r)}onWindowBoundsChange(t,n){for(let o of og)this.onWindow(t,o,n)}onWebContents(t,n,o){let r=o;this.webContentsSubscriptions.push({wc:t,event:n,listener:r}),t.on(n,r)}trackView(t){t&&!this.trackedViews.includes(t)&&this.trackedViews.push(t)}untrackView(t){if(!t)return;let n=this.trackedViews.indexOf(t);n!==-1&&this.trackedViews.splice(n,1)}bindWindow(t,n){this.attachedWindow=t,this.onClosedCallback=n??null;let o=()=>{this.teardown()};function r(){t&&!t.isDestroyed()&&t.removeListener("closed",r),o()}this.onWindow(t,"closed",r)}teardown(){for(let{channel:n,listener:o}of this.ipcSubscriptions)po.ipcMain.removeListener(n,o);this.ipcSubscriptions.length=0;for(let n of this.ipcHandlers)po.ipcMain.removeHandler(n);this.ipcHandlers.length=0;for(let{win:n,event:o,listener:r}of this.windowSubscriptions)n&&!n.isDestroyed()&&n.removeListener(o,r);this.windowSubscriptions.length=0;for(let{wc:n,event:o,listener:r}of this.webContentsSubscriptions)n&&!n.isDestroyed()&&n.removeListener(o,r);this.webContentsSubscriptions.length=0;for(let n of this.trackedViews)if(n&&n.webContents&&!n.webContents.isDestroyed()&&typeof n.webContents.close=="function")try{n.webContents.close()}catch{}this.trackedViews.length=0;let t=this.onClosedCallback;this.onClosedCallback=null,this.attachedWindow=null,t&&t()}reset(){this.teardown()}}});function Mc(){return{}}var Fc=W(()=>{f()});function Sr(e,t){let n=it(e,t);return ig.has(n)}function bs(){return Gc.join(Vc.app.getPath("userData"),rg)}function sg(){try{let e=bs();if(rt.existsSync(e)){let t=JSON.parse(rt.readFileSync(e,"utf8"));if(t&&typeof t=="object"){for(let[n,o]of Object.entries(t))if(o&&typeof o=="object"){let r=new Map;for(let[i,s]of Object.entries(o))(s==="granted"||s==="denied")&&r.set(it(i),s);wt.set(n.toLowerCase(),r)}u.info("permissions",`Loaded permissions store with ${wt.size} origins`)}}}catch(e){u.warn("permissions","Failed to load permissions store from disk",e)}}function ag(){try{let e=bs(),t={};for(let[n,o]of wt.entries()){t[n]={};for(let[r,i]of o.entries())t[n][r]=i}rt.writeFileSync(e,JSON.stringify(t,null,2),"utf8"),u.info("permissions","Saved permissions store to disk")}catch(e){u.warn("permissions","Failed to save permissions store to disk",e)}}function vs(e){try{return new URL(e).origin.toLowerCase()}catch{return e?String(e).toLowerCase():""}}function it(e,t){return e==="camera"||e==="videoCapture"?"camera":e==="microphone"||e==="audioCapture"?"media":e==="location"||e==="geolocation"?"geolocation":e==="media"?t?.mediaType==="video"||t?.mediaTypes&&t.mediaTypes.includes("video")&&!t.mediaTypes.includes("audio")?"camera":"media":e}function Cs(e,t){switch(it(e,t)){case"media":return"audio";case"camera":return"camera";case"geolocation":return"location";default:return"other"}}function Er(e,t,n){let o=e?e.getURL():"";return n?.isMainFrame===!1&&t&&t!=="about:blank"&&!t.startsWith("blob:")?t:o||t||""}async function Cr(e,t="Value"){return new Promise(n=>{(0,Hc.execFile)("reg.exe",["query",e,"/v",t],{windowsHide:!0},(o,r)=>{n(!o&&r?r:null)})})}function lg(e){if(!e||e.length<2)return!0;let t=+("0x"+e.substring(0,2));return isNaN(t)?!0:(t&1)===0}async function $c(){let e="HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",t="HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\Run",[n,o]=await Promise.all([Cr(e,"Gemini"),Cr(t,"Gemini")]);if(!n||!/Gemini\s+REG_SZ/i.test(n))return!1;if(o){let r=/Gemini\s+REG_BINARY\s+([0-9a-fA-F]+)/i.exec(o);if(r&&!lg(r[1]))return!1}return!0}async function Ar(){let e="HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",t="HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",n=l=>{if(!l)return null;let a=/Value\s+(?:REG_SZ|REG_DWORD)\s+(\S+)/i.exec(l);return a?a[1]:null},[o,r]=await Promise.all([Cr(e),Cr(t)]),i=n(o);if(i&&(i.toLowerCase()==="deny"||i==="0"))return!0;let s=n(r);return!!(s&&(s.toLowerCase()==="deny"||s==="0"))}function _t(e){return Bc.has(e)||Bc.has(it(e))}function zc(e,t,n){let o=it(e,n);if(!_t(o)&&!_t(e)||!mt(t))return!1;if(Sr(e,n))return!0;let r=vs(t),i=wt.get(r);return i?i.get(o)===ot||i.get(e)===ot:!1}function yt(e,t,n){let o=it(e,n);if(!_t(o)&&!_t(e)||!mt(t))return Rn;if(Sr(e,n))return ot;let r=vs(t),i=wt.get(r);return i?i.has(o)?i.get(o)??vr:i.has(e)?i.get(e)??vr:vr:vr}function Tr(e,t,n,o=!0){let r=it(e);if(!_t(r))return;let i=vs(t),s=wt.get(i);s||(s=new Map,wt.set(i,s)),s.set(r,n),r!==e&&s.set(e,n),u.info("permissions",`Permission "${e}" for ${i} set to "${n}" (remember=${o})`),o&&ag()}function Ss(){wt.clear();try{let e=bs();rt.existsSync(e)&&rt.unlinkSync(e)}catch{}}var Hc,Vc,rt,Gc,rg,ot,Rn,vr,Bc,ig,wt,xr=W(()=>{f();Hc=require("child_process"),Vc=require("electron"),rt=A(require("fs")),Gc=A(require("path"));F();ee();rg="permissions.json",ot="granted",Rn="denied",vr="prompt",Bc=new Set(["media","camera","videoCapture","microphone","audioCapture","geolocation","location","clipboard-read","clipboard-sanitized-write","notifications","fullscreen"]),ig=new Set(["clipboard-read","clipboard-sanitized-write","notifications","fullscreen"]);wt=new Map;sg()});var Qc={};Fo(Qc,{CANONICAL_MOD_NAMES:()=>go,DEFAULT_SHORTCUT:()=>Es,DEFAULT_STC_SHORTCUT:()=>As,MODIFIER_ORDER:()=>qc,RESERVED_WINDOWS_SHORTCUTS:()=>Kc,SHORTCUT_ACCELERATORS:()=>Rr,SUPPORTED_SHORTCUTS:()=>Ts,canonicalizeKeyName:()=>Rs,canonicalizeShortcut:()=>bt,getAcceleratorForShortcut:()=>dg,getActiveShortcut:()=>Os,getConfiguredShortcut:()=>Ir,getConfiguredStcShortcut:()=>mo,getReservedWindowsShortcuts:()=>Ls,handleHotkeyStatus:()=>fg,isPresetShortcut:()=>ug,isReservedWindowsShortcut:()=>Is,isShortcutRegistered:()=>Ns,isSupportedShortcut:()=>ho,isValidShortcut:()=>Xc,updateGlobalShortcut:()=>Ds,updateStcShortcut:()=>Ps});function Rs(e){if(!e||typeof e!="string")return null;let t=e.toUpperCase();if(Object.prototype.hasOwnProperty.call(jc,t))return jc[t];if(/^[A-Z0-9]$/i.test(e))return e.toUpperCase();let n=/^F([1-9]|1[0-9]|2[0-4])$/i.exec(e);if(n)return`F${n[1]}`;let o=/^Num([0-9])$/i.exec(e);return o?`Num${o[1]}`:null}function cg(e){return Rs(e)!==null}function bt(e){if(!e||typeof e!="string")return e;if(e.trim().toUpperCase()==="NONE")return"None";let t=e.split("+").map(l=>l.trim()).filter(Boolean);if(t.length<=1)return e;let n=t.slice(0,t.length-1),o=new Set;for(let l of n){let a=l.toUpperCase();if(Object.prototype.hasOwnProperty.call(go,a))o.add(go[a]);else return e}if(!o.has("Win")&&!o.has("Ctrl")&&!o.has("Alt"))return e;let r=t[t.length-1],i=Rs(r);return i?[...qc.filter(l=>o.has(l)),i].join("+"):e}function ug(e){if(!e||typeof e!="string")return!1;let t=bt(e);return Ts.includes(t)}function Ls(){return Array.from(Yc)}function Is(e){if(!e||e==="None")return!1;let t=bt(e);return Yc.has(t)}function Xc(e){if(!e||typeof e!="string")return!1;if(e.trim().toUpperCase()==="NONE")return!0;let t=e.split("+").map(i=>i.trim()).filter(Boolean);if(t.length<=1)return!1;let n=!1,o=t.slice(0,t.length-1);for(let i of o){let s=i.toUpperCase();if(Object.prototype.hasOwnProperty.call(go,s)){let l=go[s];(l==="Win"||l==="Ctrl"||l==="Alt")&&(n=!0)}else return!1}if(!n)return!1;let r=t[t.length-1];return cg(r)}function ho(e){return Xc(e)}function Ir(){let e=Z("shortcut",Es);return ho(e)?bt(e):Es}function dg(e){if(e==="None")return null;let t=bt(e);if(!t||t==="None")return null;if(Object.prototype.hasOwnProperty.call(Rr,t))return Rr[t];let n=t.split("+").map(r=>r.trim()).filter(Boolean);return n.length===0?null:n.map((r,i)=>{if(i<n.length-1){let s=r.toUpperCase();return s==="WIN"?"Super":s==="CTRL"?"Control":r}return r}).join("+")}function Ds(e){if(!ho(e))return u.warn("shortcuts",`Attempted to set unsupported shortcut: "${e}"`),{success:!1,shortcut:Ir(),error:"INVALID_SHORTCUT"};if(Is(e))return u.warn("shortcuts",`Attempted to set reserved Windows shortcut: "${e}"`),{success:!1,shortcut:Ir(),error:"RESERVED_SHORTCUT"};let t=bt(e);return Lr=t,xs=!0,B("shortcut",t),u.info("shortcuts",`Updated global shortcut setting to "${t}"`),{success:!0,shortcut:t,error:null}}function mo(){let e=Z("stcShortcut",As);return ho(e)?e:As}function Ps(e){return ho(e)?Is(e)?(u.warn("shortcuts",`Attempted to set reserved Windows STC shortcut: "${e}"`),{success:!1,shortcut:mo(),error:"RESERVED_SHORTCUT"}):(B("stcShortcut",e),u.info("shortcuts",`Updated Speak-to-Window shortcut setting to "${e}"`),{success:!0,shortcut:e,error:null}):(u.warn("shortcuts",`Attempted to set unsupported STC shortcut: "${e}"`),{success:!1,shortcut:mo(),error:"INVALID_SHORTCUT"})}function fg(e,t,n){xs=e,n&&n!=="None"&&(Lr=bt(n)),e?u.info("shortcuts",`Global hotkey registered: "${n||Lr}"`):n&&n!=="None"&&u.warn("shortcuts",`Global hotkey registration failed for "${n}"`)}function Ns(){return xs}function Os(){return Lr||Ir()}var Rr,Ts,Es,As,Lr,xs,jc,go,qc,Kc,Yc,Ws=W(()=>{f();F();Kt();Rr=Object.freeze({"Alt+Space":"Alt+Space","Alt+Shift+Space":"Alt+Shift+Space","Win+Alt+Space":"Super+Alt+Space","Win+Shift+G":"Super+Shift+G",None:null}),Ts=Object.freeze(Object.keys(Rr)),Es=Ts[0],As="Alt+Shift+D",Lr=null,xs=!0,jc=Object.freeze({SPACE:"Space",ENTER:"Enter",TAB:"Tab",ESCAPE:"Escape",ESC:"Escape",BACKSPACE:"Backspace",DELETE:"Delete",DEL:"Delete",INSERT:"Insert",INS:"Insert",HOME:"Home",END:"End",PAGEUP:"PageUp",PAGEDOWN:"PageDown",PAUSE:"Pause",BREAK:"Pause",PRINTSCREEN:"PrintScreen",PRTSC:"PrintScreen",PRTSCR:"PrintScreen",PRTSCN:"PrintScreen",SNAPSHOT:"PrintScreen",UP:"Up",DOWN:"Down",LEFT:"Left",RIGHT:"Right",HENKAN:"Henkan",MUHENKAN:"Muhenkan",KANA:"Kana",INTLYEN:"IntlYen",INTLRO:"IntlRo",HANGUL:"Hangul",HANJA:"Hanja",INTLBACKSLASH:"IntlBackslash",NUMPADCOMMA:"NumpadComma",NUMADD:"NumAdd",NUMSUBTRACT:"NumSubtract",NUMMULTIPLY:"NumMultiply",NUMDIVIDE:"NumDivide",NUMDECIMAL:"NumDecimal",NUMLOCK:"NumLock","`":"`","-":"-","=":"=","[":"[","]":"]","\\":"\\",";":";","'":"'",",":",",".":".","/":"/"});go=Object.freeze({WIN:"Win",SUPER:"Win",META:"Win",COMMAND:"Win",CMD:"Win",CTRL:"Ctrl",CONTROL:"Ctrl",ALT:"Alt",SHIFT:"Shift"}),qc=Object.freeze(["Win","Ctrl","Alt","Shift"]);Kc=new Set(["CTRL+C","CTRL+V","CTRL+X","CTRL+Z","CTRL+Y","CTRL+A","CTRL+S","CTRL+P","CTRL+O","CTRL+N","CTRL+W","CTRL+F","CTRL+H","CTRL+T","ALT+TAB","ALT+SHIFT+TAB","ALT+F4","ALT+ESC","CTRL+ESCAPE","CTRL+ALT+DELETE","CTRL+SHIFT+ESC","WIN+L","WIN+D","WIN+E","WIN+R","WIN+M","WIN+TAB","WIN+I","WIN+X","WIN+P","WIN+K","WIN+A","WIN+S","WIN+V","WIN+H","WIN+Z","WIN+G","WIN+Q","WIN+.","WIN+PAUSE","WIN+PRINTSCREEN"]),Yc=new Set(Array.from(Kc,e=>bt(e)))});function pg(){try{if(ks.screen)return ks.screen.getCursorScreenPoint()}catch{}return{x:0,y:0}}function Jc(){let e=pg(),t={x:e.x,y:e.y,width:2,height:20,hwnd:"",processName:"Unknown",hasCaret:!1},n=Ae();if(!n)return Promise.resolve(t);try{let o=n.getCaretPosition();return o.hasCaret&&(o.x!==0||o.y!==0)?Promise.resolve({x:o.x,y:o.y,width:o.width||2,height:o.height||20,hwnd:o.hwnd||"",processName:o.processName||"App",hasCaret:!0}):Promise.resolve({...t,hwnd:o.hwnd||"",processName:o.processName||"App"})}catch{return Promise.resolve(t)}}var ks,Zc=W(()=>{f();ks=require("electron");gn()});function gg(){return process.env.GEMINI_ENABLE_STW_DESKTOP_CONTEXT==="true"}function mg(){return{appName:"",processName:"",windowTitle:"",hwnd:"",timestamp:Date.now()}}async function eu(){if(!gg())return mg();let e=await hg(),[t,n]=await Promise.all([wg().catch(r=>(u.warn("context_collector",`a11y tree capture failed: ${String(r)}`),[])),_g().catch(r=>(u.warn("context_collector",`selected-text capture failed: ${String(r)}`),""))]),o=yg(t);return{appName:e.appName||"Active App",processName:e.processName||"Application",windowTitle:e.windowTitle||"",hwnd:e.hwnd||"",url:o||void 0,selectedText:n||void 0,selectedMarkdown:n?bg(n):void 0,a11yElements:t,timestamp:Date.now()}}function hg(){let e={appName:"App",processName:"App",windowTitle:"Active Window",hwnd:""},t=Ae();if(!t)return Promise.resolve(e);try{let n=t.getForegroundAppInfo();return Promise.resolve({appName:n.appName||"App",processName:n.processName||"App",windowTitle:n.windowTitle||"",hwnd:n.hwnd||""})}catch{return Promise.resolve(e)}}function wg(){let e=Ae();if(!e)return Promise.resolve([]);try{let t=e.getActiveWindowA11yTree();return Promise.resolve(t.map(n=>({role:n.role,name:n.name,automationId:n.automationId,value:n.value,bounds:n.bounds})))}catch{return Promise.resolve([])}}function _g(){let e=Ae();if(!e)return Promise.resolve("");try{return Promise.resolve(e.getSelectedText()||"")}catch{return Promise.resolve("")}}function yg(e){if(!(!e||e.length===0))for(let t of e){if(t.value&&(t.value.startsWith("http://")||t.value.startsWith("https://")))return t.value;if(t.name&&(t.name.startsWith("http://")||t.name.startsWith("https://")))return t.name}}function bg(e){return e?e.trim():""}var tu=W(()=>{f();F();gn()});function Qt(){return de}function Us(){if(de&&!de.isDestroyed())return de;let e=ru.join(__dirname,"stc","stc_pill_preload.js");u.info("STC_WINDOW",`Resolved preloadPath: ${M(e)}`),de=new vt.BrowserWindow({width:vg,height:Cg,frame:!1,transparent:!0,alwaysOnTop:!0,skipTaskbar:!0,resizable:!1,hasShadow:!0,show:!1,webPreferences:{nodeIntegration:!1,contextIsolation:!0,sandbox:!0,preload:e,partition:nu}});try{let o=vt.session.fromPartition(nu);ou||(Bo(o.protocol),ou=!0),o.setPermissionCheckHandler((r,i,s,l)=>i==="media"?l?.mediaType!=="video":!1),o.setPermissionRequestHandler((r,i,s,l)=>{if(i==="media"){let a=l,d=a?.mediaType!=="video"&&(!a?.mediaTypes||!a.mediaTypes.includes("video"));s(d);return}s(!1)})}catch{}Pr=!1,Xt=null;let t=de;t.webContents.on("will-navigate",(o,r)=>{o.preventDefault(),x(r)}),t.webContents.setWindowOpenHandler(({url:o})=>(x(o),{action:"deny"})),t.webContents.on("dom-ready",()=>{K(t.webContents),t.webContents.send("stc:localized-strings",{cancel:c("stc_pill_cancel"),cancelTip:c("stc_pill_cancel_tooltip"),send:c("stc_pill_send"),sendTip:c("stc_pill_send_tooltip")})}),t.webContents.once("did-finish-load",()=>{de!==t||t.isDestroyed()||(Pr=!0,Xt&&(t.webContents.send("stc:update",Xt),Xt=null))});let n=z("stc","stc_pill.html");return u.info("STC_WINDOW",`Loading HTML URL: ${ie(n)}`),de.loadURL(n),de}function au(e){let t=Us();return Eg(t,e),t.show(),t}function Eg(e,t){let o=(t?vt.screen.getDisplayNearestPoint({x:t.x,y:t.y})||vt.screen.getPrimaryDisplay():vt.screen.getPrimaryDisplay()).workArea,r=Math.round(o.x+(o.width-iu)/2-Dr),i=Math.round(o.y+o.height-Sg-su-Dr);e.setPosition(r,i)}function Ms(){de&&!de.isDestroyed()&&(de.hide(),de.close(),de=null),Pr=!1,Xt=null}function Nr(e){!de||de.isDestroyed()||(Xt=e,Pr&&(de.webContents.send("stc:update",e),Xt=null))}var vt,ru,de,iu,su,Dr,vg,Cg,Sg,nu,ou,Pr,Xt,Fs=W(()=>{f();vt=require("electron"),ru=A(require("path"));Se();Te();F();ee();de=null,iu=180,su=52,Dr=32,vg=iu+2*Dr,Cg=su+2*Dr,Sg=48,nu="stc-pill",ou=!1,Pr=!1,Xt=null});function Bs(e){if(!e)return!1;let t=Ae();if(!t||typeof t.setForegroundWindow!="function")return!1;try{let n=t.setForegroundWindow(e);return n||u.warn("inject","Could not restore focus to target window"),n}catch(n){return u.warn("inject",`setForegroundWindow threw: ${String(n)}`),!1}}async function lu(e,t){if(!e)return!0;let n=Ae();if(!n||typeof n.injectUnicodeText!="function")return u.warn("inject","Native addon unavailable; cannot inject transcript"),!1;t&&Bs(t);let o=0;for(let r=0;r<e.length;r++)e[r]!=="\r"&&o++;try{let r=n.injectUnicodeText(e);return r>=o?!0:(u.warn("inject",`Native injectUnicodeText truncated: ${r}/${o} code units`),!1)}catch(r){return u.error("inject","Native injectUnicodeText threw",r),!1}}var cu=W(()=>{f();F();gn()});function Jt(){return!0}function Tg(e,t){v(e,Qt())&&u.info("PILL_LOG",t)}function xg(e,t){if(v(e,Qt()))try{let n;if(Buffer.isBuffer(t))n=t;else if(t instanceof ArrayBuffer)n=Buffer.from(t);else if(ArrayBuffer.isView(t))n=Buffer.from(t.buffer,t.byteOffset,t.byteLength);else if(t&&typeof t=="object"&&"buffer"in t&&typeof t.byteOffset=="number"){let o=t;n=Buffer.from(o.buffer,o.byteOffset,o.byteLength)}else t&&typeof t=="object"&&"data"in t&&Array.isArray(t.data)?n=Buffer.from(t.data):n=Buffer.alloc(0);Or++,Or%10===1&&u.info("AUDIO_RECV",`Chunk #${Or} bytes=${n?.length}`),n&&n.length>0&&j&&j.sendAudioData(n)}catch(n){u.error("AUDIO_RECV","Dropping malformed audio chunk",n)}}function Rg(e){v(e,Qt())&&Dg()}async function Lg(e,t){v(e,Qt())&&await Vs(t)}function du(){wo.reset(),Or=0;try{Us()}catch{}wo.onIpc("stc:log",Tg),wo.onIpc("stc:audio-data",xg),wo.onIpc("stc:cancel",Rg),wo.onIpc("stc:accept",Lg)}async function kr(){if(Ct!=="inactive"){await Vs();return}await Ig()}async function Ig(){Ct="preparingActivation",Dn="";let e=await Jc();Wr=e.hwnd||"",au(e),Nr({status:"listening",text:""});let t=eu();j=new Hs,In="",await j.startSession(n=>{Dn=n.transcript,n.transcript&&(In=n.transcript),Nr({status:"streaming",text:Dn})},()=>{Nr({status:"error",text:"Speech Notice"})}),j.on("streamEnd",()=>{u.info("STC_MANAGER","Stream ended, submitting session."),Vs()}),Ln=await t,j&&Ln&&j.sendSpeechContext({appName:Ln.appName,url:Ln.url,selectedText:Ln.selectedMarkdown})}async function Vs(e){if(Ct==="inactive"||Ct==="waitingForSpeechRecognitionCompletion"){u.info("STC_MANAGER",`completeAndSubmitSession ignored: status is ${Ct}`);return}Ct="waitingForSpeechRecognitionCompletion";let t=!1,n="";if(j){let r=j.getLatestTranscript();r&&(In=r);let i=new Promise(l=>{let a=()=>j?.getLatestTranscript()||In||Dn||"",d=D=>{E(D)},g=()=>{setTimeout(()=>{E(a())},100)},m=D=>{t=!0,n=D,E(D)},S=!1,E=D=>{S||(S=!0,clearTimeout(k),j?.off("finalResult",d),j?.off("streamEnd",g),j?.off("executeChatQuery",m),l(D))},k=setTimeout(()=>{E(a())},Ag);j?.once("finalResult",d),j?.once("streamEnd",g),j?.once("executeChatQuery",m),j?.finishAudioStream?.()});j.finishAudioStream();let s=await i;s&&(In=s)}if(Ct==="inactive"){u.info("STC_MANAGER","completeAndSubmitSession: session cancelled during finalization; aborting");return}let o=(n||In||j?.getLatestTranscript()||Dn||e||"").trim();if(u.info("STC_MANAGER",`completeAndSubmitSession: final text len=${o.length}, isExecute=${t}`),j&&j.stopRecognition(),o){let r=Wr;Ms();try{u.info("STC_MANAGER",`Injecting text into active window (len=${o.length})`),await lu(o,r)}catch(i){u.error("STC_MANAGER",`Error in text injection: ${M(String(i))}`)}}fu()}function Dg(){j&&(j.cancelRecognition(),j=null),fu()}function fu(){let e=Wr;Ct="inactive",Ln=null,Wr="",Dn="",Ms(),e&&Bs(e)}var uu,Ag,Hs,Ct,Ln,Wr,Dn,In,j,wo,Or,Gs=W(()=>{f();Me();F();ee();Zc();tu();Fs();cu();uu="",Ag=12e3,Hs=require("./voice_bridge_native.js").RealGeminiVoiceSession,Ct="inactive",Ln=null,Wr="",Dn="",In="",j=null,wo=new Y;Or=0});function pu(){return{fields:{}}}var gu=W(()=>{f()});var at={};Fo(at,{attachSettingsModal:()=>qs,closeSettings:()=>$r,isSettingsOpen:()=>Ke,openSettingsWindow:()=>Et,resetSettingsStateForTesting:()=>Gg,sendUpdateCheckResultToSettings:()=>Vg,updateHotkeyStatus:()=>Ng,updateOpenAtLoginStatus:()=>Og});function Gr(){Mr!==null&&(clearTimeout(Mr),Mr=null)}function $s(){Gr(),St&&(!y||y.webContents.isDestroyed()||(y.setVisible(!0),y.webContents.focus()))}function Ng(e){y&&!y.webContents.isDestroyed()&&y.webContents.send("settings:hotkey-status",{registered:e})}function Og(e){y&&!y.webContents.isDestroyed()&&y.webContents.send("settings:open-at-login-status",{enabled:e,blocked:!e})}function Wg(e){v(e,y)&&$r()}function kg(e,t){v(e,y)&&(e.returnValue=c(String(t??"")))}function Ug(e){v(e,y)&&$s()}function Mg(){H.handleIpc("settings:get-all",async e=>{if(!v(e,y))return null;let t=!1,n=!1;try{t=Ne.systemPreferences.getMediaAccessStatus("microphone")==="denied"}catch{}try{n=Ne.systemPreferences.getMediaAccessStatus("camera")==="denied"}catch{}let o=Z("openAtLogin",!0),[r,i]=await Promise.allSettled([Ar(),$c()]),s=r.status==="fulfilled"?r.value:!1,l=o,a=!1;i.status==="fulfilled"&&(l=i.value,a=o&&!l,o!==l&&B("openAtLogin",l,!0));let d=O==="dev",g=pu(),m=Mc();return{shortcut:Os(),shortcutRegistered:Ns(),stcShortcut:mo(),speakToWindowEnabled:Jt(),reservedShortcuts:Ls(),openAtLogin:l,disableShortcutInFullScreen:Z("disableShortcutInFullScreen",!0),diagnosticConsent:Z("diagnosticConsent",!1),permissions:{media:yt("media",Ur),camera:yt("camera",Ur),geolocation:yt("geolocation",Ur)},windowsMicBlocked:t,windowsCameraBlocked:n,windowsLocationBlocked:s,windowsStartupBlocked:a,version:Ne.app.getVersion(),channel:O,...g.fields,...m,updatesDisabled:d,stagedUpdateVersion:d?null:pt(),stagedUpdateTitle:c("settings_update_ready"),stagedUpdateSubtext:c("settings_update_subtext"),stagedUpdateRestartLabel:c("settings_restart_to_update"),messages:{settings_title:c("settings_title"),settings_tab_general:c("settings_tab_general"),settings_general_desc:c("settings_general_desc"),settings_shortcut_label:c("settings_shortcut_label"),settings_shortcut_desc:c("settings_shortcut_desc"),settings_stc_shortcut_label:c("settings_stc_shortcut_label"),settings_stc_shortcut_desc:c("settings_stc_shortcut_desc"),settings_shortcut_alt_shift_d:c("settings_shortcut_alt_shift_d"),settings_shortcut_ctrl_shift_d:c("settings_shortcut_ctrl_shift_d"),settings_shortcut_conflict:c("settings_shortcut_conflict"),settings_shortcut_none:c("settings_shortcut_none"),settings_shortcut_custom:c("settings_shortcut_custom"),settings_shortcut_custom_prefix:c("settings_shortcut_custom_prefix"),settings_shortcut_type_shortcut:c("settings_shortcut_type_shortcut"),settings_shortcut_modifier_required:c("settings_shortcut_modifier_required"),settings_shortcut_reserved:c("settings_shortcut_reserved"),settings_shortcut_alt_space:c("settings_shortcut_alt_space"),settings_shortcut_alt_shift_space:c("settings_shortcut_alt_shift_space"),settings_shortcut_win_alt_space:c("settings_shortcut_win_alt_space"),settings_shortcut_win_shift_g:c("settings_shortcut_win_shift_g"),settings_open_at_login_label:c("settings_open_at_login_label"),settings_open_at_login_desc:c("settings_open_at_login_desc"),settings_open_at_login_windows_warning:c("settings_open_at_login_windows_warning"),settings_disable_shortcut_in_fullscreen_label:c("settings_disable_shortcut_in_fullscreen_label"),settings_disable_shortcut_in_fullscreen_desc:c("settings_disable_shortcut_in_fullscreen_desc"),settings_tab_privacy:c("settings_tab_privacy"),settings_privacy_title:c("settings_privacy_title"),settings_privacy_desc:c("settings_privacy_desc"),settings_mic_label:c("settings_mic_label"),settings_mic_desc:c("settings_mic_desc"),settings_mic_windows_warning:c("settings_mic_windows_warning"),settings_camera_label:c("settings_camera_label"),settings_camera_desc:c("settings_camera_desc"),settings_camera_windows_warning:c("settings_camera_windows_warning"),settings_location_label:c("settings_location_label"),settings_location_desc:c("settings_location_desc"),settings_location_windows_warning:c("settings_location_windows_warning"),settings_diagnostic_consent_label:c("settings_diagnostic_consent_label"),settings_diagnostic_consent_desc:c("settings_diagnostic_consent_desc"),settings_open_windows_settings:c("dialog_mic_blocked_open_settings"),settings_reset_permissions:c("settings_reset_permissions"),settings_tab_about:c("settings_tab_about"),settings_about_title:c("settings_tab_about"),settings_about_copyright:c("settings_about_copyright"),settings_about_desc:c("settings_about_desc"),settings_build_version:c("settings_build_version"),settings_check_for_updates:c("settings_check_for_updates"),settings_checking_btn:c("settings_checking_btn"),settings_download_update:c("settings_download_update"),settings_downloading_btn:c("settings_downloading_btn"),settings_checking_for_updates:c("settings_checking_for_updates"),settings_up_to_date:c("settings_up_to_date"),settings_up_to_date_short:c("settings_up_to_date_short"),settings_update_available:c("settings_update_available"),settings_update_available_short:c("settings_update_available_short"),settings_update_downloading:c("settings_update_downloading"),settings_update_downloading_version:c("settings_update_downloading_version"),settings_update_ready_inline:c("settings_update_ready_inline"),settings_update_error:c("settings_update_error"),settings_update_error_short:c("settings_update_error_short"),settings_update_download_error_short:c("settings_update_download_error_short"),settings_update_not_registered_short:c("settings_update_not_registered_short"),settings_update_install_incomplete_short:c("settings_update_install_incomplete_short"),settings_update_unavailable:c("settings_update_unavailable"),settings_update_ready:c("settings_update_ready"),settings_update_subtext:c("settings_update_subtext"),settings_restart_to_update:c("settings_restart_to_update"),settings_done:c("settings_done"),settings_close:c("settings_close")}}}),H.handleIpc("settings:relaunch-to-update",async e=>{v(e,y)&&yn()}),H.handleIpc("settings:check-for-updates",async e=>v(e,y)?rs():null),H.handleIpc("settings:download-update",async e=>v(e,y)?(st?.status==="available"&&Hr({status:"downloading",version:st.version}),is()):null),H.handleIpc("settings:set-open-at-login",async(e,t)=>{v(e,y)&&B("openAtLogin",!!t)}),H.handleIpc("settings:set-disable-shortcut-in-fullscreen",async(e,t)=>{v(e,y)&&B("disableShortcutInFullScreen",!!t)}),H.handleIpc("settings:set-diagnostic-consent",async(e,t)=>{v(e,y)&&B("diagnosticConsent",!!t)}),H.handleIpc("settings:set-shortcut",async(e,t)=>v(e,y)?Ds(String(t??"")):null),H.handleIpc("settings:set-stc-shortcut",async(e,t)=>v(e,y)?Ps(String(t??"")):null),H.handleIpc("settings:set-permission",async(e,t)=>{if(!v(e,y))return;let{permission:n,state:o}=t??{};n&&(o==="granted"||o==="denied")&&Tr(n,Ur,o,!0)}),H.handleIpc("settings:reset-permissions",async e=>{v(e,y)&&Ss()}),H.handleIpc("settings:open-windows-privacy",async e=>{v(e,y)&&await Ne.shell.openExternal("ms-settings:privacy-microphone")}),H.handleIpc("settings:open-windows-camera-privacy",async e=>{v(e,y)&&await Ne.shell.openExternal("ms-settings:privacy-webcam")}),H.handleIpc("settings:open-windows-location-privacy",async e=>{v(e,y)&&await Ne.shell.openExternal("ms-settings:privacy-location")}),H.handleIpc("settings:open-windows-startup-settings",async e=>{v(e,y)&&await Ne.shell.openExternal("ms-settings:startupapps")}),H.onIpc("settings:close",Wg),H.onIpc("settings:translate",kg),H.onIpc("settings:ready",Ug)}function wu(){if(!y||!Pe||Pe.isDestroyed())return;let e=Pe.getContentBounds();y.setBounds({x:0,y:0,width:e.width,height:e.height})}function zs(){Gr(),y=null,Pe=null,Vr=null,St=!1,Fr=!1,st=null,Br=0}function Fg(e){if(y)return;Pe=e,y=new Ne.WebContentsView({webPreferences:{preload:mu.join(__dirname,"settings","settings_preload.js"),nodeIntegration:!1,contextIsolation:!0,sandbox:!0}}),H.trackView(y),y.setVisible(!1),y.setBackgroundColor("#00000000"),typeof y.webContents.on=="function"&&y.webContents.on("will-navigate",(n,o)=>{n.preventDefault(),x(o)}),typeof y.webContents.setWindowOpenHandler=="function"&&y.webContents.setWindowOpenHandler(({url:n})=>(x(n),{action:"deny"})),y.webContents.loadURL(z("settings","settings.html"));let t=y.webContents;t.on("dom-ready",()=>{K(t),St&&!t.isDestroyed()&&(t.send("settings:opened"),js(t))})}function js(e){if(!e.isDestroyed()&&(Fr&&(Fr=!1,e.send("settings:trigger-update-check")),st)){let t=st,n=Date.now()-Br;if(t.status!=="ready_to_install"&&t.status!=="available"&&n>Hg){st=null,Br=0,u.info("settings_window","Dropping stale cached update check result; status:",t.status);return}u.info("settings_window","Replaying cached update check result to Settings; status:",t.status),e.send("settings:update-check-result",t)}}function Ke(){return St}function qs(e,t){H.reset(),zs(),Pe=e,Vr=t??null,H.onWindowBoundsChange(e,wu),Mg(),H.bindWindow(e,zs)}function Et(e,t,n){let o=e||Pe;if(!(!o||o.isDestroyed())){if(t&&(Vr=t),n?.triggerUpdateCheck&&(Fr=!0,o.isMinimized()&&o.restore(),o.show(),o.focus()),n?.updateCheckResult&&Hr(n.updateCheckResult),St){$s(),y&&!y.webContents.isLoading()&&js(y.webContents);return}if(Fg(o),wu(),o.contentView&&y){try{o.contentView.removeChildView(y)}catch{}o.contentView.addChildView(y),y.setVisible(!1),St=!0,y.webContents.send("settings:opened"),y.webContents.isLoading()||js(y.webContents),T("active_window","settings"),Gr(),Mr=setTimeout($s,Pg)}}}function Hr(e){st=e,Br=e?Date.now():0}function Vg(e){y&&!y.webContents.isDestroyed()&&!y.webContents.isLoading()&&y.webContents.send("settings:update-check-result",e),!(st?.status==="ready_to_install"&&e.status!=="ready_to_install"&&e.reason!=="install_incomplete")&&(st?.status==="downloading"&&e.status==="checking"||(Bg.has(e.status)?Hr(e):Hr(null)))}function $r(){Gr(),St=!1,T("active_window","main");let e=y;if(y=null,e&&!e.webContents.isDestroyed()&&e.setVisible(!1),ce(Pe,{attachedContentWc:Vr,excludeView:e,shouldSkipDeferredFocus:()=>St}),e&&Pe&&!Pe.isDestroyed()&&Pe.contentView)try{Pe.contentView.removeChildView(e)}catch{}if(e&&H.untrackView(e),e&&!e.webContents.isDestroyed())try{e.webContents.close()}catch{}}function Gg(){H.reset(),zs()}var Ne,mu,hu,Ur,y,Pe,Vr,St,Fr,st,Br,H,Pg,Mr,Bg,Hg,xe=W(()=>{f();Ne=require("electron"),mu=A(require("path"));Se();fr();he();Cn();Fc();qe();Te();Me();F();xr();ee();Kt();Ws();Gs();gu();bn();hu="https://gemini.google.com";try{hu=new URL(me).origin}catch{}Ur=hu,y=null,Pe=null,Vr=null,St=!1,Fr=!1,st=null,Br=0,H=new Y,Pg=1500,Mr=null;Bg=new Set(["checking","available","downloading","ready_to_install"]),Hg=vn});var Ih={};Fo(Ih,{handleCommandLineArgs:()=>Ra,handleHelperCommand:()=>ff,handleStagedUpdateDetected:()=>df,isDevEnvironment:()=>Pa,isTrustedAppSender:()=>ro,isTrustedGeminiSender:()=>Ue,isTrustedNavigationSender:()=>gr,parseSuppressQuitConfirmationArg:()=>to,resetMainStateForTesting:()=>xh});module.exports=Cf(Ih);f();var h=require("electron"),uf=A(require("path"));Se();fr();he();Cn();Xn();f();var dc=A(require("crypto")),jt=require("electron"),be=A(require("fs")),Tn=A(require("path"));he();F();ee();f();he();var tc="%.@.",nc="{";function ht(e){return typeof e=="string"&&(e.startsWith(tc)||e.startsWith(nc))}function Op(e,t,n){for(let[o,r]of e)/^\d+$/.test(o)&&(t.size>0&&!t.has(o)||(typeof r=="boolean"||typeof r=="number"||typeof r=="string")&&(n[o]=r))}async function oc(e,t=1e3){try{let s=new URL(e.getURL());if(!G(s.hostname)||s.protocol!=="https:")return null}catch{return null}let o=e.executeJavaScript(`(() => {
+`;
+  return (
+    u.info(
+      "feedback_logs",
+      "Prepared feedback log export (bytes, lines):",
+      jn(E),
+      a.length,
+    ),
+    E
+  );
+}
+async function qf(e) {
+  let t = e,
+    n = "",
+    o = !1;
+  if (ut.length > 0) {
+    let s = ut.length;
+    for (; s > 0 && t > 0;) (s--, (t -= jn(ut[s])));
+    ((n = ut.slice(s).join("")), (o = s > 0));
+  }
+  let r = Df();
+  if (!r || o || Di) return { lines: zn(n), truncated: o };
+  let i;
+  try {
+    i = await $.promises.open(r, "r");
+  } catch {
+    return { lines: zn(n), truncated: !1 };
+  }
+  try {
+    let { size: s } = await i.stat(),
+      l = Math.max(t, rl),
+      a = Math.min(s, l),
+      d = s - a,
+      g = await Kf(i, d, a);
+    if (d > 0) {
+      let E = g.indexOf(10),
+        k = E === -1 ? g.length : E + 1;
+      g = g.subarray(k);
+    }
+    let m = zn(new TextDecoder().decode(g)),
+      S = zn(n);
+    return { lines: [...m, ...S], truncated: d > 0 };
+  } catch {
+    return { lines: zn(n), truncated: !1 };
+  } finally {
+    await i.close().catch(() => {});
+  }
+}
+async function Kf(e, t, n) {
+  let o = new Uint8Array(n),
+    r = 0;
+  for (; r < n;) {
+    let { bytesRead: i } = await e.read(o, r, n - r, t + r);
+    if (i === 0) break;
+    r += i;
+  }
+  return o.subarray(0, r);
+}
+function zn(e) {
+  return e
+    .split(
+      `
+`,
+    )
+    .map((t) => (t.endsWith("\r") ? t.slice(0, -1) : t))
+    .filter((t) => t.length > 0);
+}
+function Yf(e) {
+  return M(e)
+    .replace(Ff, (t) => Xf(t))
+    .replace(Bf, "[REDACTED:email]")
+    .replace(Hf, "%USERPROFILE%$1[REDACTED:path]")
+    .replace(Vf, "$1[REDACTED:token]")
+    .replace(Gf, "[REDACTED:token]");
+}
+function Xf(e) {
+  let t;
+  try {
+    t = new URL(e);
+  } catch {
+    return "[REDACTED:url]";
+  }
+  if (t.protocol === "app:") return `app://${t.host}${t.pathname}`;
+  if (t.protocol !== "https:" && t.protocol !== "http:")
+    return `${t.protocol}//[REDACTED:url]`;
+  let n = t.hostname.toLowerCase();
+  if (!zf.some((i) => n === i || n.endsWith(`.${i}`)))
+    return `${t.protocol}//[REDACTED:host]`;
+  let r = t.pathname
+    .split("/")
+    .map((i) => ($f.test(i) ? i : "[id]"))
+    .join("/");
+  return `${t.protocol}//${t.host}${r}`;
+}
+function Xa(e, t) {
+  return `=== ${e}${t ? " (older lines omitted)" : ""} ===`;
+}
+function Qa(e, t, n) {
+  return (
+    [
+      "=== Gemini for Windows diagnostics ===",
+      `App version: ${e.appVersion}`,
+      `Channel: ${jo}`,
+      `OS: ${ke.platform()} ${ke.release()} ${ke.arch()}`,
+      `Electron: ${process.versions.electron || "unknown"}`,
+      `Helper: ${e.helperConnected ? "connected" : "not connected"}`,
+      `Generated: ${t}`,
+      `Lines: ${n}`,
+    ].join(`
+`) +
+    `
+`
+  );
+}
+function jn(e) {
+  return Buffer.byteLength(e, "utf8");
+}
+var $,
+  ke,
+  Ut,
+  Lf,
+  Ai,
+  If,
+  Ii,
+  jo,
+  Ge,
+  Ee,
+  Go,
+  zo,
+  qn,
+  Di,
+  ut,
+  kt,
+  Ti,
+  xi,
+  u,
+  Mt,
+  Ya,
+  kf,
+  Uf,
+  rl,
+  Mf,
+  Ff,
+  Bf,
+  Hf,
+  Vf,
+  Gf,
+  $f,
+  zf,
+  $n,
+  Ri,
+  $o,
+  Li,
+  F = W(() => {
+    f();
+    (($ = A(require("fs"))),
+      (ke = A(require("os"))),
+      (Ut = A(require("path"))));
+    ja();
+    ((Lf = { 0: "DEBUG", 1: "INFO", 2: "WARN", 3: "ERROR" }),
+      (Ai = "gemini.log"),
+      (If = 64 * 1024),
+      (Ii = 1),
+      (jo = "prod"),
+      (Ge = null),
+      (Ee = null),
+      (Go = 0),
+      (zo = null),
+      (qn = !1),
+      (Di = !1),
+      (ut = []));
+    ((kt = null), (Ti = null), (xi = null));
+    ((u = {
+      debug: (e, t, n, ...o) => {
+        o.length > 0 || (n !== void 0 && !(n instanceof Error))
+          ? Vo(0, e, t, n, ...o)
+          : $e(0, e, t, n);
+      },
+      info: (e, t, n, ...o) => {
+        o.length > 0 || (n !== void 0 && !(n instanceof Error))
+          ? Vo(1, e, t, n, ...o)
+          : $e(1, e, t, n);
+      },
+      warn: (e, t, n, ...o) => {
+        o.length > 0 || (n !== void 0 && !(n instanceof Error))
+          ? Vo(2, e, t, n, ...o)
+          : $e(2, e, t, n);
+      },
+      error: (e, t, n, ...o) => {
+        o.length > 0 || (n !== void 0 && !(n instanceof Error))
+          ? Vo(3, e, t, n, ...o)
+          : $e(3, e, t, n);
+      },
+    }),
+      (Mt = {
+        debug: (e, t, n, ...o) => {
+          o.length > 0 || n !== void 0 ? ln(0, e, t, n, ...o) : $e(0, e, t);
+        },
+        info: (e, t, n, ...o) => {
+          o.length > 0 || n !== void 0 ? ln(1, e, t, n, ...o) : $e(1, e, t);
+        },
+        warn: (e, t, n, ...o) => {
+          o.length > 0 || n !== void 0 ? ln(2, e, t, n, ...o) : $e(2, e, t);
+        },
+        error: (e, t, n, ...o) => {
+          o.length > 0 || n !== void 0 ? ln(3, e, t, n, ...o) : $e(3, e, t);
+        },
+      }),
+      (Ya = 1024 * 1024),
+      (kf = 5e3),
+      (Uf = 2),
+      (rl = 64 * 1024),
+      (Mf = 9999999),
+      (Ff = /\b[a-z][a-z0-9+.-]*:\/\/[^\s"'<>()[\]{}`]+/gi),
+      (Bf = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g),
+      (Hf = /%USERPROFILE%([\\/])(?!AppData(?:[\\/]|$))[^\r\n]*/gi),
+      (Vf = /\b(Bearer\s+)[A-Za-z0-9._~+/-]+=*/gi),
+      (Gf = /\bya29\.[A-Za-z0-9._-]+/g),
+      ($f = /^[A-Za-z._-]{0,32}$/),
+      (zf = [
+        "google.com",
+        "googleapis.com",
+        "googleusercontent.com",
+        "gstatic.com",
+        "youtube.com",
+      ]),
+      ($n = null),
+      (Ri = 0),
+      ($o = 0),
+      (Li = ""));
+  });
+function Zf(e) {
+  return typeof e != "string" || e.length === 0 || e.length > Jf
+    ? !1
+    : Qf.includes(e);
+}
+function cn(e) {
+  if (e == null) return "";
+  let t = typeof e == "string" ? e : String(e);
+  if (
+    t.startsWith("http://") ||
+    t.startsWith("https://") ||
+    t.startsWith("file://")
+  )
+    try {
+      t = ie(t);
+    } catch {
+      t = "[redacted-url]";
+    }
+  t = M(t)
+    .replace(/[\r\n]+/g, " ")
+    .trim();
+  let n = [...t];
+  return n.length > ll ? n.slice(0, ll).join("") : t;
+}
+function Yn(e) {
+  return e ? cn(e) : "unknown";
+}
+function ae(e, t) {
+  return t != null && String(t).length > 0 ? cn(`${e}:${t}`) : cn(e);
+}
+function ul(e, t, n, o) {
+  let r = `${e}:${t}:${n}`;
+  return o === void 0 ? r : `${r}#${o}`;
+}
+function dl(e) {
+  return e === "GPU" ? "gpu-process" : e === "Utility" ? "utility" : "helper";
+}
+function fl(e) {
+  let t =
+    e ||
+    process.env.LOCALAPPDATA ||
+    (process.env.USERPROFILE || process.env.HOME
+      ? Oi.win32.join(
+          process.env.USERPROFILE || process.env.HOME,
+          "AppData",
+          "Local",
+        )
+      : cl.tmpdir());
+  return Oi.win32.join(t, "Google", "Gemini", "Crashpad");
+}
+function pl(e, t, n, o) {
+  let r = al.includes("?") ? "&" : "?";
+  return {
+    submitURL: `${al}${r}product=${encodeURIComponent(Ft)}&version=${encodeURIComponent(e)}&prod=${encodeURIComponent(Ft)}&ver=${encodeURIComponent(e)}`,
+    productName: Ft,
+    uploadToServer: n,
+    compress: !0,
+    rateLimit: o !== void 0 ? o : t === "prod",
+    extra: {
+      prod: Ft,
+      ver: e,
+      product: Ft,
+      version: e,
+      process_type: "main",
+      channel: t,
+    },
+    globalExtra: { prod: Ft, ver: e, product: Ft, version: e, channel: t },
+  };
+}
+function gl(e, t) {
+  if (!Zf(e)) return null;
+  let n = cn(t);
+  return { cmd: "SET_CRASH_ANNOTATION", key: e, value: n };
+}
+function Wi() {
+  return { cmd: "DUMP_WITHOUT_CRASH" };
+}
+function Xo(e) {
+  return ep.has(e) ? e : "unknown";
+}
+var cl,
+  Oi,
+  al,
+  Ft,
+  Qf,
+  Jf,
+  ll,
+  ep,
+  Xn = W(() => {
+    f();
+    ((cl = A(require("os"))), (Oi = A(require("path"))));
+    F();
+    ((al = "https://clients2.google.com/cr/report"),
+      (Ft = "GeminiWindows"),
+      (Qf = ["active_window", "channel", "surface", "navigation_state"]),
+      (Jf = 32),
+      (ll = 64));
+    ep = new Set([
+      "crashed",
+      "oom",
+      "killed",
+      "launch-failed",
+      "integrity-failure",
+      "abnormal-exit",
+      "uncaught-exception",
+      "unknown",
+    ]);
+  });
+function _l(e) {
+  return (
+    Qo.push(e),
+    () => {
+      let t = Qo.indexOf(e);
+      t !== -1 && Qo.splice(t, 1);
+    }
+  );
+}
+function er(e) {
+  for (Ko(); Qn.length > 0;) {
+    let t = Qn.shift();
+    try {
+      t?.(e);
+    } catch {}
+  }
+}
+function op(e) {
+  return (
+    JSON.stringify(e) +
+    `
+`
+  );
+}
+function yl(e) {
+  if (e.cmd === "CONFIG_CHANGED" && typeof e.key == "string")
+    return `${e.cmd} (key=${e.key})`;
+  if (e.cmd === "HOTKEY_SUPPRESSED") {
+    let t = [];
+    return (
+      typeof e.shortcut == "string" &&
+        e.shortcut &&
+        t.push(`shortcut=${e.shortcut}`),
+      typeof e.reason == "string" && e.reason && t.push(`reason=${e.reason}`),
+      t.length > 0 ? `${e.cmd} (${t.join(", ")})` : e.cmd
+    );
+  }
+  return e.cmd;
+}
+function rp(e, t) {
+  return { cmd: "CONFIG_CHANGED", key: e, value: t };
+}
+function ip(e) {
+  try {
+    let t = e.trim();
+    return t.length === 0 ? null : JSON.parse(t);
+  } catch {
+    return null;
+  }
+}
+function bl() {
+  try {
+    let e = fn.dirname(process.execPath),
+      t = fn.dirname(e),
+      n = fn.join(t, "GeminiAppLauncher.exe"),
+      o = fn.join(e, "GeminiAppLauncher.exe"),
+      r = null;
+    (Ui.existsSync(n) ? (r = n) : Ui.existsSync(o) && (r = o),
+      r &&
+        (u.info(
+          "helper_ipc",
+          "Spawning native Win32 background helper daemon:",
+          M(r),
+        ),
+        hl.spawn(r, [], { detached: !0, stdio: "ignore" }).unref()));
+  } catch (e) {
+    u.warn(
+      "helper_ipc",
+      "Failed to spawn native Win32 background helper daemon",
+      e,
+    );
+  }
+}
+function Hi(e) {
+  for (let t of [...Qo])
+    try {
+      t(e);
+    } catch (n) {
+      u.warn("helper_ipc", "Error in helper command listener callback", n);
+    }
+}
+function sp(e) {
+  if (
+    (u.info("helper_ipc", "Received command from helper:", yl(e)),
+    Hi(e),
+    e.cmd === "LOGS_ROTATED")
+  ) {
+    er(!0);
+    return;
+  }
+  Ht && Ht(e);
+}
+function vl(e) {
+  (u.info(
+    "helper_ipc",
+    "Initializing Named Pipe IPC client to GeminiAppLauncher",
+  ),
+    (Ht = e),
+    Pi(lp),
+    bl(),
+    Cl());
+}
+function Cl() {
+  if (le) {
+    le.removeAllListeners();
+    try {
+      le.destroy();
+    } catch {}
+    le = null;
+  }
+  (u.info("helper_ipc", "Connecting to named pipe:", ml),
+    (le = wl.createConnection(ml)),
+    le.on("connect", () => {
+      ((ze = !0),
+        (Bt = 0),
+        (un = ""),
+        u.info(
+          "helper_ipc",
+          "Connected to GeminiAppLauncher Named Pipe server",
+        ),
+        _e({ cmd: "HELLO" }));
+      for (let [t, n] of Jo.entries())
+        _e({ cmd: "SET_CRASH_ANNOTATION", key: t, value: n });
+      let e = Jo.get("navigation_state") ?? "";
+      (Bi("navigation_state", e),
+        Zo && ((Zo = !1), _e(Wi())),
+        Mi || ((Mi = !0), Ja() && Sl()));
+    }),
+    le.on("data", (e) => {
+      un += e.toString("utf8");
+      let t;
+      for (
+        ;
+        (t = un.indexOf(`
+`)) !== -1;
+      ) {
+        let n = un.substring(0, t).trim();
+        un = un.substring(t + 1);
+        let o = ip(n);
+        o && sp(o);
+      }
+    }),
+    le.on("error", (e) => {
+      (u.debug("helper_ipc", "Helper named pipe client socket error", e),
+        er(!1));
+    }),
+    le.on("close", () => {
+      let e = ze;
+      (u.info(
+        "helper_ipc",
+        "Helper named pipe connection closed; scheduling reconnect",
+      ),
+        e && Bi("navigation_state", ae("crashed", "helper_pipe_disconnected")),
+        (ze = !1),
+        (le = null),
+        er(!1),
+        Hi({ cmd: "PIPE_DISCONNECTED" }),
+        Ht && Ht({ cmd: "PIPE_DISCONNECTED" }),
+        ap());
+    }));
+}
+function ap() {
+  if (dn) return;
+  let e =
+    Bt < ki.length ? ki[Bt] : Math.min(tp * Math.pow(1.5, Bt - ki.length), np);
+  (Bt++,
+    u.info(
+      "helper_ipc",
+      "Scheduling helper reconnect attempt:",
+      `#${Bt} in ${e}ms`,
+    ),
+    (dn = setTimeout(() => {
+      ((dn = null), bl(), Cl());
+    }, e)));
+}
+function _e(e) {
+  if (le && ze)
+    try {
+      (u.info("helper_ipc", "Sending command to helper:", yl(e)),
+        le.write(op(e)));
+    } catch (t) {
+      u.warn("helper_ipc", "Failed to write command to helper pipe:", e.cmd, t);
+    }
+}
+function Sl() {
+  return le && ze
+    ? (qo(),
+      new Promise((e) => {
+        let t = null,
+          n = (o) => {
+            (t && (clearTimeout(t), (t = null)), e(o));
+          };
+        ((t = setTimeout(() => {
+          let o = Qn.indexOf(n);
+          (o !== -1 && Qn.splice(o, 1), Ko(), e(!1));
+        }, 5e3)),
+          Qn.push(n),
+          _e({ cmd: "ROTATE_LOGS" }));
+      }))
+    : Promise.resolve(!1);
+}
+function lp() {
+  return le && ze ? (Sl(), !0) : !1;
+}
+function El(e, t) {
+  _e(rp(e, t));
+}
+function Bi(e, t) {
+  if (Fi)
+    try {
+      Fi(e, t);
+    } catch {}
+}
+function Al(e) {
+  Fi = e;
+}
+function Tl(e, t) {
+  let n = gl(e, t);
+  n && (Jo.set(n.key, n.value), _e(n), Bi(n.key, n.value));
+}
+function xl() {
+  le && ze ? _e(Wi()) : (Zo = !0);
+}
+function Jn() {
+  return ze;
+}
+function Vi() {
+  if (
+    (u.info("helper_ipc", "Cleaning up helper IPC connection"),
+    Pi(null),
+    dn && (clearTimeout(dn), (dn = null)),
+    (Bt = 0),
+    (Zo = !1),
+    le)
+  ) {
+    let e = le;
+    if ((e.removeAllListeners(), e.on("error", () => {}), ze))
+      try {
+        (_e({ cmd: "BYE" }), e.end());
+      } catch {}
+    else
+      try {
+        e.destroy();
+      } catch {}
+  }
+  ((le = null),
+    (ze = !1),
+    (Mi = !1),
+    Jo.clear(),
+    Hi({ cmd: "PIPE_DISCONNECTED" }),
+    Ht && Ht({ cmd: "PIPE_DISCONNECTED" }),
+    er(!1));
+}
+var hl,
+  Ui,
+  wl,
+  fn,
+  ml,
+  ki,
+  tp,
+  np,
+  le,
+  ze,
+  Mi,
+  dn,
+  Bt,
+  Ht,
+  un,
+  Jo,
+  Zo,
+  Qn,
+  Qo,
+  Fi,
+  pn = W(() => {
+    f();
+    ((hl = A(require("child_process"))),
+      (Ui = A(require("fs"))),
+      (wl = A(require("net"))),
+      (fn = A(require("path"))));
+    Xn();
+    F();
+    ((ml = "\\\\.\\pipe\\Google.Gemini.AppLauncher"),
+      (ki = [100, 250, 500, 1e3]),
+      (tp = 2e3),
+      (np = 3e4),
+      (le = null),
+      (ze = !1),
+      (Mi = !1),
+      (dn = null),
+      (Bt = 0),
+      (Ht = null),
+      (un = ""),
+      (Jo = new Map()),
+      (Zo = !1),
+      (Qn = []),
+      (Qo = []));
+    Fi = null;
+  });
+function cp() {
+  let e = [];
+  e.push(Gi.join(__dirname, "gemini_native.node"));
+  try {
+    e.push(Gi.join(process.resourcesPath, "app", "src", "gemini_native.node"));
+  } catch {}
+  return e;
+}
+function Rl() {
+  if (Zn !== void 0) return Zn;
+  Zn = null;
+  for (let e of cp())
+    try {
+      let t = require(e);
+      if (t && typeof t.ping == "function") {
+        Zn = t;
+        break;
+      }
+    } catch {}
+  return Zn;
+}
+var Gi,
+  Zn,
+  Ll = W(() => {
+    f();
+    Gi = A(require("path"));
+  });
+function Ae() {
+  return (
+    eo !== void 0 ||
+      ((eo = Rl() ?? null),
+      eo
+        ? u.info("native_addon", "Loaded gemini_native N-API addon")
+        : u.warn(
+            "native_addon",
+            "gemini_native addon unavailable; Will use fallbacks",
+          )),
+    eo
+  );
+}
+var eo,
+  gn = W(() => {
+    f();
+    F();
+    Ll();
+  });
+function Dl() {
+  return $i.win;
+}
+var $i,
+  tr,
+  Il,
+  lw,
+  nr = W(() => {
+    f();
+    (($i = { win: "{533DD80C-942A-4464-B6A9-2E59428D784E}" }),
+      (tr = `HKCU\\Software\\Google\\Update\\Clients\\${$i.win}`),
+      (Il = `HKLM\\Software\\Google\\Update\\Clients\\${$i.win}`),
+      (lw = process.env.GEMINI_UPDATE_URL || void 0));
+  });
+function or(e, t) {
+  return Math.max(0, e - t);
+}
+function qi(e, t = 36) {
+  return { x: Math.max(0, e - Pl - Nl - gp), y: t, width: fp, height: pp };
+}
+function Ki(e, t) {
+  let n = Math.max(0, e - zi - Wl),
+    o = Math.max(0, t - ji - Ol);
+  return { x: n, y: o, width: zi, height: ji };
+}
+var Pl,
+  up,
+  Nl,
+  dp,
+  fp,
+  pp,
+  gp,
+  zi,
+  ji,
+  Ol,
+  Wl,
+  mn = W(() => {
+    f();
+    ((Pl = 360),
+      (up = 36),
+      (Nl = 16),
+      (dp = 16),
+      (fp = Pl + Nl * 2),
+      (pp = up + dp * 2),
+      (gp = 20));
+    ((zi = 440), (ji = 88), (Ol = 16), (Wl = 16));
+  });
+function je(e, t) {
+  let n = e.split(".").map(Number),
+    o = t.split(".").map(Number),
+    r = Math.max(n.length, o.length);
+  for (let i = 0; i < r; i++) {
+    let s = n[i] || 0,
+      l = o[i] || 0;
+    if (s !== l) return s - l;
+  }
+  return 0;
+}
+function rr(e, t) {
+  let n = /^\d+(\.\d+)+$/,
+    o = [];
+  for (let r of t) {
+    let i = r.startsWith("app-") ? r.substring(4) : r;
+    n.test(i) && je(i, e) > 0 && o.push(i);
+  }
+  return o.length === 0 ? null : (o.sort(je), o[o.length - 1]);
+}
+function Ul(e, t, n, o) {
+  let r = t || e,
+    i = /^\d+(\.\d+)+$/,
+    s = [],
+    l = o ? (o.startsWith("app-") ? o.substring(4) : o) : null;
+  for (let a of n) {
+    let d = a.startsWith("app-") ? a.substring(4) : a;
+    i.test(d) &&
+      (d === e ||
+        d === r ||
+        a === o ||
+        (l !== null && d === l) ||
+        (je(d, r) < 0 && s.push(a)));
+  }
+  return s;
+}
+function kl(e) {
+  let t = e
+    .trim()
+    .toLowerCase()
+    .replace(/^["']|["']$/g, "")
+    .trim();
+  return t === "1" || t === "true"
+    ? !0
+    : t === "0" || t === "false"
+      ? !1
+      : null;
+}
+function to(e) {
+  for (let t = 0; t < e.length; t++) {
+    let o = e[t].toLowerCase();
+    if (o.startsWith("--set-suppress-quit-confirmation=")) {
+      let r = o.substring(33),
+        i = kl(r);
+      return i !== null ? i : !0;
+    }
+    if (o === "--set-suppress-quit-confirmation") {
+      if (t + 1 < e.length) {
+        let r = e[t + 1];
+        if (!r.startsWith("-")) {
+          let i = kl(r);
+          if (i !== null) return i;
+        }
+      }
+      return !0;
+    }
+  }
+  return null;
+}
+var ir = W(() => {
+  f();
+  mn();
+});
+function Bl(e) {
+  try {
+    Ae()?.removeTreeBestEffort(e);
+  } catch {}
+}
+function Hl(e) {
+  Xi = e;
+}
+function wp(e) {
+  let t = process.noAsar;
+  process.noAsar = !0;
+  try {
+    return e();
+  } finally {
+    process.noAsar = t;
+  }
+}
+function Ji(e, t) {
+  if (!t.startsWith("app-")) return !1;
+  try {
+    return wp(() => {
+      let n = ye.statSync(J.join(e, t, "Gemini.exe")),
+        o = ye.statSync(J.join(e, t, "resources", "app.asar"));
+      return n.isFile() && o.isFile() && n.size > mp && o.size > hp;
+    });
+  } catch {
+    return !1;
+  }
+}
+function Zi(e) {
+  if (!ye.existsSync(e)) return [];
+  try {
+    return ye
+      .readdirSync(e, { withFileTypes: !0 })
+      .filter((n) => n.isDirectory())
+      .map((n) => n.name)
+      .filter((n) => Ji(e, n));
+  } catch {
+    return [];
+  }
+}
+function bp(e, t) {
+  for (let n of e.split(/\r?\n/)) {
+    let o = n.trim(),
+      r = o.split(/\s{2,}|\t+/);
+    if (
+      r.length >= 3 &&
+      r[0].toLowerCase() === t.toLowerCase() &&
+      r[1] === "REG_SZ"
+    ) {
+      let i = o.indexOf("REG_SZ");
+      return o.substring(i + 6).trim();
+    }
+  }
+  return null;
+}
+function Ml(e, t = []) {
+  try {
+    let n = J.join(
+        process.env.SystemRoot || "C:\\Windows",
+        "System32",
+        "reg.exe",
+      ),
+      o = (0, Fl.execFileSync)(n, ["query", e, "/v", "pv", ...t], {
+        encoding: "utf8",
+        windowsHide: !0,
+        timeout: _p,
+      }),
+      r = bp(o, "pv");
+    return r && Gt.test(r) ? r : null;
+  } catch {
+    return null;
+  }
+}
+function vp() {
+  return Ml(tr) ?? Ml(Il, ["/reg:32"]);
+}
+function Sp() {
+  return process.platform === "win32" ? vp : null;
+}
+function es(e) {
+  let t = Date.now();
+  if (Vt !== null && t - Vt.readAtMs < Cp) return Vt.value;
+  let n = e();
+  return ((Vt = { value: n, readAtMs: t }), n);
+}
+function Ep(e) {
+  if (!_n) return !0;
+  let t = es(_n);
+  return t !== null && je(e, t) <= 0;
+}
+function Vl(e, t) {
+  let n = rr(e, t);
+  if (!n || !_n) return n;
+  let o = es(_n);
+  if (o === null) return null;
+  if (je(n, o) <= 0) return n;
+  let r = t.filter((i) => {
+    let s = i.substring(4);
+    return Gt.test(s) && je(s, o) <= 0;
+  });
+  return rr(e, r);
+}
+function lr(e = wn.app.getPath("exe")) {
+  let t = J.dirname(e),
+    n = J.basename(t),
+    o = n.substring(4);
+  return !n.startsWith("app-") || !Gt.test(o)
+    ? null
+    : { rootDir: J.dirname(t), currentVersion: o };
+}
+function pt() {
+  try {
+    let e = lr();
+    if (!e) return null;
+    let t = Zi(e.rootDir);
+    return Vl(e.currentVersion, t);
+  } catch {
+    return null;
+  }
+}
+function Gl() {
+  try {
+    let e = lr();
+    return e ? rr(e.currentVersion, Zi(e.rootDir)) : null;
+  } catch {
+    return null;
+  }
+}
+function ts(e) {
+  try {
+    let t = lr();
+    if (!t || !ye.existsSync(t.rootDir)) return;
+    let { rootDir: n, currentVersion: o } = t,
+      i = ye
+        .readdirSync(n, { withFileTypes: !0 })
+        .filter((d) => d.isDirectory())
+        .map((d) => d.name),
+      s = Zi(n),
+      l = Vl(o, s),
+      a = Ul(o, l, i, e);
+    for (let d of a) Bl(J.join(n, d));
+  } catch {}
+}
+function $l() {
+  try {
+    let e = lr();
+    if (!e || !_n) return !1;
+    Vt = null;
+    let t = es(_n);
+    return t === null ||
+      !Gt.test(t) ||
+      je(t, e.currentVersion) <= 0 ||
+      Ji(e.rootDir, `app-${t}`)
+      ? !1
+      : (u.info(
+          "update_detector",
+          "Removing incomplete install of version:",
+          t,
+        ),
+        Bl(J.join(e.rootDir, `app-${t}`)),
+        (Vt = null),
+        !0);
+  } catch {
+    return !1;
+  }
+}
+function Ap(e) {
+  let t = wn.app.getPath("exe"),
+    n = J.dirname(t),
+    o = J.dirname(n),
+    r = J.basename(t),
+    i = J.basename(n),
+    s = i.startsWith("app-"),
+    l = i.substring(4),
+    a = s && Gt.test(l) ? l : null,
+    d = pt();
+  if (d) {
+    let g = J.join(o, `app-${d}`, r);
+    if (ye.existsSync(g)) return g;
+  }
+  if (
+    e &&
+    Gt.test(e) &&
+    (a === null || je(e, a) > 0) &&
+    Ji(o, `app-${e}`) &&
+    Ep(e)
+  )
+    return J.join(o, `app-${e}`, r);
+  if (s) {
+    let g = J.join(o, r);
+    if (ye.existsSync(g)) return g;
+  }
+  return t;
+}
+function yn(e) {
+  if (Xi)
+    try {
+      Xi();
+    } catch {}
+  let t = Ap(e);
+  (_e({ cmd: "QUIT_FOR_UPDATE" }),
+    u.info(
+      "update_detector",
+      `Relaunching application to target executable: ${M(t)}`,
+    ),
+    wn.app.relaunch({ execPath: t, args: process.argv.slice(1) }),
+    wn.app.quit());
+}
+function zl(e) {
+  (Lp(),
+    u.info(
+      "update_detector",
+      "Starting Omaha background update watcher (filesystem watch + 15m polling)",
+    ));
+  let t = null,
+    n = () => {
+      let o = pt();
+      return o
+        ? (o !== t &&
+            ((t = o),
+            u.info(
+              "update_detector",
+              "Detected newly staged Omaha update version:",
+              o,
+            ),
+            e(o),
+            ts()),
+          t)
+        : ((t = null), null);
+    };
+  ((ns = n), (Qi = setTimeout(n, Tp)), (sr = setInterval(n, Rp)));
+  try {
+    let o = J.dirname(wn.app.getPath("exe")),
+      r = J.dirname(o);
+    J.basename(o).startsWith("app-") &&
+      ye.existsSync(r) &&
+      ((ar = ye.watch(r, () => {
+        (hn && clearTimeout(hn),
+          (hn = setTimeout(() => {
+            ((hn = null), n());
+          }, xp)));
+      })),
+      ar.on?.("error", (s) => {
+        Mt.warn("update_detector", "Filesystem watcher error:", s);
+      }));
+  } catch {}
+}
+function jl(e) {
+  let t = ns;
+  if (!t) return;
+  ft && (clearTimeout(ft), (ft = null));
+  let n = e && Gt.test(e) ? e : null,
+    o = (i) => i !== null && (n === null || je(i, n) >= 0),
+    r = (i) => {
+      if (((ft = null), o(t()))) return;
+      let s = i + 1;
+      if (s >= Yi.length) {
+        u.warn(
+          "update_detector",
+          "Helper reported a staged update that is not finalized on disk",
+        );
+        return;
+      }
+      let l = Yi[s] - Yi[i];
+      ft = setTimeout(() => {
+        r(s);
+      }, l);
+    };
+  ((Vt = null), r(0));
+}
+function Lp() {
+  for (let e of [Qi, hn]) e && clearTimeout(e);
+  ((Qi = null),
+    (hn = null),
+    sr && clearInterval(sr),
+    (sr = null),
+    ar?.close(),
+    (ar = null),
+    ft && clearTimeout(ft),
+    (ft = null),
+    (ns = null));
+}
+var Fl,
+  ye,
+  J,
+  wn,
+  Xi,
+  mp,
+  hp,
+  Gt,
+  _p,
+  yp,
+  _n,
+  Cp,
+  Vt,
+  Yi,
+  Tp,
+  xp,
+  Rp,
+  ns,
+  Qi,
+  hn,
+  sr,
+  ar,
+  ft,
+  bn = W(() => {
+    f();
+    ((Fl = require("child_process")),
+      (ye = A(require("fs"))),
+      (J = A(require("path"))),
+      (wn = require("electron")));
+    pn();
+    F();
+    gn();
+    nr();
+    ir();
+    Xi = null;
+    ((mp = 5 * 1024 * 1024), (hp = 1024), (Gt = /^\d+(\.\d+)+$/));
+    ((_p = 2e3), (yp = 2e3));
+    ((_n = Sp()), (Cp = yp), (Vt = null));
+    ((Yi = [0, 2e3, 1e4, 3e4]),
+      (Tp = 5e3),
+      (xp = 1e3),
+      (Rp = 900 * 1e3),
+      (ns = null),
+      (Qi = null),
+      (hn = null),
+      (sr = null),
+      (ar = null),
+      (ft = null));
+  });
+var Xl = {};
+Fo(Xl, {
+  CHECK_COOLDOWN_MS: () => Yl,
+  DEFAULT_HARD_DEADLINE_MS: () => vn,
+  checkForUpdatesNow: () => rs,
+  downloadUpdateNow: () => is,
+  normalizeHelperUpdateResult: () => dr,
+  resetCheckCooldownForTesting: () => Dp,
+});
+function Dp() {
+  (($t = null), (cr = null), (gt = 0), (os = ""));
+}
+async function rs(e = Kl, t = vn) {
+  if (O === "dev")
+    return {
+      status: "unavailable",
+      message: "Updates are managed by your installation.",
+    };
+  let n = pt();
+  if (n)
+    return (
+      (gt = 0),
+      {
+        status: "ready_to_install",
+        version: n,
+        message: `Update ready (v${n}) - Restart to apply`,
+      }
+    );
+  let o = Date.now();
+  if (gt > 0 && o - gt < Yl) {
+    let r = os;
+    if (!r)
+      try {
+        r = ur.app.getVersion();
+      } catch {}
+    return { status: "up_to_date", version: r };
+  }
+  return ss("CHECK_FOR_UPDATES", e, t);
+}
+async function is(e = Kl, t = vn) {
+  if (O === "dev")
+    return {
+      status: "unavailable",
+      message: "Updates are managed by your installation.",
+    };
+  let n = pt();
+  return n
+    ? ((gt = 0),
+      {
+        status: "ready_to_install",
+        version: n,
+        message: `Update ready (v${n}) - Restart to apply`,
+      })
+    : ((gt = 0), ss("DOWNLOAD_UPDATE", e, t));
+}
+async function ss(e, t, n) {
+  if ($t) {
+    if (e === "CHECK_FOR_UPDATES" || cr === "DOWNLOAD_UPDATE") return $t;
+    let o = await $t;
+    return o.status !== "available" ? o : ss(e, t, n);
+  }
+  return (
+    (cr = e),
+    ($t = (async () => {
+      try {
+        let o = await ql(e, t, n);
+        return e === "DOWNLOAD_UPDATE" && o.status === "available"
+          ? await ql(e, t, n)
+          : o;
+      } finally {
+        (($t = null), (cr = null));
+      }
+    })()),
+    $t
+  );
+}
+function ql(e, t, n = vn) {
+  return Jn()
+    ? new Promise((o) => {
+        let r = null,
+          i = null,
+          s = null,
+          l = !1,
+          a = (m) => {
+            l ||
+              ((l = !0),
+              r && (clearTimeout(r), (r = null)),
+              i && (clearTimeout(i), (i = null)),
+              s && (s(), (s = null)),
+              m.status === "up_to_date"
+                ? ((gt = Date.now()), (os = m.version ?? ""))
+                : (m.status === "ready_to_install" ||
+                    m.status === "available" ||
+                    m.status === "downloading" ||
+                    m.status === "error") &&
+                  (gt = 0),
+              o(m));
+          };
+        s = _l((m) => {
+          if (m.cmd === "PIPE_DISCONNECTED") {
+            let S = pt();
+            a(
+              S
+                ? { status: "ready_to_install", version: S }
+                : {
+                    status: "error",
+                    message: "Helper process disconnected.",
+                    error: "Helper process disconnected.",
+                  },
+            );
+            return;
+          }
+          if (m.cmd === "UPDATE_CHECK_RESULT") {
+            let S = dr(m);
+            if (S.status === "checking" || S.status === "downloading") {
+              r && (clearTimeout(r), (r = setTimeout(d, t)));
+              return;
+            }
+            a(S);
+          }
+        });
+        let d = () => {
+            (u.warn(
+              "check_for_updates",
+              "Timed out waiting for UPDATE_CHECK_RESULT from helper",
+            ),
+              a({
+                status: "error",
+                message: "Update check timed out.",
+                error: "Update check timed out.",
+              }));
+          },
+          g = () => {
+            (u.warn(
+              "check_for_updates",
+              "Update check exceeded hard maximum deadline",
+            ),
+              a({
+                status: "error",
+                message: "Update exceeded maximum duration.",
+                error: "Update exceeded maximum duration.",
+              }));
+          };
+        ((r = setTimeout(d, t)),
+          n > 0 && (i = setTimeout(g, n)),
+          _e({ cmd: e }));
+      })
+    : !Dl() || !ur.app.isPackaged
+      ? Promise.resolve({
+          status: "unavailable",
+          message: "Updates are managed by your installation.",
+        })
+      : (u.warn(
+          "check_for_updates",
+          "Win32 helper pipe is disconnected on packaged build during update check",
+        ),
+        Promise.resolve({
+          status: "error",
+          message: "Couldn't reach the update service. Please try again.",
+        }));
+}
+function dr(e) {
+  let t = String(e.status ?? "error").toLowerCase(),
+    n;
+  switch (t) {
+    case "checking":
+      n = "checking";
+      break;
+    case "available":
+    case "update_available":
+      n = "available";
+      break;
+    case "downloading":
+      n = "downloading";
+      break;
+    case "ready_to_install":
+      n = "ready_to_install";
+      break;
+    case "up_to_date":
+      n = "up_to_date";
+      break;
+    case "unavailable":
+      n = "unavailable";
+      break;
+    case "error":
+      n = "error";
+      break;
+    default:
+      (u.warn(
+        "check_for_updates",
+        `Encountered unexpected update status from helper: "${t}"; mapping to error`,
+      ),
+        (n = "error"));
+      break;
+  }
+  let o = typeof e.version == "string" && e.version ? e.version : void 0;
+  if (!o && n === "up_to_date")
+    try {
+      o = ur.app.getVersion();
+    } catch {}
+  let r =
+      typeof e.error == "string"
+        ? e.error
+        : n === "error"
+          ? "Update check failed."
+          : void 0,
+    i = { status: n, version: o, message: r, error: r };
+  return (
+    n === "error" &&
+      (e.reason === "not_registered" || e.reason === "install_incomplete") &&
+      (i.reason = e.reason),
+    i
+  );
+}
+var ur,
+  Kl,
+  vn,
+  Yl,
+  $t,
+  cr,
+  gt,
+  os,
+  fr = W(() => {
+    f();
+    ur = require("electron");
+    he();
+    pn();
+    F();
+    bn();
+    nr();
+    ((Kl = 15e3),
+      (vn = 720 * 1e3),
+      (Yl = 3e4),
+      ($t = null),
+      (cr = null),
+      (gt = 0),
+      (os = ""));
+  });
+function Pp() {
+  Al((e, t) => {
+    try {
+      Ql.crashReporter.addExtraParameter(e, t);
+    } catch {}
+  });
+}
+function T(e, t) {
+  let n = cn(t);
+  Tl(e, n);
+}
+var Ql,
+  Cn = W(() => {
+    f();
+    Ql = require("electron");
+    Xn();
+    pn();
+    Pp();
+  });
+function no(e) {
+  try {
+    let t = new URL(e);
+    if (t.protocol !== "https:") return !1;
+    let n = t.hostname.toLowerCase();
+    return Ga.includes(n) || n.endsWith(Zl);
+  } catch {
+    return !1;
+  }
+}
+function Sn(e) {
+  try {
+    let t = new URL(e);
+    if (t.protocol !== "https:") return !1;
+    let n = t.hostname.toLowerCase();
+    return $a.includes(n) || n.endsWith(Zl);
+  } catch {
+    return !1;
+  }
+}
+function pr(e) {
+  try {
+    let t = new URL(e);
+    if (t.protocol !== "https:") return !1;
+    if (Si.includes(t.hostname.toLowerCase())) return !0;
+    let n = t.searchParams,
+      o = n.get("client_id"),
+      r = n.get("redirect_uri"),
+      i = n.get("response_type");
+    if (!o || !r || !i) return !1;
+    try {
+      if (new URL(r).protocol !== "https:") return !1;
+    } catch {
+      return !1;
+    }
+    return !0;
+  } catch {
+    return !1;
+  }
+}
+function as(e) {
+  try {
+    let t = new URL(e);
+    return t.protocol === "https:" && Si.includes(t.hostname.toLowerCase());
+  } catch {
+    return !1;
+  }
+}
+function ec(e) {
+  try {
+    return new URL(e).protocol === "https:";
+  } catch {
+    return !1;
+  }
+}
+function mt(e) {
+  try {
+    let t = new URL(e);
+    return t.protocol !== "https:" ? !1 : za.includes(t.hostname.toLowerCase());
+  } catch {
+    return !1;
+  }
+}
+function zt(e) {
+  try {
+    return Np.includes(new URL(e).protocol);
+  } catch {
+    return !1;
+  }
+}
+function x(e) {
+  zt(e)
+    ? (u.info("security", `Opening external URL in system browser: ${ie(e)}`),
+      Jl.shell.openExternal(e))
+    : u.warn(
+        "security",
+        `Blocked unsafe external protocol navigation attempt: ${ie(e)}`,
+      );
+}
+function v(e, t) {
+  try {
+    if (!t || ("isDestroyed" in t && t.isDestroyed())) return !1;
+    let n = "webContents" in t ? t.webContents : t;
+    return !!(n && !n.isDestroyed() && e.sender === n);
+  } catch {
+    return !1;
+  }
+}
+function Ue(e) {
+  try {
+    let t = e.senderFrame?.url ?? e.sender?.getURL() ?? "",
+      n = new URL(t);
+    return n.protocol === "https:" && G(n.hostname);
+  } catch {
+    return !1;
+  }
+}
+function oo(e) {
+  try {
+    let t = e.senderFrame;
+    return t !== null && t.parent === null && Ue(e);
+  } catch {
+    return !1;
+  }
+}
+function ro(e) {
+  try {
+    let t = e.senderFrame?.url ?? e.sender?.getURL() ?? "",
+      n = new URL(t);
+    return n.protocol === "app:" && n.hostname === "bundle";
+  } catch {
+    return !1;
+  }
+}
+function gr(e) {
+  try {
+    if (ro(e)) return !0;
+    let t = e.senderFrame?.url ?? e.sender?.getURL() ?? "";
+    return no(t);
+  } catch {
+    return !1;
+  }
+}
+var Jl,
+  Zl,
+  Np,
+  ee = W(() => {
+    f();
+    Jl = require("electron");
+    he();
+    F();
+    ((Zl = ".gstatic.com"), (Np = ["http:", "https:"]));
+  });
+function Sc() {
+  return qt.join(wr.app.getPath("userData"), $p);
+}
+function Ec() {
+  try {
+    let e = Sc();
+    if (se.existsSync(e)) {
+      let t = se.readFileSync(e, "utf8"),
+        n = JSON.parse(t);
+      if (n && typeof n == "object" && !Array.isArray(n))
+        return ((ge = Object.assign({}, uo, n)), ge);
+    }
+  } catch (e) {
+    u.warn(
+      "settings",
+      "Failed to read or parse settings.json from disk, falling back to defaults",
+      e,
+    );
+  }
+  return ((ge = Object.assign({}, uo)), ge);
+}
+function zp(e, t) {
+  let n = qt.dirname(e);
+  se.existsSync(n) || se.mkdirSync(n, { recursive: !0 });
+  let o = qt.join(n, `.${qt.basename(e)}.${Date.now()}.${_s.randomUUID()}.tmp`);
+  try {
+    se.writeFileSync(o, t, "utf8");
+  } catch (s) {
+    try {
+      se.existsSync(o) && se.unlinkSync(o);
+    } catch {}
+    throw s;
+  }
+  let r = 5,
+    i = 25;
+  for (let s = 0; s < r; s++)
+    try {
+      se.renameSync(o, e);
+      return;
+    } catch (l) {
+      let a = l;
+      if (a.code === "EBUSY" || a.code === "EPERM" || a.code === "EACCES") {
+        let d = Date.now();
+        for (; Date.now() - d < i;);
+      } else break;
+    }
+  try {
+    (se.copyFileSync(o, e), se.unlinkSync(o));
+  } catch {
+    try {
+      se.existsSync(o) && se.unlinkSync(o);
+    } catch {}
+  }
+}
+function jp() {
+  try {
+    ge || (ge = Object.assign({}, uo));
+    let e = Sc(),
+      t = JSON.stringify(ge, null, 2);
+    zp(e, t);
+  } catch (e) {
+    u.warn("settings", "Failed to save settings.json to disk", e);
+  }
+}
+function Z(e, t) {
+  return (
+    ge === null && Ec(),
+    ge && e in ge && ge[e] !== void 0 ? ge[e] : t !== void 0 ? t : uo[e]
+  );
+}
+function B(e, t, n = !1) {
+  if (
+    (ge === null && Ec(),
+    ge || (ge = Object.assign({}, uo)),
+    (ge[e] = t),
+    jp(),
+    e === "diagnosticConsent")
+  )
+    try {
+      wr.crashReporter.setUploadToServer(!!t);
+    } catch (o) {
+      u.warn(
+        "settings",
+        `Failed to update crashReporter uploadToServer state: ${o}`,
+      );
+    }
+  n || El(e, t);
+}
+function Ac() {
+  let e = Z(Cc, "");
+  if (e) return e;
+  let t = _s.randomUUID();
+  return (B(Cc, t), t);
+}
+var _s,
+  wr,
+  se,
+  qt,
+  $p,
+  Cc,
+  uo,
+  ge,
+  Kt = W(() => {
+    f();
+    ((_s = A(require("crypto"))),
+      (wr = require("electron")),
+      (se = A(require("fs"))),
+      (qt = A(require("path"))));
+    pn();
+    F();
+    (($p = "settings.json"),
+      (Cc = "localDeviceId"),
+      (uo = Object.freeze({
+        shortcut: "Alt+Space",
+        stcShortcut: "Alt+Shift+D",
+        openAtLogin: !0,
+        disableShortcutInFullScreen: !0,
+        diagnosticConsent: !1,
+        hasSeenCrashReportingNotice: !1,
+        windowBounds: void 0,
+      })),
+      (ge = null));
+  });
+function yr(e, t) {
+  if (t?.attachedContentWc && !t.attachedContentWc.isDestroyed())
+    return t.attachedContentWc;
+  if (e && !e.isDestroyed() && e.contentView) {
+    let n = e.contentView.children;
+    if (Array.isArray(n)) {
+      let o = n.find(
+        (r) =>
+          r &&
+          r !== t?.excludeView &&
+          r.webContents &&
+          !r.webContents.isDestroyed(),
+      );
+      if (o) return o.webContents;
+    }
+  }
+  return e && !e.isDestroyed() ? (e.webContents ?? null) : null;
+}
+function ce(e, t) {
+  let n = () => {
+    e && !e.isDestroyed() && e.focus();
+    let r = yr(e, t);
+    r && !r.isDestroyed() && r.focus();
+  };
+  (n(),
+    (typeof setImmediate == "function"
+      ? setImmediate
+      : (r) => setTimeout(r, 0))(() => {
+      t?.shouldSkipDeferredFocus?.() || n();
+    }));
+}
+var qe = W(() => {
+  f();
+});
+function Zp() {
+  let e = fo;
+  try {
+    e = ys.app.getLocale() || fo;
+  } catch {}
+  let t = e.replace("-", "_"),
+    n = t.split("_")[0];
+  return [t, n, fo];
+}
+function eg() {
+  for (let e of Zp())
+    try {
+      let t = kc.join(__dirname, "_locales", e, "messages.json");
+      br = JSON.parse(Wc.readFileSync(t, "utf8"));
+      return;
+    } catch {}
+  br = {};
+}
+function c(e, ...t) {
+  br === null && eg();
+  let n = br?.[e]?.message || e;
+  if (t.length > 0)
+    for (let o = 0; o < t.length; o++)
+      ((n = n.replace(new RegExp(`\\$${o + 1}`, "g"), t[o])),
+        (n = n.replace(new RegExp("\\$[A-Z0-9_]+\\$", "i"), t[o])));
+  return n;
+}
+function Uc() {
+  try {
+    return ys.app.getLocale() || fo;
+  } catch {
+    return fo;
+  }
+}
+function ng() {
+  let e = Uc().toLowerCase().split(/[-_]/)[0];
+  return tg.has(e) ? "rtl" : "ltr";
+}
+function K(e) {
+  let t = JSON.stringify(Uc()),
+    n = JSON.stringify(ng());
+  e.executeJavaScript(
+    `document.documentElement.lang=${t};document.documentElement.dir=${n};`,
+  ).catch(() => {});
+}
+var ys,
+  Wc,
+  kc,
+  fo,
+  br,
+  tg,
+  Te = W(() => {
+    f();
+    ((ys = require("electron")),
+      (Wc = A(require("fs"))),
+      (kc = A(require("path"))),
+      (fo = "en"),
+      (br = null));
+    tg = new Set(["ar", "fa", "he", "iw", "ur", "ps", "sd", "ug", "yi", "ji"]);
+  });
+var po,
+  og,
+  Y,
+  Me = W(() => {
+    f();
+    ((po = require("electron")),
+      (og = [
+        "resize",
+        "maximize",
+        "unmaximize",
+        "restore",
+        "enter-full-screen",
+        "leave-full-screen",
+      ]),
+      (Y = class {
+        windowSubscriptions = [];
+        webContentsSubscriptions = [];
+        ipcSubscriptions = [];
+        ipcHandlers = [];
+        trackedViews = [];
+        attachedWindow = null;
+        onClosedCallback = null;
+        onIpc(t, n) {
+          let o = n;
+          (this.ipcSubscriptions.push({ channel: t, listener: o }),
+            po.ipcMain.on(t, o));
+        }
+        handleIpc(t, n) {
+          (this.ipcHandlers.push(t), po.ipcMain.handle(t, n));
+        }
+        onWindow(t, n, o) {
+          let r = o;
+          (this.windowSubscriptions.push({ win: t, event: n, listener: r }),
+            t.on(n, r));
+        }
+        onWindowBoundsChange(t, n) {
+          for (let o of og) this.onWindow(t, o, n);
+        }
+        onWebContents(t, n, o) {
+          let r = o;
+          (this.webContentsSubscriptions.push({ wc: t, event: n, listener: r }),
+            t.on(n, r));
+        }
+        trackView(t) {
+          t && !this.trackedViews.includes(t) && this.trackedViews.push(t);
+        }
+        untrackView(t) {
+          if (!t) return;
+          let n = this.trackedViews.indexOf(t);
+          n !== -1 && this.trackedViews.splice(n, 1);
+        }
+        bindWindow(t, n) {
+          ((this.attachedWindow = t), (this.onClosedCallback = n ?? null));
+          let o = () => {
+            this.teardown();
+          };
+          function r() {
+            (t && !t.isDestroyed() && t.removeListener("closed", r), o());
+          }
+          this.onWindow(t, "closed", r);
+        }
+        teardown() {
+          for (let { channel: n, listener: o } of this.ipcSubscriptions)
+            po.ipcMain.removeListener(n, o);
+          this.ipcSubscriptions.length = 0;
+          for (let n of this.ipcHandlers) po.ipcMain.removeHandler(n);
+          this.ipcHandlers.length = 0;
+          for (let { win: n, event: o, listener: r } of this
+            .windowSubscriptions)
+            n && !n.isDestroyed() && n.removeListener(o, r);
+          this.windowSubscriptions.length = 0;
+          for (let { wc: n, event: o, listener: r } of this
+            .webContentsSubscriptions)
+            n && !n.isDestroyed() && n.removeListener(o, r);
+          this.webContentsSubscriptions.length = 0;
+          for (let n of this.trackedViews)
+            if (
+              n &&
+              n.webContents &&
+              !n.webContents.isDestroyed() &&
+              typeof n.webContents.close == "function"
+            )
+              try {
+                n.webContents.close();
+              } catch {}
+          this.trackedViews.length = 0;
+          let t = this.onClosedCallback;
+          ((this.onClosedCallback = null),
+            (this.attachedWindow = null),
+            t && t());
+        }
+        reset() {
+          this.teardown();
+        }
+      }));
+  });
+function Mc() {
+  return {};
+}
+var Fc = W(() => {
+  f();
+});
+function Sr(e, t) {
+  let n = it(e, t);
+  return ig.has(n);
+}
+function bs() {
+  return Gc.join(Vc.app.getPath("userData"), rg);
+}
+function sg() {
+  try {
+    let e = bs();
+    if (rt.existsSync(e)) {
+      let t = JSON.parse(rt.readFileSync(e, "utf8"));
+      if (t && typeof t == "object") {
+        for (let [n, o] of Object.entries(t))
+          if (o && typeof o == "object") {
+            let r = new Map();
+            for (let [i, s] of Object.entries(o))
+              (s === "granted" || s === "denied") && r.set(it(i), s);
+            wt.set(n.toLowerCase(), r);
+          }
+        u.info(
+          "permissions",
+          `Loaded permissions store with ${wt.size} origins`,
+        );
+      }
+    }
+  } catch (e) {
+    u.warn("permissions", "Failed to load permissions store from disk", e);
+  }
+}
+function ag() {
+  try {
+    let e = bs(),
+      t = {};
+    for (let [n, o] of wt.entries()) {
+      t[n] = {};
+      for (let [r, i] of o.entries()) t[n][r] = i;
+    }
+    (rt.writeFileSync(e, JSON.stringify(t, null, 2), "utf8"),
+      u.info("permissions", "Saved permissions store to disk"));
+  } catch (e) {
+    u.warn("permissions", "Failed to save permissions store to disk", e);
+  }
+}
+function vs(e) {
+  try {
+    return new URL(e).origin.toLowerCase();
+  } catch {
+    return e ? String(e).toLowerCase() : "";
+  }
+}
+function it(e, t) {
+  return e === "camera" || e === "videoCapture"
+    ? "camera"
+    : e === "microphone" || e === "audioCapture"
+      ? "media"
+      : e === "location" || e === "geolocation"
+        ? "geolocation"
+        : e === "media"
+          ? t?.mediaType === "video" ||
+            (t?.mediaTypes &&
+              t.mediaTypes.includes("video") &&
+              !t.mediaTypes.includes("audio"))
+            ? "camera"
+            : "media"
+          : e;
+}
+function Cs(e, t) {
+  switch (it(e, t)) {
+    case "media":
+      return "audio";
+    case "camera":
+      return "camera";
+    case "geolocation":
+      return "location";
+    default:
+      return "other";
+  }
+}
+function Er(e, t, n) {
+  let o = e ? e.getURL() : "";
+  return n?.isMainFrame === !1 &&
+    t &&
+    t !== "about:blank" &&
+    !t.startsWith("blob:")
+    ? t
+    : o || t || "";
+}
+async function Cr(e, t = "Value") {
+  return new Promise((n) => {
+    (0, Hc.execFile)(
+      "reg.exe",
+      ["query", e, "/v", t],
+      { windowsHide: !0 },
+      (o, r) => {
+        n(!o && r ? r : null);
+      },
+    );
+  });
+}
+function lg(e) {
+  if (!e || e.length < 2) return !0;
+  let t = +("0x" + e.substring(0, 2));
+  return isNaN(t) ? !0 : (t & 1) === 0;
+}
+async function $c() {
+  let e = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+    t =
+      "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\Run",
+    [n, o] = await Promise.all([Cr(e, "Gemini"), Cr(t, "Gemini")]);
+  if (!n || !/Gemini\s+REG_SZ/i.test(n)) return !1;
+  if (o) {
+    let r = /Gemini\s+REG_BINARY\s+([0-9a-fA-F]+)/i.exec(o);
+    if (r && !lg(r[1])) return !1;
+  }
+  return !0;
+}
+async function Ar() {
+  let e =
+      "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",
+    t =
+      "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",
+    n = (l) => {
+      if (!l) return null;
+      let a = /Value\s+(?:REG_SZ|REG_DWORD)\s+(\S+)/i.exec(l);
+      return a ? a[1] : null;
+    },
+    [o, r] = await Promise.all([Cr(e), Cr(t)]),
+    i = n(o);
+  if (i && (i.toLowerCase() === "deny" || i === "0")) return !0;
+  let s = n(r);
+  return !!(s && (s.toLowerCase() === "deny" || s === "0"));
+}
+function _t(e) {
+  return Bc.has(e) || Bc.has(it(e));
+}
+function zc(e, t, n) {
+  let o = it(e, n);
+  if ((!_t(o) && !_t(e)) || !mt(t)) return !1;
+  if (Sr(e, n)) return !0;
+  let r = vs(t),
+    i = wt.get(r);
+  return i ? i.get(o) === ot || i.get(e) === ot : !1;
+}
+function yt(e, t, n) {
+  let o = it(e, n);
+  if ((!_t(o) && !_t(e)) || !mt(t)) return Rn;
+  if (Sr(e, n)) return ot;
+  let r = vs(t),
+    i = wt.get(r);
+  return i
+    ? i.has(o)
+      ? (i.get(o) ?? vr)
+      : i.has(e)
+        ? (i.get(e) ?? vr)
+        : vr
+    : vr;
+}
+function Tr(e, t, n, o = !0) {
+  let r = it(e);
+  if (!_t(r)) return;
+  let i = vs(t),
+    s = wt.get(i);
+  (s || ((s = new Map()), wt.set(i, s)),
+    s.set(r, n),
+    r !== e && s.set(e, n),
+    u.info(
+      "permissions",
+      `Permission "${e}" for ${i} set to "${n}" (remember=${o})`,
+    ),
+    o && ag());
+}
+function Ss() {
+  wt.clear();
+  try {
+    let e = bs();
+    rt.existsSync(e) && rt.unlinkSync(e);
+  } catch {}
+}
+var Hc,
+  Vc,
+  rt,
+  Gc,
+  rg,
+  ot,
+  Rn,
+  vr,
+  Bc,
+  ig,
+  wt,
+  xr = W(() => {
+    f();
+    ((Hc = require("child_process")),
+      (Vc = require("electron")),
+      (rt = A(require("fs"))),
+      (Gc = A(require("path"))));
+    F();
+    ee();
+    ((rg = "permissions.json"),
+      (ot = "granted"),
+      (Rn = "denied"),
+      (vr = "prompt"),
+      (Bc = new Set([
+        "media",
+        "camera",
+        "videoCapture",
+        "microphone",
+        "audioCapture",
+        "geolocation",
+        "location",
+        "clipboard-read",
+        "clipboard-sanitized-write",
+        "notifications",
+        "fullscreen",
+      ])),
+      (ig = new Set([
+        "clipboard-read",
+        "clipboard-sanitized-write",
+        "notifications",
+        "fullscreen",
+      ])));
+    wt = new Map();
+    sg();
+  });
+var Qc = {};
+Fo(Qc, {
+  CANONICAL_MOD_NAMES: () => go,
+  DEFAULT_SHORTCUT: () => Es,
+  DEFAULT_STC_SHORTCUT: () => As,
+  MODIFIER_ORDER: () => qc,
+  RESERVED_WINDOWS_SHORTCUTS: () => Kc,
+  SHORTCUT_ACCELERATORS: () => Rr,
+  SUPPORTED_SHORTCUTS: () => Ts,
+  canonicalizeKeyName: () => Rs,
+  canonicalizeShortcut: () => bt,
+  getAcceleratorForShortcut: () => dg,
+  getActiveShortcut: () => Os,
+  getConfiguredShortcut: () => Ir,
+  getConfiguredStcShortcut: () => mo,
+  getReservedWindowsShortcuts: () => Ls,
+  handleHotkeyStatus: () => fg,
+  isPresetShortcut: () => ug,
+  isReservedWindowsShortcut: () => Is,
+  isShortcutRegistered: () => Ns,
+  isSupportedShortcut: () => ho,
+  isValidShortcut: () => Xc,
+  updateGlobalShortcut: () => Ds,
+  updateStcShortcut: () => Ps,
+});
+function Rs(e) {
+  if (!e || typeof e != "string") return null;
+  let t = e.toUpperCase();
+  if (Object.prototype.hasOwnProperty.call(jc, t)) return jc[t];
+  if (/^[A-Z0-9]$/i.test(e)) return e.toUpperCase();
+  let n = /^F([1-9]|1[0-9]|2[0-4])$/i.exec(e);
+  if (n) return `F${n[1]}`;
+  let o = /^Num([0-9])$/i.exec(e);
+  return o ? `Num${o[1]}` : null;
+}
+function cg(e) {
+  return Rs(e) !== null;
+}
+function bt(e) {
+  if (!e || typeof e != "string") return e;
+  if (e.trim().toUpperCase() === "NONE") return "None";
+  let t = e
+    .split("+")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (t.length <= 1) return e;
+  let n = t.slice(0, t.length - 1),
+    o = new Set();
+  for (let l of n) {
+    let a = l.toUpperCase();
+    if (Object.prototype.hasOwnProperty.call(go, a)) o.add(go[a]);
+    else return e;
+  }
+  if (!o.has("Win") && !o.has("Ctrl") && !o.has("Alt")) return e;
+  let r = t[t.length - 1],
+    i = Rs(r);
+  return i ? [...qc.filter((l) => o.has(l)), i].join("+") : e;
+}
+function ug(e) {
+  if (!e || typeof e != "string") return !1;
+  let t = bt(e);
+  return Ts.includes(t);
+}
+function Ls() {
+  return Array.from(Yc);
+}
+function Is(e) {
+  if (!e || e === "None") return !1;
+  let t = bt(e);
+  return Yc.has(t);
+}
+function Xc(e) {
+  if (!e || typeof e != "string") return !1;
+  if (e.trim().toUpperCase() === "NONE") return !0;
+  let t = e
+    .split("+")
+    .map((i) => i.trim())
+    .filter(Boolean);
+  if (t.length <= 1) return !1;
+  let n = !1,
+    o = t.slice(0, t.length - 1);
+  for (let i of o) {
+    let s = i.toUpperCase();
+    if (Object.prototype.hasOwnProperty.call(go, s)) {
+      let l = go[s];
+      (l === "Win" || l === "Ctrl" || l === "Alt") && (n = !0);
+    } else return !1;
+  }
+  if (!n) return !1;
+  let r = t[t.length - 1];
+  return cg(r);
+}
+function ho(e) {
+  return Xc(e);
+}
+function Ir() {
+  let e = Z("shortcut", Es);
+  return ho(e) ? bt(e) : Es;
+}
+function dg(e) {
+  if (e === "None") return null;
+  let t = bt(e);
+  if (!t || t === "None") return null;
+  if (Object.prototype.hasOwnProperty.call(Rr, t)) return Rr[t];
+  let n = t
+    .split("+")
+    .map((r) => r.trim())
+    .filter(Boolean);
+  return n.length === 0
+    ? null
+    : n
+        .map((r, i) => {
+          if (i < n.length - 1) {
+            let s = r.toUpperCase();
+            return s === "WIN" ? "Super" : s === "CTRL" ? "Control" : r;
+          }
+          return r;
+        })
+        .join("+");
+}
+function Ds(e) {
+  if (!ho(e))
+    return (
+      u.warn("shortcuts", `Attempted to set unsupported shortcut: "${e}"`),
+      { success: !1, shortcut: Ir(), error: "INVALID_SHORTCUT" }
+    );
+  if (Is(e))
+    return (
+      u.warn("shortcuts", `Attempted to set reserved Windows shortcut: "${e}"`),
+      { success: !1, shortcut: Ir(), error: "RESERVED_SHORTCUT" }
+    );
+  let t = bt(e);
+  return (
+    (Lr = t),
+    (xs = !0),
+    B("shortcut", t),
+    u.info("shortcuts", `Updated global shortcut setting to "${t}"`),
+    { success: !0, shortcut: t, error: null }
+  );
+}
+function mo() {
+  let e = Z("stcShortcut", As);
+  return ho(e) ? e : As;
+}
+function Ps(e) {
+  return ho(e)
+    ? Is(e)
+      ? (u.warn(
+          "shortcuts",
+          `Attempted to set reserved Windows STC shortcut: "${e}"`,
+        ),
+        { success: !1, shortcut: mo(), error: "RESERVED_SHORTCUT" })
+      : (B("stcShortcut", e),
+        u.info(
+          "shortcuts",
+          `Updated Speak-to-Window shortcut setting to "${e}"`,
+        ),
+        { success: !0, shortcut: e, error: null })
+    : (u.warn("shortcuts", `Attempted to set unsupported STC shortcut: "${e}"`),
+      { success: !1, shortcut: mo(), error: "INVALID_SHORTCUT" });
+}
+function fg(e, t, n) {
+  ((xs = e),
+    n && n !== "None" && (Lr = bt(n)),
+    e
+      ? u.info("shortcuts", `Global hotkey registered: "${n || Lr}"`)
+      : n &&
+        n !== "None" &&
+        u.warn("shortcuts", `Global hotkey registration failed for "${n}"`));
+}
+function Ns() {
+  return xs;
+}
+function Os() {
+  return Lr || Ir();
+}
+var Rr,
+  Ts,
+  Es,
+  As,
+  Lr,
+  xs,
+  jc,
+  go,
+  qc,
+  Kc,
+  Yc,
+  Ws = W(() => {
+    f();
+    F();
+    Kt();
+    ((Rr = Object.freeze({
+      "Alt+Space": "Alt+Space",
+      "Alt+Shift+Space": "Alt+Shift+Space",
+      "Win+Alt+Space": "Super+Alt+Space",
+      "Win+Shift+G": "Super+Shift+G",
+      None: null,
+    })),
+      (Ts = Object.freeze(Object.keys(Rr))),
+      (Es = Ts[0]),
+      (As = "Alt+Shift+D"),
+      (Lr = null),
+      (xs = !0),
+      (jc = Object.freeze({
+        SPACE: "Space",
+        ENTER: "Enter",
+        TAB: "Tab",
+        ESCAPE: "Escape",
+        ESC: "Escape",
+        BACKSPACE: "Backspace",
+        DELETE: "Delete",
+        DEL: "Delete",
+        INSERT: "Insert",
+        INS: "Insert",
+        HOME: "Home",
+        END: "End",
+        PAGEUP: "PageUp",
+        PAGEDOWN: "PageDown",
+        PAUSE: "Pause",
+        BREAK: "Pause",
+        PRINTSCREEN: "PrintScreen",
+        PRTSC: "PrintScreen",
+        PRTSCR: "PrintScreen",
+        PRTSCN: "PrintScreen",
+        SNAPSHOT: "PrintScreen",
+        UP: "Up",
+        DOWN: "Down",
+        LEFT: "Left",
+        RIGHT: "Right",
+        HENKAN: "Henkan",
+        MUHENKAN: "Muhenkan",
+        KANA: "Kana",
+        INTLYEN: "IntlYen",
+        INTLRO: "IntlRo",
+        HANGUL: "Hangul",
+        HANJA: "Hanja",
+        INTLBACKSLASH: "IntlBackslash",
+        NUMPADCOMMA: "NumpadComma",
+        NUMADD: "NumAdd",
+        NUMSUBTRACT: "NumSubtract",
+        NUMMULTIPLY: "NumMultiply",
+        NUMDIVIDE: "NumDivide",
+        NUMDECIMAL: "NumDecimal",
+        NUMLOCK: "NumLock",
+        "`": "`",
+        "-": "-",
+        "=": "=",
+        "[": "[",
+        "]": "]",
+        "\\": "\\",
+        ";": ";",
+        "'": "'",
+        ",": ",",
+        ".": ".",
+        "/": "/",
+      })));
+    ((go = Object.freeze({
+      WIN: "Win",
+      SUPER: "Win",
+      META: "Win",
+      COMMAND: "Win",
+      CMD: "Win",
+      CTRL: "Ctrl",
+      CONTROL: "Ctrl",
+      ALT: "Alt",
+      SHIFT: "Shift",
+    })),
+      (qc = Object.freeze(["Win", "Ctrl", "Alt", "Shift"])));
+    ((Kc = new Set([
+      "CTRL+C",
+      "CTRL+V",
+      "CTRL+X",
+      "CTRL+Z",
+      "CTRL+Y",
+      "CTRL+A",
+      "CTRL+S",
+      "CTRL+P",
+      "CTRL+O",
+      "CTRL+N",
+      "CTRL+W",
+      "CTRL+F",
+      "CTRL+H",
+      "CTRL+T",
+      "ALT+TAB",
+      "ALT+SHIFT+TAB",
+      "ALT+F4",
+      "ALT+ESC",
+      "CTRL+ESCAPE",
+      "CTRL+ALT+DELETE",
+      "CTRL+SHIFT+ESC",
+      "WIN+L",
+      "WIN+D",
+      "WIN+E",
+      "WIN+R",
+      "WIN+M",
+      "WIN+TAB",
+      "WIN+I",
+      "WIN+X",
+      "WIN+P",
+      "WIN+K",
+      "WIN+A",
+      "WIN+S",
+      "WIN+V",
+      "WIN+H",
+      "WIN+Z",
+      "WIN+G",
+      "WIN+Q",
+      "WIN+.",
+      "WIN+PAUSE",
+      "WIN+PRINTSCREEN",
+    ])),
+      (Yc = new Set(Array.from(Kc, (e) => bt(e)))));
+  });
+function pg() {
+  try {
+    if (ks.screen) return ks.screen.getCursorScreenPoint();
+  } catch {}
+  return { x: 0, y: 0 };
+}
+function Jc() {
+  let e = pg(),
+    t = {
+      x: e.x,
+      y: e.y,
+      width: 2,
+      height: 20,
+      hwnd: "",
+      processName: "Unknown",
+      hasCaret: !1,
+    },
+    n = Ae();
+  if (!n) return Promise.resolve(t);
+  try {
+    let o = n.getCaretPosition();
+    return o.hasCaret && (o.x !== 0 || o.y !== 0)
+      ? Promise.resolve({
+          x: o.x,
+          y: o.y,
+          width: o.width || 2,
+          height: o.height || 20,
+          hwnd: o.hwnd || "",
+          processName: o.processName || "App",
+          hasCaret: !0,
+        })
+      : Promise.resolve({
+          ...t,
+          hwnd: o.hwnd || "",
+          processName: o.processName || "App",
+        });
+  } catch {
+    return Promise.resolve(t);
+  }
+}
+var ks,
+  Zc = W(() => {
+    f();
+    ks = require("electron");
+    gn();
+  });
+function gg() {
+  return process.env.GEMINI_ENABLE_STW_DESKTOP_CONTEXT === "true";
+}
+function mg() {
+  return {
+    appName: "",
+    processName: "",
+    windowTitle: "",
+    hwnd: "",
+    timestamp: Date.now(),
+  };
+}
+async function eu() {
+  if (!gg()) return mg();
+  let e = await hg(),
+    [t, n] = await Promise.all([
+      wg().catch(
+        (r) => (
+          u.warn("context_collector", `a11y tree capture failed: ${String(r)}`),
+          []
+        ),
+      ),
+      _g().catch(
+        (r) => (
+          u.warn(
+            "context_collector",
+            `selected-text capture failed: ${String(r)}`,
+          ),
+          ""
+        ),
+      ),
+    ]),
+    o = yg(t);
+  return {
+    appName: e.appName || "Active App",
+    processName: e.processName || "Application",
+    windowTitle: e.windowTitle || "",
+    hwnd: e.hwnd || "",
+    url: o || void 0,
+    selectedText: n || void 0,
+    selectedMarkdown: n ? bg(n) : void 0,
+    a11yElements: t,
+    timestamp: Date.now(),
+  };
+}
+function hg() {
+  let e = {
+      appName: "App",
+      processName: "App",
+      windowTitle: "Active Window",
+      hwnd: "",
+    },
+    t = Ae();
+  if (!t) return Promise.resolve(e);
+  try {
+    let n = t.getForegroundAppInfo();
+    return Promise.resolve({
+      appName: n.appName || "App",
+      processName: n.processName || "App",
+      windowTitle: n.windowTitle || "",
+      hwnd: n.hwnd || "",
+    });
+  } catch {
+    return Promise.resolve(e);
+  }
+}
+function wg() {
+  let e = Ae();
+  if (!e) return Promise.resolve([]);
+  try {
+    let t = e.getActiveWindowA11yTree();
+    return Promise.resolve(
+      t.map((n) => ({
+        role: n.role,
+        name: n.name,
+        automationId: n.automationId,
+        value: n.value,
+        bounds: n.bounds,
+      })),
+    );
+  } catch {
+    return Promise.resolve([]);
+  }
+}
+function _g() {
+  let e = Ae();
+  if (!e) return Promise.resolve("");
+  try {
+    return Promise.resolve(e.getSelectedText() || "");
+  } catch {
+    return Promise.resolve("");
+  }
+}
+function yg(e) {
+  if (!(!e || e.length === 0))
+    for (let t of e) {
+      if (
+        t.value &&
+        (t.value.startsWith("http://") || t.value.startsWith("https://"))
+      )
+        return t.value;
+      if (
+        t.name &&
+        (t.name.startsWith("http://") || t.name.startsWith("https://"))
+      )
+        return t.name;
+    }
+}
+function bg(e) {
+  return e ? e.trim() : "";
+}
+var tu = W(() => {
+  f();
+  F();
+  gn();
+});
+function Qt() {
+  return de;
+}
+function Us() {
+  if (de && !de.isDestroyed()) return de;
+  let e = ru.join(__dirname, "stc", "stc_pill_preload.js");
+  (u.info("STC_WINDOW", `Resolved preloadPath: ${M(e)}`),
+    (de = new vt.BrowserWindow({
+      width: vg,
+      height: Cg,
+      frame: !1,
+      transparent: !0,
+      alwaysOnTop: !0,
+      skipTaskbar: !0,
+      resizable: !1,
+      hasShadow: !0,
+      show: !1,
+      webPreferences: {
+        nodeIntegration: !1,
+        contextIsolation: !0,
+        sandbox: !0,
+        preload: e,
+        partition: nu,
+      },
+    })));
+  try {
+    let o = vt.session.fromPartition(nu);
+    (ou || (Bo(o.protocol), (ou = !0)),
+      o.setPermissionCheckHandler((r, i, s, l) =>
+        i === "media" ? l?.mediaType !== "video" : !1,
+      ),
+      o.setPermissionRequestHandler((r, i, s, l) => {
+        if (i === "media") {
+          let a = l,
+            d =
+              a?.mediaType !== "video" &&
+              (!a?.mediaTypes || !a.mediaTypes.includes("video"));
+          s(d);
+          return;
+        }
+        s(!1);
+      }));
+  } catch {}
+  ((Pr = !1), (Xt = null));
+  let t = de;
+  (t.webContents.on("will-navigate", (o, r) => {
+    (o.preventDefault(), x(r));
+  }),
+    t.webContents.setWindowOpenHandler(
+      ({ url: o }) => (x(o), { action: "deny" }),
+    ),
+    t.webContents.on("dom-ready", () => {
+      (K(t.webContents),
+        t.webContents.send("stc:localized-strings", {
+          cancel: c("stc_pill_cancel"),
+          cancelTip: c("stc_pill_cancel_tooltip"),
+          send: c("stc_pill_send"),
+          sendTip: c("stc_pill_send_tooltip"),
+        }));
+    }),
+    t.webContents.once("did-finish-load", () => {
+      de !== t ||
+        t.isDestroyed() ||
+        ((Pr = !0), Xt && (t.webContents.send("stc:update", Xt), (Xt = null)));
+    }));
+  let n = z("stc", "stc_pill.html");
+  return (
+    u.info("STC_WINDOW", `Loading HTML URL: ${ie(n)}`),
+    de.loadURL(n),
+    de
+  );
+}
+function au(e) {
+  let t = Us();
+  return (Eg(t, e), t.show(), t);
+}
+function Eg(e, t) {
+  let o = (
+      t
+        ? vt.screen.getDisplayNearestPoint({ x: t.x, y: t.y }) ||
+          vt.screen.getPrimaryDisplay()
+        : vt.screen.getPrimaryDisplay()
+    ).workArea,
+    r = Math.round(o.x + (o.width - iu) / 2 - Dr),
+    i = Math.round(o.y + o.height - Sg - su - Dr);
+  e.setPosition(r, i);
+}
+function Ms() {
+  (de && !de.isDestroyed() && (de.hide(), de.close(), (de = null)),
+    (Pr = !1),
+    (Xt = null));
+}
+function Nr(e) {
+  !de ||
+    de.isDestroyed() ||
+    ((Xt = e), Pr && (de.webContents.send("stc:update", e), (Xt = null)));
+}
+var vt,
+  ru,
+  de,
+  iu,
+  su,
+  Dr,
+  vg,
+  Cg,
+  Sg,
+  nu,
+  ou,
+  Pr,
+  Xt,
+  Fs = W(() => {
+    f();
+    ((vt = require("electron")), (ru = A(require("path"))));
+    Se();
+    Te();
+    F();
+    ee();
+    ((de = null),
+      (iu = 180),
+      (su = 52),
+      (Dr = 32),
+      (vg = iu + 2 * Dr),
+      (Cg = su + 2 * Dr),
+      (Sg = 48),
+      (nu = "stc-pill"),
+      (ou = !1),
+      (Pr = !1),
+      (Xt = null));
+  });
+function Bs(e) {
+  if (!e) return !1;
+  let t = Ae();
+  if (!t || typeof t.setForegroundWindow != "function") return !1;
+  try {
+    let n = t.setForegroundWindow(e);
+    return (
+      n || u.warn("inject", "Could not restore focus to target window"),
+      n
+    );
+  } catch (n) {
+    return (u.warn("inject", `setForegroundWindow threw: ${String(n)}`), !1);
+  }
+}
+async function lu(e, t) {
+  if (!e) return !0;
+  let n = Ae();
+  if (!n || typeof n.injectUnicodeText != "function")
+    return (
+      u.warn("inject", "Native addon unavailable; cannot inject transcript"),
+      !1
+    );
+  t && Bs(t);
+  let o = 0;
+  for (let r = 0; r < e.length; r++) e[r] !== "\r" && o++;
+  try {
+    let r = n.injectUnicodeText(e);
+    return r >= o
+      ? !0
+      : (u.warn(
+          "inject",
+          `Native injectUnicodeText truncated: ${r}/${o} code units`,
+        ),
+        !1);
+  } catch (r) {
+    return (u.error("inject", "Native injectUnicodeText threw", r), !1);
+  }
+}
+var cu = W(() => {
+  f();
+  F();
+  gn();
+});
+function Jt() {
+  return !0;
+}
+function Tg(e, t) {
+  v(e, Qt()) && u.info("PILL_LOG", t);
+}
+function xg(e, t) {
+  if (v(e, Qt()))
+    try {
+      let n;
+      if (Buffer.isBuffer(t)) n = t;
+      else if (t instanceof ArrayBuffer) n = Buffer.from(t);
+      else if (ArrayBuffer.isView(t))
+        n = Buffer.from(t.buffer, t.byteOffset, t.byteLength);
+      else if (
+        t &&
+        typeof t == "object" &&
+        "buffer" in t &&
+        typeof t.byteOffset == "number"
+      ) {
+        let o = t;
+        n = Buffer.from(o.buffer, o.byteOffset, o.byteLength);
+      } else
+        t && typeof t == "object" && "data" in t && Array.isArray(t.data)
+          ? (n = Buffer.from(t.data))
+          : (n = Buffer.alloc(0));
+      (Or++,
+        Or % 10 === 1 &&
+          u.info("AUDIO_RECV", `Chunk #${Or} bytes=${n?.length}`),
+        n && n.length > 0 && j && j.sendAudioData(n));
+    } catch (n) {
+      u.error("AUDIO_RECV", "Dropping malformed audio chunk", n);
+    }
+}
+function Rg(e) {
+  v(e, Qt()) && Dg();
+}
+async function Lg(e, t) {
+  v(e, Qt()) && (await Vs(t));
+}
+function du() {
+  (wo.reset(), (Or = 0));
+  try {
+    Us();
+  } catch {}
+  (wo.onIpc("stc:log", Tg),
+    wo.onIpc("stc:audio-data", xg),
+    wo.onIpc("stc:cancel", Rg),
+    wo.onIpc("stc:accept", Lg));
+}
+async function kr() {
+  if (Ct !== "inactive") {
+    await Vs();
+    return;
+  }
+  await Ig();
+}
+async function Ig() {
+  ((Ct = "preparingActivation"), (Dn = ""));
+  let e = await Jc();
+  ((Wr = e.hwnd || ""), au(e), Nr({ status: "listening", text: "" }));
+  let t = eu();
+  ((j = new Hs()),
+    (In = ""),
+    await j.startSession(
+      (n) => {
+        ((Dn = n.transcript),
+          n.transcript && (In = n.transcript),
+          Nr({ status: "streaming", text: Dn }));
+      },
+      () => {
+        Nr({ status: "error", text: "Speech Notice" });
+      },
+    ),
+    j.on("streamEnd", () => {
+      (u.info("STC_MANAGER", "Stream ended, submitting session."), Vs());
+    }),
+    (Ln = await t),
+    j &&
+      Ln &&
+      j.sendSpeechContext({
+        appName: Ln.appName,
+        url: Ln.url,
+        selectedText: Ln.selectedMarkdown,
+      }));
+}
+async function Vs(e) {
+  if (Ct === "inactive" || Ct === "waitingForSpeechRecognitionCompletion") {
+    u.info("STC_MANAGER", `completeAndSubmitSession ignored: status is ${Ct}`);
+    return;
+  }
+  Ct = "waitingForSpeechRecognitionCompletion";
+  let t = !1,
+    n = "";
+  if (j) {
+    let r = j.getLatestTranscript();
+    r && (In = r);
+    let i = new Promise((l) => {
+      let a = () => j?.getLatestTranscript() || In || Dn || "",
+        d = (D) => {
+          E(D);
+        },
+        g = () => {
+          setTimeout(() => {
+            E(a());
+          }, 100);
+        },
+        m = (D) => {
+          ((t = !0), (n = D), E(D));
+        },
+        S = !1,
+        E = (D) => {
+          S ||
+            ((S = !0),
+            clearTimeout(k),
+            j?.off("finalResult", d),
+            j?.off("streamEnd", g),
+            j?.off("executeChatQuery", m),
+            l(D));
+        },
+        k = setTimeout(() => {
+          E(a());
+        }, Ag);
+      (j?.once("finalResult", d),
+        j?.once("streamEnd", g),
+        j?.once("executeChatQuery", m),
+        j?.finishAudioStream?.());
+    });
+    j.finishAudioStream();
+    let s = await i;
+    s && (In = s);
+  }
+  if (Ct === "inactive") {
+    u.info(
+      "STC_MANAGER",
+      "completeAndSubmitSession: session cancelled during finalization; aborting",
+    );
+    return;
+  }
+  let o = (n || In || j?.getLatestTranscript() || Dn || e || "").trim();
+  if (
+    (u.info(
+      "STC_MANAGER",
+      `completeAndSubmitSession: final text len=${o.length}, isExecute=${t}`,
+    ),
+    j && j.stopRecognition(),
+    o)
+  ) {
+    let r = Wr;
+    Ms();
+    try {
+      (u.info(
+        "STC_MANAGER",
+        `Injecting text into active window (len=${o.length})`,
+      ),
+        await lu(o, r));
+    } catch (i) {
+      u.error("STC_MANAGER", `Error in text injection: ${M(String(i))}`);
+    }
+  }
+  fu();
+}
+function Dg() {
+  (j && (j.cancelRecognition(), (j = null)), fu());
+}
+function fu() {
+  let e = Wr;
+  ((Ct = "inactive"), (Ln = null), (Wr = ""), (Dn = ""), Ms(), e && Bs(e));
+}
+var uu,
+  Ag,
+  Hs,
+  Ct,
+  Ln,
+  Wr,
+  Dn,
+  In,
+  j,
+  wo,
+  Or,
+  Gs = W(() => {
+    f();
+    Me();
+    F();
+    ee();
+    Zc();
+    tu();
+    Fs();
+    cu();
+    ((uu = ""),
+      (Ag = 12e3),
+      (Hs = require("./voice_bridge_native.js").RealGeminiVoiceSession),
+      (Ct = "inactive"),
+      (Ln = null),
+      (Wr = ""),
+      (Dn = ""),
+      (In = ""),
+      (j = null),
+      (wo = new Y()));
+    Or = 0;
+  });
+function pu() {
+  return { fields: {} };
+}
+var gu = W(() => {
+  f();
+});
+var at = {};
+Fo(at, {
+  attachSettingsModal: () => qs,
+  closeSettings: () => $r,
+  isSettingsOpen: () => Ke,
+  openSettingsWindow: () => Et,
+  resetSettingsStateForTesting: () => Gg,
+  sendUpdateCheckResultToSettings: () => Vg,
+  updateHotkeyStatus: () => Ng,
+  updateOpenAtLoginStatus: () => Og,
+});
+function Gr() {
+  Mr !== null && (clearTimeout(Mr), (Mr = null));
+}
+function $s() {
+  (Gr(),
+    St &&
+      (!y ||
+        y.webContents.isDestroyed() ||
+        (y.setVisible(!0), y.webContents.focus())));
+}
+function Ng(e) {
+  y &&
+    !y.webContents.isDestroyed() &&
+    y.webContents.send("settings:hotkey-status", { registered: e });
+}
+function Og(e) {
+  y &&
+    !y.webContents.isDestroyed() &&
+    y.webContents.send("settings:open-at-login-status", {
+      enabled: e,
+      blocked: !e,
+    });
+}
+function Wg(e) {
+  v(e, y) && $r();
+}
+function kg(e, t) {
+  v(e, y) && (e.returnValue = c(String(t ?? "")));
+}
+function Ug(e) {
+  v(e, y) && $s();
+}
+function Mg() {
+  (H.handleIpc("settings:get-all", async (e) => {
+    if (!v(e, y)) return null;
+    let t = !1,
+      n = !1;
+    try {
+      t = Ne.systemPreferences.getMediaAccessStatus("microphone") === "denied";
+    } catch {}
+    try {
+      n = Ne.systemPreferences.getMediaAccessStatus("camera") === "denied";
+    } catch {}
+    let o = Z("openAtLogin", !0),
+      [r, i] = await Promise.allSettled([Ar(), $c()]),
+      s = r.status === "fulfilled" ? r.value : !1,
+      l = o,
+      a = !1;
+    i.status === "fulfilled" &&
+      ((l = i.value), (a = o && !l), o !== l && B("openAtLogin", l, !0));
+    let d = O === "dev",
+      g = pu(),
+      m = Mc();
+    return {
+      shortcut: Os(),
+      shortcutRegistered: Ns(),
+      stcShortcut: mo(),
+      speakToWindowEnabled: Jt(),
+      reservedShortcuts: Ls(),
+      openAtLogin: l,
+      disableShortcutInFullScreen: Z("disableShortcutInFullScreen", !0),
+      diagnosticConsent: Z("diagnosticConsent", !1),
+      permissions: {
+        media: yt("media", Ur),
+        camera: yt("camera", Ur),
+        geolocation: yt("geolocation", Ur),
+      },
+      windowsMicBlocked: t,
+      windowsCameraBlocked: n,
+      windowsLocationBlocked: s,
+      windowsStartupBlocked: a,
+      version: Ne.app.getVersion(),
+      channel: O,
+      ...g.fields,
+      ...m,
+      updatesDisabled: d,
+      stagedUpdateVersion: d ? null : pt(),
+      stagedUpdateTitle: c("settings_update_ready"),
+      stagedUpdateSubtext: c("settings_update_subtext"),
+      stagedUpdateRestartLabel: c("settings_restart_to_update"),
+      messages: {
+        settings_title: c("settings_title"),
+        settings_tab_general: c("settings_tab_general"),
+        settings_general_desc: c("settings_general_desc"),
+        settings_shortcut_label: c("settings_shortcut_label"),
+        settings_shortcut_desc: c("settings_shortcut_desc"),
+        settings_stc_shortcut_label: c("settings_stc_shortcut_label"),
+        settings_stc_shortcut_desc: c("settings_stc_shortcut_desc"),
+        settings_shortcut_alt_shift_d: c("settings_shortcut_alt_shift_d"),
+        settings_shortcut_ctrl_shift_d: c("settings_shortcut_ctrl_shift_d"),
+        settings_shortcut_conflict: c("settings_shortcut_conflict"),
+        settings_shortcut_none: c("settings_shortcut_none"),
+        settings_shortcut_custom: c("settings_shortcut_custom"),
+        settings_shortcut_custom_prefix: c("settings_shortcut_custom_prefix"),
+        settings_shortcut_type_shortcut: c("settings_shortcut_type_shortcut"),
+        settings_shortcut_modifier_required: c(
+          "settings_shortcut_modifier_required",
+        ),
+        settings_shortcut_reserved: c("settings_shortcut_reserved"),
+        settings_shortcut_alt_space: c("settings_shortcut_alt_space"),
+        settings_shortcut_alt_shift_space: c(
+          "settings_shortcut_alt_shift_space",
+        ),
+        settings_shortcut_win_alt_space: c("settings_shortcut_win_alt_space"),
+        settings_shortcut_win_shift_g: c("settings_shortcut_win_shift_g"),
+        settings_open_at_login_label: c("settings_open_at_login_label"),
+        settings_open_at_login_desc: c("settings_open_at_login_desc"),
+        settings_open_at_login_windows_warning: c(
+          "settings_open_at_login_windows_warning",
+        ),
+        settings_disable_shortcut_in_fullscreen_label: c(
+          "settings_disable_shortcut_in_fullscreen_label",
+        ),
+        settings_disable_shortcut_in_fullscreen_desc: c(
+          "settings_disable_shortcut_in_fullscreen_desc",
+        ),
+        settings_tab_privacy: c("settings_tab_privacy"),
+        settings_privacy_title: c("settings_privacy_title"),
+        settings_privacy_desc: c("settings_privacy_desc"),
+        settings_mic_label: c("settings_mic_label"),
+        settings_mic_desc: c("settings_mic_desc"),
+        settings_mic_windows_warning: c("settings_mic_windows_warning"),
+        settings_camera_label: c("settings_camera_label"),
+        settings_camera_desc: c("settings_camera_desc"),
+        settings_camera_windows_warning: c("settings_camera_windows_warning"),
+        settings_location_label: c("settings_location_label"),
+        settings_location_desc: c("settings_location_desc"),
+        settings_location_windows_warning: c(
+          "settings_location_windows_warning",
+        ),
+        settings_diagnostic_consent_label: c(
+          "settings_diagnostic_consent_label",
+        ),
+        settings_diagnostic_consent_desc: c("settings_diagnostic_consent_desc"),
+        settings_open_windows_settings: c("dialog_mic_blocked_open_settings"),
+        settings_reset_permissions: c("settings_reset_permissions"),
+        settings_tab_about: c("settings_tab_about"),
+        settings_about_title: c("settings_tab_about"),
+        settings_about_copyright: c("settings_about_copyright"),
+        settings_about_desc: c("settings_about_desc"),
+        settings_build_version: c("settings_build_version"),
+        settings_check_for_updates: c("settings_check_for_updates"),
+        settings_checking_btn: c("settings_checking_btn"),
+        settings_download_update: c("settings_download_update"),
+        settings_downloading_btn: c("settings_downloading_btn"),
+        settings_checking_for_updates: c("settings_checking_for_updates"),
+        settings_up_to_date: c("settings_up_to_date"),
+        settings_up_to_date_short: c("settings_up_to_date_short"),
+        settings_update_available: c("settings_update_available"),
+        settings_update_available_short: c("settings_update_available_short"),
+        settings_update_downloading: c("settings_update_downloading"),
+        settings_update_downloading_version: c(
+          "settings_update_downloading_version",
+        ),
+        settings_update_ready_inline: c("settings_update_ready_inline"),
+        settings_update_error: c("settings_update_error"),
+        settings_update_error_short: c("settings_update_error_short"),
+        settings_update_download_error_short: c(
+          "settings_update_download_error_short",
+        ),
+        settings_update_not_registered_short: c(
+          "settings_update_not_registered_short",
+        ),
+        settings_update_install_incomplete_short: c(
+          "settings_update_install_incomplete_short",
+        ),
+        settings_update_unavailable: c("settings_update_unavailable"),
+        settings_update_ready: c("settings_update_ready"),
+        settings_update_subtext: c("settings_update_subtext"),
+        settings_restart_to_update: c("settings_restart_to_update"),
+        settings_done: c("settings_done"),
+        settings_close: c("settings_close"),
+      },
+    };
+  }),
+    H.handleIpc("settings:relaunch-to-update", async (e) => {
+      v(e, y) && yn();
+    }),
+    H.handleIpc("settings:check-for-updates", async (e) =>
+      v(e, y) ? rs() : null,
+    ),
+    H.handleIpc("settings:download-update", async (e) =>
+      v(e, y)
+        ? (st?.status === "available" &&
+            Hr({ status: "downloading", version: st.version }),
+          is())
+        : null,
+    ),
+    H.handleIpc("settings:set-open-at-login", async (e, t) => {
+      v(e, y) && B("openAtLogin", !!t);
+    }),
+    H.handleIpc("settings:set-disable-shortcut-in-fullscreen", async (e, t) => {
+      v(e, y) && B("disableShortcutInFullScreen", !!t);
+    }),
+    H.handleIpc("settings:set-diagnostic-consent", async (e, t) => {
+      v(e, y) && B("diagnosticConsent", !!t);
+    }),
+    H.handleIpc("settings:set-shortcut", async (e, t) =>
+      v(e, y) ? Ds(String(t ?? "")) : null,
+    ),
+    H.handleIpc("settings:set-stc-shortcut", async (e, t) =>
+      v(e, y) ? Ps(String(t ?? "")) : null,
+    ),
+    H.handleIpc("settings:set-permission", async (e, t) => {
+      if (!v(e, y)) return;
+      let { permission: n, state: o } = t ?? {};
+      n && (o === "granted" || o === "denied") && Tr(n, Ur, o, !0);
+    }),
+    H.handleIpc("settings:reset-permissions", async (e) => {
+      v(e, y) && Ss();
+    }),
+    H.handleIpc("settings:open-windows-privacy", async (e) => {
+      v(e, y) &&
+        (await Ne.shell.openExternal("ms-settings:privacy-microphone"));
+    }),
+    H.handleIpc("settings:open-windows-camera-privacy", async (e) => {
+      v(e, y) && (await Ne.shell.openExternal("ms-settings:privacy-webcam"));
+    }),
+    H.handleIpc("settings:open-windows-location-privacy", async (e) => {
+      v(e, y) && (await Ne.shell.openExternal("ms-settings:privacy-location"));
+    }),
+    H.handleIpc("settings:open-windows-startup-settings", async (e) => {
+      v(e, y) && (await Ne.shell.openExternal("ms-settings:startupapps"));
+    }),
+    H.onIpc("settings:close", Wg),
+    H.onIpc("settings:translate", kg),
+    H.onIpc("settings:ready", Ug));
+}
+function wu() {
+  if (!y || !Pe || Pe.isDestroyed()) return;
+  let e = Pe.getContentBounds();
+  y.setBounds({ x: 0, y: 0, width: e.width, height: e.height });
+}
+function zs() {
+  (Gr(),
+    (y = null),
+    (Pe = null),
+    (Vr = null),
+    (St = !1),
+    (Fr = !1),
+    (st = null),
+    (Br = 0));
+}
+function Fg(e) {
+  if (y) return;
+  ((Pe = e),
+    (y = new Ne.WebContentsView({
+      webPreferences: {
+        preload: mu.join(__dirname, "settings", "settings_preload.js"),
+        nodeIntegration: !1,
+        contextIsolation: !0,
+        sandbox: !0,
+      },
+    })),
+    H.trackView(y),
+    y.setVisible(!1),
+    y.setBackgroundColor("#00000000"),
+    typeof y.webContents.on == "function" &&
+      y.webContents.on("will-navigate", (n, o) => {
+        (n.preventDefault(), x(o));
+      }),
+    typeof y.webContents.setWindowOpenHandler == "function" &&
+      y.webContents.setWindowOpenHandler(
+        ({ url: n }) => (x(n), { action: "deny" }),
+      ),
+    y.webContents.loadURL(z("settings", "settings.html")));
+  let t = y.webContents;
+  t.on("dom-ready", () => {
+    (K(t), St && !t.isDestroyed() && (t.send("settings:opened"), js(t)));
+  });
+}
+function js(e) {
+  if (
+    !e.isDestroyed() &&
+    (Fr && ((Fr = !1), e.send("settings:trigger-update-check")), st)
+  ) {
+    let t = st,
+      n = Date.now() - Br;
+    if (t.status !== "ready_to_install" && t.status !== "available" && n > Hg) {
+      ((st = null),
+        (Br = 0),
+        u.info(
+          "settings_window",
+          "Dropping stale cached update check result; status:",
+          t.status,
+        ));
+      return;
+    }
+    (u.info(
+      "settings_window",
+      "Replaying cached update check result to Settings; status:",
+      t.status,
+    ),
+      e.send("settings:update-check-result", t));
+  }
+}
+function Ke() {
+  return St;
+}
+function qs(e, t) {
+  (H.reset(),
+    zs(),
+    (Pe = e),
+    (Vr = t ?? null),
+    H.onWindowBoundsChange(e, wu),
+    Mg(),
+    H.bindWindow(e, zs));
+}
+function Et(e, t, n) {
+  let o = e || Pe;
+  if (!(!o || o.isDestroyed())) {
+    if (
+      (t && (Vr = t),
+      n?.triggerUpdateCheck &&
+        ((Fr = !0), o.isMinimized() && o.restore(), o.show(), o.focus()),
+      n?.updateCheckResult && Hr(n.updateCheckResult),
+      St)
+    ) {
+      ($s(), y && !y.webContents.isLoading() && js(y.webContents));
+      return;
+    }
+    if ((Fg(o), wu(), o.contentView && y)) {
+      try {
+        o.contentView.removeChildView(y);
+      } catch {}
+      (o.contentView.addChildView(y),
+        y.setVisible(!1),
+        (St = !0),
+        y.webContents.send("settings:opened"),
+        y.webContents.isLoading() || js(y.webContents),
+        T("active_window", "settings"),
+        Gr(),
+        (Mr = setTimeout($s, Pg)));
+    }
+  }
+}
+function Hr(e) {
+  ((st = e), (Br = e ? Date.now() : 0));
+}
+function Vg(e) {
+  (y &&
+    !y.webContents.isDestroyed() &&
+    !y.webContents.isLoading() &&
+    y.webContents.send("settings:update-check-result", e),
+    !(
+      st?.status === "ready_to_install" &&
+      e.status !== "ready_to_install" &&
+      e.reason !== "install_incomplete"
+    ) &&
+      ((st?.status === "downloading" && e.status === "checking") ||
+        (Bg.has(e.status) ? Hr(e) : Hr(null))));
+}
+function $r() {
+  (Gr(), (St = !1), T("active_window", "main"));
+  let e = y;
+  if (
+    ((y = null),
+    e && !e.webContents.isDestroyed() && e.setVisible(!1),
+    ce(Pe, {
+      attachedContentWc: Vr,
+      excludeView: e,
+      shouldSkipDeferredFocus: () => St,
+    }),
+    e && Pe && !Pe.isDestroyed() && Pe.contentView)
+  )
+    try {
+      Pe.contentView.removeChildView(e);
+    } catch {}
+  if ((e && H.untrackView(e), e && !e.webContents.isDestroyed()))
+    try {
+      e.webContents.close();
+    } catch {}
+}
+function Gg() {
+  (H.reset(), zs());
+}
+var Ne,
+  mu,
+  hu,
+  Ur,
+  y,
+  Pe,
+  Vr,
+  St,
+  Fr,
+  st,
+  Br,
+  H,
+  Pg,
+  Mr,
+  Bg,
+  Hg,
+  xe = W(() => {
+    f();
+    ((Ne = require("electron")), (mu = A(require("path"))));
+    Se();
+    fr();
+    he();
+    Cn();
+    Fc();
+    qe();
+    Te();
+    Me();
+    F();
+    xr();
+    ee();
+    Kt();
+    Ws();
+    Gs();
+    gu();
+    bn();
+    hu = "https://gemini.google.com";
+    try {
+      hu = new URL(me).origin;
+    } catch {}
+    ((Ur = hu),
+      (y = null),
+      (Pe = null),
+      (Vr = null),
+      (St = !1),
+      (Fr = !1),
+      (st = null),
+      (Br = 0),
+      (H = new Y()),
+      (Pg = 1500),
+      (Mr = null));
+    ((Bg = new Set([
+      "checking",
+      "available",
+      "downloading",
+      "ready_to_install",
+    ])),
+      (Hg = vn));
+  });
+var Ih = {};
+Fo(Ih, {
+  handleCommandLineArgs: () => Ra,
+  handleHelperCommand: () => ff,
+  handleStagedUpdateDetected: () => df,
+  isDevEnvironment: () => Pa,
+  isTrustedAppSender: () => ro,
+  isTrustedGeminiSender: () => Ue,
+  isTrustedNavigationSender: () => gr,
+  parseSuppressQuitConfirmationArg: () => to,
+  resetMainStateForTesting: () => xh,
+});
+module.exports = Cf(Ih);
+f();
+var h = require("electron"),
+  uf = A(require("path"));
+Se();
+fr();
+he();
+Cn();
+Xn();
+f();
+var dc = A(require("crypto")),
+  jt = require("electron"),
+  be = A(require("fs")),
+  Tn = A(require("path"));
+he();
+F();
+ee();
+f();
+he();
+var tc = "%.@.",
+  nc = "{";
+function ht(e) {
+  return typeof e == "string" && (e.startsWith(tc) || e.startsWith(nc));
+}
+function Op(e, t, n) {
+  for (let [o, r] of e)
+    /^\d+$/.test(o) &&
+      ((t.size > 0 && !t.has(o)) ||
+        ((typeof r == "boolean" ||
+          typeof r == "number" ||
+          typeof r == "string") &&
+          (n[o] = r)));
+}
+async function oc(e, t = 1e3) {
+  try {
+    let s = new URL(e.getURL());
+    if (!G(s.hostname) || s.protocol !== "https:") return null;
+  } catch {
+    return null;
+  }
+  let o = e
+      .executeJavaScript(
+        `(() => {
     const w = window.WIZ_global_data;
     if (!w || typeof w !== 'object') return null;
     return {
       gaiaId: typeof w['S06Grb'] === 'string' ? w['S06Grb'] : undefined,
       rawWizPayload: typeof w['TSDtV'] === 'string' ? w['TSDtV'] : undefined,
     };
-  })()`).catch(()=>null),r,i=new Promise(s=>{r=setTimeout(()=>{s(null)},t)});try{let s=await Promise.race([o,i]);if(!s||typeof s!="object")return null;let l=s;return{gaiaId:typeof l.gaiaId=="string"&&l.gaiaId.trim().length>0?l.gaiaId.trim():void 0,rawWizPayload:ht(l.rawWizPayload)?l.rawWizPayload:void 0}}finally{clearTimeout(r)}}function En(e,t=[]){if(!ht(e))return{};let n=new Set(t.map(String));return e.startsWith(nc)?Wp(e,n):kp(e,n)}function Wp(e,t){let n={};try{let r=JSON.parse(e)?.flags;r&&typeof r=="object"&&!Array.isArray(r)&&Op(Object.entries(r),t,n)}catch{}return n}function kp(e,t){let n={};try{let r=[JSON.parse("["+e.slice(tc.length))];for(;r.length>0;){let i=r.shift();if(Array.isArray(i))if(i.length>=2&&typeof i[0]=="number"){let s=String(i[0]);(t.size===0||t.has(s))&&(typeof i[2]=="boolean"||typeof i[2]=="number"?n[s]=!!i[2]:typeof i[1]=="number"?n[s]=i[1]:typeof i[3]=="number"?n[s]=i[3]:typeof i[4]=="string"&&(n[s]=i[4]))}else for(let s of i)Array.isArray(s)&&r.push(s)}}catch{}return n}function ls(e){let t=/window\.WIZ_global_data\s*=\s*\{/.exec(e);if(!t)return;let n=t.index+t[0].length-1,o=0,r=!1,i="",s=!1;for(let l=n;l<e.length;l++){let a=e[l];if(r)s?s=!1:a==="\\"?s=!0:a===i&&(r=!1);else if(a==='"'||a==="'")r=!0,i=a,s=!1;else if(a==="{")o++;else if(a==="}"&&(o--,o===0))return e.substring(n,l+1)}}function rc(e){if(!e||typeof e!="string")return;let t=ls(e);if(t)try{let n=JSON.parse(t),o=n?.TSDtV;if(ht(o))return o;for(let r of Object.values(n))if(ht(r)){let i=En(r);if(Object.keys(i).length>0)return r}return}catch{return}}function ic(e,t=[]){if(!e||typeof e!="string")return{};let n=ls(e);if(!n)return{};try{let o=JSON.parse(n);if(!o||typeof o!="object"||Array.isArray(o))return{};let r=o,i={};for(let s of Object.values(r))ht(s)&&Object.assign(i,En(s,t));return i}catch{return{}}}function sc(e){if(!e||typeof e!="string")return;let t=ls(e);if(t)try{let o=JSON.parse(t)?.S06Grb;return typeof o=="string"&&o.trim().length>0?o.trim():void 0}catch{return}}var ac="flags";function Up(e){return e?[ac,e.host]:[ac]}var Mp="active_account.json",io="default",Fp=336*60*60*1e3,Bp=14400*1e3,Hp=Ie?.startUrl??"https://gemini.google.com/app",cs={ENABLE_CAPTURE_WINDOW_BUTTON:"45861415",ENABLE_DESKTOP_BRIDGE_TOGGLE:"45861412",ENABLE_WINDOWS_REQUEST_SOURCE:"45861413"},Vp={enableCaptureWindow:cs.ENABLE_CAPTURE_WINDOW_BUTTON,enableDesktopBridge:cs.ENABLE_DESKTOP_BRIDGE_TOGGLE,enableWindowsRequestSource:cs.ENABLE_WINDOWS_REQUEST_SOURCE},lc=null,nt=null,so={},us="",An=io,hr,mr=null;function fc(){return lc||Tn.join(jt.app.getPath("userData"),...Up(Ie))}function lo(e){if(!e||typeof e!="string")return io;let t=e.trim();return t.length===0?io:/^[a-zA-Z0-9_-]{1,64}$/.test(t)?t:dc.createHash("sha256").update(t).digest("hex").slice(0,24)}function Gp(e){if(/^\d+$/.test(e))return e;let t=Vp[e];return t&&/^\d+$/.test(t)?t:null}function ao(e){let t={};for(let[n,o]of Object.entries(e)){let r=Gp(n);r&&(typeof o=="boolean"||typeof o=="number"||typeof o=="string")&&(t[r]=o)}return t}function ds(e){let t=lo(e);return Tn.join(fc(),`${t}.json`)}function fs(){return Tn.join(fc(),Mp)}function pc(e){let t=be.readFileSync(e,"utf8").replace(/^\uFEFF/,"");return JSON.parse(t)}function gc(){try{let e=fs();if(be.existsSync(e)){let t=pc(e);if(typeof t?.activeAccountId=="string"&&t.activeAccountId.trim().length>0)return lo(t.activeAccountId)}}catch{}return io}var cc=Promise.resolve();async function uc(e,t){let n=cc.then(async()=>{let o=Tn.dirname(e);await be.promises.mkdir(o,{recursive:!0});let r=`${e}.tmp`;await be.promises.writeFile(r,JSON.stringify(t,null,2),"utf8"),await be.promises.rename(r,e)});return cc=n.catch(()=>{}),n}function mc(e){try{let t=ds(e);if(!be.existsSync(t))return null;let n=pc(t);if(!n||typeof n!="object"||Array.isArray(n))return null;let o=n;return typeof o.updatedAtMs!="number"||!o.flags||typeof o.flags!="object"?null:{updatedAtMs:o.updatedAtMs,appVersion:typeof o.appVersion=="string"?o.appVersion:"",rawWizPayload:ht(o.rawWizPayload)?o.rawWizPayload:void 0,flags:ao(o.flags)}}catch{return null}}function ps(e=us,t){e&&(us=e);let n=t?lo(t):gc();An=n;let o=mc(n),r=Date.now();if(o&&r-o.updatedAtMs<=Fp){hr=o.rawWizPayload;let s={...o.rawWizPayload?ao(En(o.rawWizPayload)):{},...ao(o.flags)};nt=Object.freeze({...s}),so={...s},u.info("flag_cache","Loaded cached Mendel flags for cold boot:","account=",tt(n),"count=",Object.keys(s).length,"rawPayload=",!!o.rawWizPayload,"ageSec=",Math.round((r-o.updatedAtMs)/1e3))}else hr=void 0,nt=Object.freeze({}),so={},u.info("flag_cache","Initialized empty Mendel flag cache:","account=",tt(n));return nt}function hc(){return nt||ps(),nt??Object.freeze({})}async function gs(e,t,n=!1,o){let r=ao(e),i=t?lo(t):An||gc(),s=mc(i),l=r,a=ht(o)?o:void 0,d=!s||An!==i;if(!d&&s&&a!==s.rawWizPayload&&(d=!0),!d&&s){let S=Object.keys(s.flags),E=Object.keys(l);if(S.length!==E.length)d=!0;else for(let k of E)if(s.flags[k]!==l[k]){d=!0;break}}let m={...a?ao(En(a)):{},...l};so={...m},An=i,hr=a,(n||!nt||Object.keys(nt).length===0)&&(nt=Object.freeze({...m}));try{await uc(fs(),{activeAccountId:i});let S={updatedAtMs:Date.now(),appVersion:us,...a?{rawWizPayload:a}:{},flags:l};await uc(ds(i),S),u.info("flag_cache","Synced Mendel flags to per-account cache file:","account=",tt(i),"changed=",d,"relatch=",n,"rawPayload=",!!a,"count=",Object.keys(l).length)}catch(S){u.warn("flag_cache","Failed to write flag cache file:",tt(S))}return d}function wc(e){let t=e?lo(e):An;try{let n=ds(t);be.existsSync(n)&&be.unlinkSync(n)}catch{}try{let n=fs();be.existsSync(n)&&be.unlinkSync(n)}catch{}An=io,nt=Object.freeze({}),so={},hr=void 0,u.info("flag_cache","Cleared cached Mendel flags on sign-out")}async function co(e){let t=e.accountUrl||Hp,n={},o,r;if(e.webContents)try{let s=await oc(e.webContents);s?.gaiaId&&(o=s.gaiaId),s?.rawWizPayload&&(r=s.rawWizPayload,Object.assign(n,En(s.rawWizPayload)))}catch{}let i=e.fetcher??(!r&&jt.session?.defaultSession&&typeof jt.session.defaultSession.fetch=="function"?jt.session.defaultSession.fetch.bind(jt.session.defaultSession):void 0);if(i&&!no(t))u.warn("flag_cache","Skipping background flag poll: accountUrl is not a trusted Google origin");else if(i)try{let s=await i(t,{credentials:"include"});if(s&&s.ok){let l=await s.text(),a=sc(l);a&&(o=a);let d=rc(l);d&&(r=d);let g=ic(l);Object.assign(n,g)}}catch(s){u.warn("flag_cache","Background HTTP flag poll failed:",tt(s))}return(Object.keys(n).length>0||r)&&await gs(n,o,!!e.isWindowHidden,r),{...so}}function _c(e,t=Bp){ms(),mr=setInterval(()=>{e()},t)}function ms(){mr!==null&&(clearInterval(mr),mr=null)}f();var xn=require("electron");f();var hs="gpuSoftwareRenderingFallback",ws="force-software-rendering";function yc(e,t,n){return e||n||t.includes(`--${ws}`)}function bc(){return[{name:"disable-gpu-compositing"},{name:"disable-direct-composition"}]}function vc(e,t,n){return t>0&&n-t>3e4?1:e+1}F();Kt();function Tc(){return yc(Z(hs,!1),process.argv,xn.app.commandLine.hasSwitch(ws))}function xc(){if(Tc()){u.warn("gpu_fallback","Software-rendering fallback active; forcing software compositing");for(let{name:e,value:t}of bc())u.info("gpu_fallback",`Applying software-rendering switch --${e}${t===void 0?"":`=${t}`}`),t===void 0?xn.app.commandLine.appendSwitch(e):xn.app.commandLine.appendSwitch(e,t)}}function _r(e){return Tc()?(u.error("gpu_fallback",`Crash persists with software rendering (${e}); not relaunching`),!1):(u.error("gpu_fallback",`Fatal GPU/renderer crash storm (${e}); enabling software-rendering fallback and relaunching`),B(hs,!0),xn.app.relaunch(),xn.app.exit(0),!0)}pn();F();f();var qp=["remote-debugging-port","remote-debugging-pipe","remote-allow-origins","inspect","inspect-brk","inspect-port","inspect-publish-uid","proxy-server","proxy-pac-url","host-rules","host-resolver-rules","ignore-certificate-errors","disable-web-security"],Kp=["--","-","/"];function Yp(e){if(typeof e!="string")return null;let t=e.trim(),n=Kp.find(s=>t.startsWith(s)&&t.length>s.length);if(!n)return null;let o=t.slice(n.length),r=o.indexOf("=");return(r===-1?o:o.slice(0,r)).toLowerCase()}function Rc(e){if(!Array.isArray(e))return null;for(let t of e){let n=Yp(t);if(n&&qp.includes(n))return n}return null}function Lc(e,t,n=[]){return e?Rc(t)??Rc(n):null}var Ic="Gemini: refusing to start \u2014 a debugging or network-override switch is present on the command line.";ee();Kt();f();var Yt=require("electron"),Pc=A(require("fs")),De=A(require("path"));he();F();var Dc="Gemini.lnk",Xp="app-";function Qp(){return[De.join(Yt.app.getPath("appData"),"Microsoft","Windows","Start Menu","Programs",Dc),De.join(Yt.app.getPath("desktop"),Dc)]}function Nc(e,t){return De.resolve(e).toLowerCase()===De.resolve(t).toLowerCase()}function Jp(e,t){return!!e.icon&&Nc(e.icon,t)&&(e.iconIndex??0)===0}function Oc(){if(process.platform!=="win32")return 0;let e;try{e=De.dirname(Yt.app.getPath("exe"))}catch(o){return u.warn("shortcut_aumid","Failed to resolve executable path",tt(o)),0}if(!De.basename(e).startsWith(Xp))return 0;let t=De.join(De.dirname(e),"Gemini.exe"),n=0;for(let o of Qp())try{if(!Pc.existsSync(o))continue;let r=Yt.shell.readShortcutLink(o);if(!Nc(r.target,t)||r.appUserModelId===Gn&&Jp(r,t))continue;Yt.shell.writeShortcutLink(o,"update",{target:r.target,icon:t,iconIndex:0,appUserModelId:Gn})?n++:u.warn("shortcut_aumid","Failed to write AppUserModelID and icon onto installer shortcut")}catch(r){u.warn("shortcut_aumid","Failed to read or update installer shortcut",tt(r))}return n>0&&u.info("shortcut_aumid",`Stamped AppUserModelID and icon onto ${n} installer shortcut(s)`),n}f();var Su=require("electron"),Eu=A(require("path"));Se();Cn();qe();Te();mn();Me();F();gn();ee();f();var Kr=require("electron"),bu=A(require("path"));Se();he();qe();Te();Me();ee();xe();f();var _u=-7.5,yu=9;function zr(e){e.isDestroyed()||e.setZoomLevel(Math.min(e.getZoomLevel()+.5,yu))}function jr(e){e.isDestroyed()||e.setZoomLevel(Math.max(e.getZoomLevel()-.5,_u))}function qr(e){e.isDestroyed()||e.setZoomLevel(0)}var we=36,$g="topbar:open-menu",zg="topbar:menu-closed",jg="topbar:set-label",_o=new Y;function qg(e,t,n,o){let r=()=>{let l=typeof t=="function"?t():t;return l&&!l.isDestroyed()?l:n&&!n.isDestroyed()?yr(n):null},i=(l,a=!1)=>{let d=r();!d||d.isDestroyed()||(a&&(n&&!n.isDestroyed()&&n.focus(),d.focus()),l(d))},s=l=>{let a=n??l;return a&&!a.isDestroyed()?a:null};return[{label:c("menu_file"),submenu:[{label:c("menu_settings"),accelerator:"CmdOrCtrl+,",click:()=>{e()}},{type:"separator"},{role:"quit",label:c("menu_exit"),accelerator:"CmdOrCtrl+Q"}]},{label:c("menu_edit"),submenu:[{label:c("menu_undo"),accelerator:"CmdOrCtrl+Z",click:()=>{i(l=>l.undo(),!0)}},{label:c("menu_redo"),accelerator:"CmdOrCtrl+Y",click:()=>{i(l=>l.redo(),!0)}},{type:"separator"},{label:c("menu_cut"),accelerator:"CmdOrCtrl+X",click:()=>{i(l=>l.cut(),!0)}},{label:c("menu_copy"),accelerator:"CmdOrCtrl+C",click:()=>{i(l=>l.copy(),!0)}},{label:c("menu_paste"),accelerator:"CmdOrCtrl+V",click:()=>{i(l=>l.paste(),!0)}},{label:c("menu_delete"),accelerator:"Delete",click:()=>{i(l=>l.delete(),!0)}},{type:"separator"},{label:c("menu_select_all"),accelerator:"CmdOrCtrl+A",click:()=>{i(l=>l.selectAll(),!0)}}]},{label:c("menu_view"),submenu:[{label:c("menu_reload"),accelerator:"CmdOrCtrl+R",click:()=>{o?o():i(l=>l.reload())}},{label:c("menu_force_reload"),accelerator:"CmdOrCtrl+Shift+R",click:()=>{i(l=>l.reloadIgnoringCache())}},...O==="dev"?[{label:c("menu_toggle_dev_tools"),accelerator:"CmdOrCtrl+Shift+I",click:()=>{i(l=>l.toggleDevTools())}}]:[],{type:"separator"},{label:c("menu_actual_size"),accelerator:"CmdOrCtrl+0",click:()=>{i(l=>qr(l))}},{label:c("menu_zoom_in"),accelerator:"CmdOrCtrl+Plus",click:()=>{i(l=>zr(l))}},{label:c("menu_zoom_out"),accelerator:"CmdOrCtrl+-",click:()=>{i(l=>jr(l))}},{type:"separator"},{label:c("menu_toggle_fullscreen"),accelerator:"F11",click:(l,a)=>{let d=s(a);d&&d.setFullScreen(!d.isFullScreen())}}]},{label:c("menu_window"),submenu:[{label:c("menu_minimize"),accelerator:"CmdOrCtrl+M",click:(l,a)=>{let d=s(a);d&&d.minimize()}},{label:c("menu_close_window"),accelerator:"CmdOrCtrl+W",click:(l,a)=>{let d=s(a);d&&d.close()}}]}]}function vu(e,t,n,o){_o.reset();let r=new Kr.WebContentsView({webPreferences:{preload:bu.join(__dirname,"top_bar","top_bar_preload.js"),nodeIntegration:!1,contextIsolation:!0,sandbox:!0}});_o.trackView(r),r.setBackgroundColor("#00000000"),e.contentView.addChildView(r),r.webContents.on("will-navigate",(a,d)=>{a.preventDefault(),x(d)}),r.webContents.setWindowOpenHandler(({url:a})=>(x(a),{action:"deny"}));let i=()=>{let{width:a}=e.getContentBounds();r.setBounds({x:0,y:0,width:a,height:we})};i(),_o.onWindowBoundsChange(e,i),r.webContents.on("dom-ready",()=>{K(r.webContents),r.webContents.send(jg,c("top_bar_menu_title"))}),r.webContents.loadURL(z("top_bar","top_bar.html"));try{require("./voice_bridge_native.js").attachToTopBarWebContents(r.webContents)}catch{}let s=()=>yr(e,{attachedContentWc:n,excludeView:r}),l=(a,d)=>{try{if(!v(a,r)||e.isDestroyed())return;if(!Ke()){let E=s();E&&!E.isDestroyed()&&E.focus()}let g=qg(t,s,e,o),m=Kr.Menu.buildFromTemplate(g),S={window:e,callback:()=>{try{r.webContents.isDestroyed()||r.webContents.send(zg),Ke()||ce(e,{attachedContentWc:n,excludeView:r})}catch{}}};d&&Number.isFinite(d.x)&&Number.isFinite(d.y)&&(S.x=Math.round(d.x),S.y=Math.round(d.y)),m.popup(S)}catch{}};_o.onIpc($g,l),_o.bindWindow(e)}var X=null,Oe=null,Xr=null,Pn=!1,At=null,Ks=null,yo=null,Ye=new Y,Kg=1500,Yr=null;function Qr(){Yr!==null&&(clearTimeout(Yr),Yr=null)}function Ys(){Qr(),Pn&&(!X||X.webContents.isDestroyed()||(X.setVisible(!0),X.webContents.focus()))}function Au(){return At===null?0:At.getRuntimeAuthInfo().signinStatus}function Yg(){if(!At)return;let e=Au();if(!(e===2||e===1||e===0)){if(yo&&(yo(),yo=null),e===6){At.forceRefreshAccessToken("OAuth browser flow required");return}if(e===9){tm();return}}}function Xg(){if(At)return;let e=Ae();e&&(At=e.argoLib,Ks=new Promise(t=>{yo=t}),e.argoLib.initialize(Yg)||(At=null,Ks=null,yo=null))}async function Tu(){return Xg(),At?(await Ks,Au()===3):!1}function Qg(){return exports.getCurrentUserInfo()}function Xs(){if(!Oe||Oe.isDestroyed()||!X)return;let{width:e,height:t}=Oe.getContentBounds();X.setBounds({x:0,y:we,width:e,height:or(t,we)})}function Jg(){Ye.handleIpc("sign-in:get-content",async e=>v(e,X)?{title:c("signInTitle"),signInButton:c("signInButton"),createAccountButton:c("signInCreateAccountButton"),logOutButton:c("signInLogOutButton"),user:Qg()}:null),Ye.handleIpc("sign-in:sign-in",async e=>v(e,X)?(exports.startNewAccountLogin(),!0):!1),Ye.handleIpc("sign-in:create-account",async e=>v(e,X)?(exports.openCreateAccountPage(),!0):!1),Ye.handleIpc("sign-in:log-out",async e=>v(e,X)?(exports.logoutCurrentUser(),!0):!1),Ye.onIpc("sign-in:ready",e=>{v(e,X)&&Ys()})}function Zg(){if(X&&!X.webContents.isDestroyed())return X;X=new Su.WebContentsView({webPreferences:{preload:Eu.join(__dirname,"sign_in","sign_in_preload.js"),nodeIntegration:!1,contextIsolation:!0,sandbox:!0}}),X.setBackgroundColor("#00000000"),X.setVisible(!1);let e=X;return Ye.trackView(e),e.webContents.on("dom-ready",()=>{K(e.webContents)}),e.webContents.on("will-navigate",(t,n)=>{t.preventDefault(),x(n)}),e.webContents.setWindowOpenHandler(({url:t})=>(x(t),{action:"deny"})),e.webContents.loadURL(z("sign_in","sign_in.html")),Xs(),X}function em(e,t){Ye.reset(),Cu(),Oe=e,Xr=t??null,Ye.onWindowBoundsChange(e,Xs),Jg(),Ye.bindWindow(e,Cu)}function xu(e,t){let n=e||Oe;if(!n||n.isDestroyed())return;if(Oe!==n?em(n,t):t&&(Xr=t),Pn){Ys();return}let o=Zg();if(Xs(),n.contentView){try{n.contentView.removeChildView(o)}catch{}n.contentView.addChildView(o),o.setVisible(!1),Pn=!0,T("active_window","sign_in"),Qr(),Yr=setTimeout(Ys,Kg)}}function tm(){Qr(),Pn=!1,T("active_window","main");let e=X;if(X=null,e&&!e.webContents.isDestroyed()&&e.setVisible(!1),ce(Oe,{attachedContentWc:Xr,excludeView:e,shouldSkipDeferredFocus:()=>Pn}),e&&Oe&&!Oe.isDestroyed()&&Oe.contentView)try{Oe.contentView.removeChildView(e)}catch{}if(e&&Ye.untrackView(e),e&&!e.webContents.isDestroyed())try{e.webContents.close()}catch{}}function Cu(){Qr(),X=null,Oe=null,Xr=null,Pn=!1}Gs();f();var Qs=A(require("path"));F();var nm="clearcut_offline_queue.json",Ru=!1;function Jr(){if(!Ru){Ru=!0;try{require(Qs.join(__dirname,"streamz_client_bundle.js"))}catch(e){u.warn("streamz","Failed to load streamz_client_bundle.js",e)}}return globalThis.geminiWindowsStreamz}function Lu(e){let t=Jr();if(!t)return;let n=e??Kn();if(!n)return;let o=Qs.join(n,nm);t.init(o,(r,...i)=>{u.info("streamz",r,...i)}),u.info("streamz","Initialized Client Streamz logger")}function Iu(e,t){let n=Jr();n&&(n.logClientLaunchedCount(e,t),u.info("streamz","Incremented client_launched_count"))}function bo(e,t,n,o){let r=Jr();if(r)try{r.logClientCrashedCount(e,t,n,o),u.info("streamz","Incremented client_crashed_count:",n,o)}catch(i){u.warn("streamz","Failed to increment client_crashed_count:",i)}}async function Js(){let e=Jr();e&&(await e.flush(),u.info("streamz","Flushed Client Streamz logger"))}f();F();f();var om=/^c_[0-9a-fA-F]{1,16}$/;function Du(e){return typeof e!="string"?null:om.test(e)?e:null}function Pu(e,t,n,o){if(n==="start"){if(!o||e.has(t))return e;let i=new Set(e);return i.add(t),i}if(!e.has(t))return e;let r=new Set(e);return r.delete(t),r}var rm=new Set,Nn=new Map,Zs=new Set;function Nu(e,t,n,o){let r=Du(t);if(r===null){u.warn("turn_lifecycle","Ignoring a turn-lifecycle emit with a malformed conversation id.");return}let i=e.id,s=Nn.get(i)??rm,l=Pu(s,r,n,o);l!==s&&(l.size===0?Nn.delete(i):(Nn.set(i,l),im(e)),Ou())}function im(e){let t=e.id;Zs.has(t)||(Zs.add(t),e.on("render-process-gone",()=>{ea(t,"render-process-gone")}),e.on("did-navigate",()=>{ea(t,"did-navigate")}),e.once("destroyed",()=>{Zs.delete(t),ea(t,"destroyed")}))}function ea(e,t){let n=Nn.get(e);n!==void 0&&(Nn.delete(e),u.info("turn_lifecycle","Dropped the client-tool sessions of a departed renderer:",t,n.size),Ou())}function sm(){let e=new Set;for(let t of Nn.values())for(let n of t)e.add(n);return Array.from(e)}function Ou(){let e=sm();u.info("turn_lifecycle","Updated active client-tool session set; conversations:",e.length)}f();var ku=require("child_process"),Uu=require("electron"),vo=A(require("fs")),Fe=A(require("path"));he();F();bn();nr();var Wu="HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Gemini";function ta(e,t,n){let o=Fe.join(process.env.SystemRoot||"C:\\Windows","System32","reg.exe");return new Promise(r=>{(0,ku.execFile)(o,["add",e,"/v",t,"/t","REG_SZ","/d",n,"/f"],{windowsHide:!0},i=>{r(!i)})})}async function na(){if(process.platform==="win32")try{let e=Uu.app.getPath("exe"),t=Fe.dirname(e),n=Fe.dirname(t),o=Fe.basename(t);if(!o.startsWith("app-"))return;let r=o.substring(4);if(O!=="dev"){let d=Gl();if(d){u.info("uninstaller_sync",`Newer version v${d} already staged on disk; skipping uninstaller sync from v${r}`);return}}u.info("uninstaller_sync",`Synchronizing Windows Registry and uninstaller for version: ${r}`),await ta(Wu,"DisplayVersion",r),await ta(Wu,"DisplayIcon",`"${Fe.join(n,"Gemini.exe")}",0`),O!=="dev"&&await ta(tr,"pv",r);let i=Fe.join(t,"resources","app.asar.unpacked","installer","Uninstall Gemini.exe"),s=Fe.join(t,"resources","app","installer","Uninstall Gemini.exe"),l=vo.existsSync(i)?i:s,a=Fe.join(n,"Uninstall Gemini.exe");if(vo.existsSync(l))try{vo.copyFileSync(l,a),u.info("uninstaller_sync","Updated root uninstaller binary from staged package")}catch(d){u.warn("uninstaller_sync","Failed to copy staged uninstaller to root directory",d)}}catch(e){u.warn("uninstaller_sync","Failed to synchronize Windows Registry uninstaller entries",e)}}f();var Fu=require("electron"),Bu=A(require("path"));Se();qe();Te();mn();Me();ee();bn();var am="update-banner:relaunch",lm="update-banner:dismiss",Q=null,ve=null,Zt=null,Zr=!1,ei=!1,On=new Y;function Mu(){ve=null,Zt=null,Q=null,Zr=!1,ei=!1}function cm(e){return{version:e,title:c("settings_update_ready"),restartLabel:c("settings_restart_to_update"),dismissLabel:c("update_banner_dismiss")}}function oa(){if(!Q||!ve||ve.isDestroyed())return;let[e,t]=ve.getContentSize();Q.setBounds(Ki(e,t))}function um(e){v(e,Q)&&yn()}function dm(e){v(e,Q)&&(ei=!0,gm())}function fm(){On.onIpc(am,um),On.onIpc(lm,dm)}function Hu(e,t){Zt=t,ve!==e&&(On.reset(),Mu(),ve=e,Zt=t,fm(),On.onWindowBoundsChange(e,oa),On.bindWindow(e,Mu))}function pm(){if(Q||!ve||ve.isDestroyed())return;Q=new Fu.WebContentsView({webPreferences:{preload:Bu.join(__dirname,"update_banner","update_banner_preload.js"),nodeIntegration:!1,contextIsolation:!0,sandbox:!0}}),On.trackView(Q),Q.setBackgroundColor("#00000000"),ve.contentView.addChildView(Q),Q.setVisible(!1),Q.webContents.on("will-navigate",(t,n)=>{t.preventDefault(),x(n)}),Q.webContents.setWindowOpenHandler(({url:t})=>(x(t),{action:"deny"})),Q.webContents.loadURL(z("update_banner","update_banner.html"));let e=Q.webContents;e.on("dom-ready",()=>{K(e)}),oa()}function Vu(e){if(ei||(Zr=!0,pm(),!Q||!ve||ve.isDestroyed()))return;let t=()=>{!Zr||ei||!Q||!ve||ve.isDestroyed()||(oa(),Q.setVisible(!0),Q.webContents.send("update-banner:show",cm(e)))};Zt&&Zt.isLoading()?Zt.once("did-finish-load",()=>{setTimeout(t,1500)}):setTimeout(t,1e3)}function gm(){Zr=!1,Q&&Q.setVisible(!1),ce(ve,{attachedContentWc:Zt,excludeView:Q})}bn();f();var mm="GeminiWindowsApp",hm=/Electron\/[0-9.]+\s/;function Gu(e,t,n){return`${e.replace(hm,"")} ${mm}/${t} (${n})`}ir();f();var Xe=require("electron");F();ee();var wm="gemini:get-window-sources",_m="gemini:capture-window",ym={width:320,height:200},bm=50,vm=/^window:[1-9]\d{0,19}:0$/,$u=2560,Cm={width:1920,height:1080},Co=null,ju=new Set,ra=!1,zu=!1;function qu(e){return typeof e!="string"||!vm.test(e)?null:e.split(":")[1]}function Sm(e){try{if(e.length>=8)return e.readBigUInt64LE(0).toString(10);if(e.length>=4)return e.readUInt32LE(0).toString(10)}catch{}return null}function Ku(){let e=new Set,t=[];try{t=Xe.BaseWindow.getAllWindows()}catch{return e}for(let n of t)try{if(n.isDestroyed())continue;let o=Sm(n.getNativeWindowHandle());o&&e.add(o)}catch{}return e}function ia(e){if(!e)return"";try{if(e.isEmpty())return"";let t=e.getSize();return!t||t.width<=0||t.height<=0?"":e.toDataURL()}catch{return""}}function Em(e,t){let n=qu(e.id);if(!n||t.has(n))return null;let o=typeof e.name=="string"?e.name.trim():"";if(!o)return null;let r=ia(e.thumbnail);if(!r)return null;let i=ia(e.appIcon);return{id:e.id,name:o,thumbnailDataUrl:r,...i?{appIconDataUrl:i}:{}}}async function Am(){let e;try{e=await Xe.desktopCapturer.getSources({types:["window"],thumbnailSize:ym,fetchWindowIcons:!0})}catch(o){throw u.warn("window_capture","Failed to enumerate windows:",o instanceof Error?o.name:"Error"),new Error("Failed to enumerate windows.")}let t=Ku(),n=[];for(let o of e){let r=Em(o,t);if(r&&n.push(r),n.length>=bm)break}return ju=new Set(n.map(o=>o.id)),u.debug("window_capture","Listed shareable windows:",n.length,"of",e.length),n}function Tm(){if(Co)return Co;let e=Am().finally(()=>{Co===e&&(Co=null)});return Co=e,e}function xm(){let e=0,t=0;try{for(let r of Xe.screen.getAllDisplays()){let i=r.scaleFactor>0?r.scaleFactor:1;e=Math.max(e,Math.round(r.size.width*i)),t=Math.max(t,Math.round(r.size.height*i))}}catch{}if(!(e>0&&t>0))return{...Cm};let n=Math.max(e,t);if(n<=$u)return{width:e,height:t};let o=$u/n;return{width:Math.max(1,Math.round(e*o)),height:Math.max(1,Math.round(t*o))}}async function Rm(e){let t=qu(e);if(!t||typeof e!="string"||!ju.has(e)||Ku().has(t))throw new Error("Invalid window source.");if(ra)throw new Error("A window capture is already in progress.");ra=!0;try{let o=(await Xe.desktopCapturer.getSources({types:["window"],thumbnailSize:xm(),fetchWindowIcons:!1})).find(i=>i.id===e),r=ia(o?.thumbnail);if(!r)throw u.info("window_capture","Window capture produced no frame (window closed or not renderable)."),new Error("Window is no longer available.");return r}finally{ra=!1}}function Yu(){zu||(zu=!0,Xe.ipcMain.handle(wm,async e=>oo(e)?Tm():[]),Xe.ipcMain.handle(_m,async(e,t)=>{if(!oo(e))throw new Error("Unauthorized.");return Rm(t)}))}f();var R=require("electron"),of=A(require("path"));Se();f();he();ee();var Lm=900*1e3,Im=1800*1e3,Dm=10,Pm="accounts.google.com",So=class{inAuthFlow=!1;timeoutTimer=null;absoluteDeadline=0;visitedExternalHosts=new Set;timeoutMs;maxDurationMs;maxHops;isTrustedOrigin;armOnConnectorOAuthRequest;hasArmedBefore=!1;constructor(t){this.timeoutMs=t?.timeoutMs??Lm,this.maxDurationMs=t?.maxDurationMs??Im,this.maxHops=t?.maxHops??Dm,this.isTrustedOrigin=t?.isTrustedOrigin??no,this.armOnConnectorOAuthRequest=t?.armOnConnectorOAuthRequest??!1}isInAuthFlow(){return this.inAuthFlow&&this.absoluteDeadline>0&&Date.now()>=this.absoluteDeadline&&this.disarm(),this.inAuthFlow}shouldAllowNavigation(t){try{let n=new URL(t);if(n.protocol!=="https:")return!1;if(this.isTrustedOrigin(t))return!0;if(!this.isInAuthFlow())return!1;let o=n.hostname.toLowerCase();return!(this.maxHops>0&&!this.visitedExternalHosts.has(o)&&this.visitedExternalHosts.size>=this.maxHops)}catch{return!1}}onNavigate(t){try{let o=new URL(t).hostname.toLowerCase();if(G(o)){this.disarm();return}if(o===Pm)this.arm();else if(!this.armConnectorEntryIfUnarmed(t)){if(this.isInAuthFlow()){if(!this.isTrustedOrigin(t)&&(this.visitedExternalHosts.add(o),this.maxHops>0&&this.visitedExternalHosts.size>this.maxHops)){this.disarm();return}this.resetTimer()}}}catch{}}arm(){this.hasArmedBefore=!0,this.isInAuthFlow()||(this.inAuthFlow=!0,this.visitedExternalHosts.clear(),this.absoluteDeadline=this.maxDurationMs>0?Date.now()+this.maxDurationMs:0),this.resetTimer()}armConnectorEntryIfUnarmed(t){return!this.armOnConnectorOAuthRequest||this.hasArmedBefore||this.isInAuthFlow()||this.isTrustedOrigin(t)||!pr(t)?!1:(this.arm(),!0)}disarm(){this.inAuthFlow=!1,this.absoluteDeadline=0,this.visitedExternalHosts.clear(),this.clearTimer()}dispose(){this.disarm()}resetTimer(){this.clearTimer();let t=this.timeoutMs;if(this.absoluteDeadline>0){let n=this.absoluteDeadline-Date.now();if(n<=0){this.disarm();return}t=t>0?Math.min(t,n):n}t>0&&(this.timeoutTimer=setTimeout(()=>{this.timeoutTimer=null,this.disarm()},t),typeof this.timeoutTimer?.unref=="function"&&this.timeoutTimer.unref())}clearTimer(){this.timeoutTimer&&(clearTimeout(this.timeoutTimer),this.timeoutTimer=null)}};f();var Ju=require("electron"),Zu=A(require("path"));Se();he();qe();Te();Me();ee();var Xu=44,Nm="backbar:home",xt=null,Tt=new Y;function Om(e){try{return G(new URL(e).hostname)}catch{return!1}}function Wm(e){try{let t=new URL(e).protocol;return t==="file:"||t===`${et}:`}catch{return!1}}function Qu(){xt=null}function ed(e,t,n){Tt.reset(),Qu();let o=()=>{if(!xt)return;let{width:l}=e.getContentBounds();xt.setBounds({x:0,y:we,width:l,height:Xu})};Tt.onWindowBoundsChange(e,o);let r=()=>{if(xt)return xt;let l=new Ju.WebContentsView({webPreferences:{preload:Zu.join(__dirname,"back_bar","back_bar_preload.js"),nodeIntegration:!1,contextIsolation:!0,sandbox:!0}});return xt=l,Tt.trackView(l),l.setBackgroundColor("#00000000"),e.contentView.addChildView(l),l.setVisible(!1),l.webContents.on("will-navigate",(a,d)=>{a.preventDefault(),x(d)}),l.webContents.setWindowOpenHandler(({url:a})=>(x(a),{action:"deny"})),o(),l.webContents.loadURL(z("back_bar","back_bar.html")),l.webContents.on("dom-ready",()=>{K(l.webContents);let a=JSON.stringify(c("back_to_gemini"));l.webContents.executeJavaScript(`document.getElementById('label').textContent = ${a};`)}),l},i=l=>{let a=!Om(l)&&!Wm(l);if(!a&&!xt)return;let d=r();d.webContents.isDestroyed()||(d.setVisible(a),o(),n(a?Xu:0))};Tt.onWebContents(t,"did-navigate",(l,a)=>{i(String(a??""))}),Tt.onWebContents(t,"did-navigate-in-page",(l,a,d)=>{d&&i(String(a??""))}),Tt.onWebContents(t,"did-redirect-navigation",(l,a,d,g)=>{g&&i(String(a??""))});let s=l=>{let a=xt;v(l,a)&&!e.isDestroyed()&&(t.loadURL(me),ce(e,{attachedContentWc:t,excludeView:a}))};Tt.onIpc(Nm,s),Tt.bindWindow(e,Qu)}f();he();function nd(e){try{let t=new URL(e).hostname.toLowerCase();return G(t)?e:null}catch{return null}}var Ao=/^((?:\/(?:u\/\d+|corp))*)(\/(?:app|projects|project)(?:\/.*|$))$/;function od(e){return e==="/projects"||e.startsWith("/projects/")||e==="/project"||e.startsWith("/project/")}function To(e){return/(?:^|\/)corp(?:\/|$)/.test(e)}function sa(e){try{let t=new URL(e).pathname.match(Ao);return!!(t&&To(t[1]))}catch{return!1}}function rd(e,t){let n=t.get("authuser"),o=n!==null&&/^\d+$/.test(n)?n:null,r=e.match(/\/u\/(\d+)/),i="";return o!==null?i=o==="0"?"":`/u/${o}`:r&&(i=`/u/${r[1]}`),`${To(e)?"/corp":""}${i}`}function en(e){try{let t=new URL(e);if(!G(t.hostname))return null;let n=t.pathname.match(Ao);if(!n)return null;let o=rd(n[1],t.searchParams);return t.pathname=`${o}/app`,t.search="",t.hash="",t.toString()}catch{return null}}function id(e,t){let n=en(e);if(!n)return null;try{return new URL(n).hostname===new URL(t).hostname.toLowerCase()?n:null}catch{return null}}function km(e){let t=en(e);if(t)return t;try{let n=new URL(e),o=n.pathname.match(/^(\/corp)?(?:\/u\/(\d+))?(?:\/|$)/),r=o&&o[1]?"/corp":"",i=o&&o[2]?o[2]:null,s=n.searchParams.get("authuser"),l=s!==null&&/^\d+$/.test(s)?s:null,a=G(n.hostname)?n.hostname.toLowerCase():bi;if(l!==null)return l==="0"?`https://${a}${r}/app`:`https://${a}${r}/u/${l}/app`;if(i!==null)return`https://${a}${r}/u/${i}/app`}catch{}return null}function td(e){if(!e)return null;try{let t=new URL(e);return t.pathname=t.pathname.replace(/^\/corp(?=\/)/,"").replace(/^\/u\/0(?=\/)/,""),t.toString()}catch{return e}}function sd(e,t,n,o){let r=km(e)??n,i=Eo(r,o);if(!t)return i;try{let s=new URL(t);if(s.protocol!=="https:"||!G(s.hostname))return i;let l=s.pathname.match(Ao);if(!l||!od(l[2]))return i;let a=td(en(Eo(t,o))),d=td(en(i));if(a&&d&&a===d)return Eo(t,o);let g=en(i);if(g){let m=new URL(g);(To(l[1])||sa(n))&&!m.pathname.startsWith("/corp/")&&(m.pathname=`/corp${m.pathname}`),m.pathname=m.pathname.replace(/\/app$/,"/projects");let E=s.searchParams.get("e");return E&&/^\d+(?:,\d+)*$/.test(E)&&m.searchParams.set("e",E),m.toString()}}catch{}return i}function ad(e,t){try{let n=new URL(e),o=new URL(t),r=n.hostname.toLowerCase(),i=o.hostname.toLowerCase(),s=n.pathname.match(Ao);if(!s)return t;let l=s[1],a=s[2],d=sa(t),g=To(l);if(r===i&&(!d||g))return null;let m=rd(l,n.searchParams),S=d&&!m.startsWith("/corp")?`/corp${m}`:m;n.hostname=i,n.pathname=`${S}${a}`;for(let[E,k]of o.searchParams.entries())n.searchParams.has(E)||n.searchParams.set(E,k);return n.toString()}catch{return t}}function ld(e,t){if(!e)return t;try{let n=new URL(e);if(n.protocol!=="https:"||!G(n.hostname))return t;let o=n.pathname.match(Ao);if(!o||!od(o[2]))return t;let r=new URL(t),i=sa(t)||To(o[1])?"/corp":"";r.pathname=`${i}/projects`;let s=n.searchParams.get("e");return s&&/^\d+(?:,\d+)*$/.test(s)&&r.searchParams.set("e",s),r.toString()}catch{return t}}function Eo(e,t){if(!t)return e;try{let n=new URL(e),o=n.hostname.toLowerCase();return n.protocol!=="https:"||o===t||!G(o)?e:(n.hostname=t,n.toString())}catch{return e}}function cd(e){let t=e;try{t=new URL(e).host}catch{}let n=40;return t.length>n?"\u2026"+t.slice(t.length-n):t}he();f();var Re=require("electron");he();f();var pd=require("electron"),gd=A(require("path"));Se();qe();Te();mn();Me();ee();var Um="findbar:search",Mm="findbar:next",Fm="findbar:prev",Bm="findbar:close",Hm="findbar:clear",ud="findbar:result",dd="findbar:focus",I=null,aa=!1,la=!1,tn=null,ti=null,Rt=null,Qe=new Y;function fd(){I=null,tn=null,ti=null,Rt=null,aa=!1,la=!1}function md(e,t){Qe.reset(),fd(),tn=e,ti=t,I={view:null,visible:!1,lastQuery:""};let n=()=>{if(!I||!I.visible||!I.view||I.view.webContents.isDestroyed())return;let{width:L}=e.getContentBounds();I.view.setBounds(qi(L,we))};Qe.onWindowBoundsChange(e,n);let o=0,r=!1,i=!0,s=!1,l=[],a=L=>{let P=I;P&&(r=!0,i=L,t.findInPage(P.lastQuery,{forward:L}))},d=()=>{let L=l.shift();L!==void 0?a(L):r=!1};Qe.onWebContents(t,"found-in-page",(L,P)=>{let pe=P,C=I;if(!pe.finalUpdate){C&&C.view&&!C.view.webContents.isDestroyed()&&C.view.webContents.send(ud,{activeMatchOrdinal:pe.activeMatchOrdinal,matches:pe.matches});return}if(r&&!s&&pe.activeMatchOrdinal===o){s=!0,C&&t.findInPage(C.lastQuery,{forward:i});return}s=!1,o=pe.activeMatchOrdinal,C&&C.view&&!C.view.webContents.isDestroyed()&&C.view.webContents.send(ud,{activeMatchOrdinal:pe.activeMatchOrdinal,matches:pe.matches}),r&&d()});let g=(L,P)=>{let pe=I;!pe||!v(L,pe.view)||(pe.lastQuery=typeof P=="string"?P:"",pe.lastQuery?(o=0,r=!1,s=!1,l.length=0,t.findInPage(pe.lastQuery,{findNext:!0})):t.stopFindInPage("clearSelection"))},m=L=>{r?l.push(L):a(L)};Rt=m;let S=L=>{let P=I;!P||!v(L,P.view)||P.lastQuery&&m(!0)},E=L=>{let P=I;!P||!v(L,P.view)||P.lastQuery&&m(!1)},k=L=>{let P=I;!P||!v(L,P.view)||ua()},D=L=>{let P=I;!P||!v(L,P.view)||(P.lastQuery="",t.stopFindInPage("clearSelection"))};Qe.onIpc(Um,g),Qe.onIpc(Mm,S),Qe.onIpc(Fm,E),Qe.onIpc(Bm,k),Qe.onIpc(Hm,D),Qe.bindWindow(e,fd)}function ca(){let e=I;if(!e||!tn)return;if(!aa){aa=!0;let n=new pd.WebContentsView({webPreferences:{preload:gd.join(__dirname,"find_bar","find_bar_preload.js"),nodeIntegration:!1,contextIsolation:!0,sandbox:!0}});Qe.trackView(n),n.setBackgroundColor("#00000000"),n.setVisible(!1),e.view=n,tn.contentView.addChildView(n),n.webContents.on("will-navigate",(o,r)=>{o.preventDefault(),x(r)}),n.webContents.setWindowOpenHandler(({url:o})=>(x(o),{action:"deny"})),n.webContents.on("before-input-event",(o,r)=>{if(r.type!=="keyDown")return;let i=I;if(!r.control&&!r.alt&&!r.meta&&r.key==="F3"){o.preventDefault(),i&&i.lastQuery&&Rt?.(!r.shift);return}if(r.control&&!r.alt&&!r.meta){let s=r.key?r.key.toLowerCase():"";if(s==="g"){o.preventDefault(),i&&i.lastQuery&&Rt?.(!r.shift);return}if(!r.shift&&s==="f"){o.preventDefault(),ca();return}}}),n.webContents.once("did-finish-load",()=>{la=!0,K(n.webContents);let o=JSON.stringify(c("find_previous_match")),r=JSON.stringify(c("find_next_match")),i=JSON.stringify(c("find_close"));n.webContents.executeJavaScript(`{const p=document.getElementById('prev');if(p)p.title=${o};const n=document.getElementById('next');if(n)n.title=${r};const c=document.getElementById('close');if(c)c.title=${i};}`).catch(()=>{}),I&&I.visible&&I.view&&(I.view.webContents.focus(),I.view.webContents.send(dd))}),n.webContents.loadURL(z("find_bar","find_bar.html"))}let t=e.view;if(!(!t||t.webContents.isDestroyed())){if(!e.visible){t.setVisible(!0),e.visible=!0;let{width:n}=tn.getContentBounds();t.setBounds(qi(n,we))}la&&(t.webContents.focus(),t.webContents.send(dd))}}function ua(){!I||!I.visible||!tn||(I.view&&!I.view.webContents.isDestroyed()&&I.view.setVisible(!1),I.visible=!1,I.lastQuery="",ti?.stopFindInPage("clearSelection"),ce(tn,{attachedContentWc:ti,excludeView:I?.view,shouldSkipDeferredFocus:()=>xo()}))}function da(){!I||!I.visible||!I.lastQuery||!Rt||Rt(!0)}function fa(){!I||!I.visible||!I.lastQuery||!Rt||Rt(!1)}function xo(){return!!(I&&I.visible)}Te();ee();xe();function Vm(e){try{return new URL(e.getURL()).hostname.toLowerCase()}catch{return""}}function hd(e){return!G(Vm(e))&&e.navigationHistory.canGoBack()}function Gm(e,t,n,o={}){let{onSwitchAccount:r,onSignOut:i}=o,s=[];if(hd(t)&&s.push({label:c("back_to_gemini"),click:()=>{t.navigationHistory.canGoBack()&&t.navigationHistory.goBack()}},{type:"separator"}),e.isEditable)s.push({role:"undo"},{role:"redo"},{type:"separator"},{role:"cut"},{role:"copy"},{role:"paste"},{role:"pasteAndMatchStyle",label:c("paste_as_plain_text")},{role:"delete"},{type:"separator"},{role:"selectAll"});else if(e.mediaType==="image"){let l=e.srcURL;s.push({label:c("copy_image"),click:()=>{t.copyImageAt(e.x,e.y)}},{label:c("save_image_as"),click:()=>{l&&t.downloadURL(l)}},{label:c("copy_image_address"),click:()=>{l&&Re.clipboard.writeText(l)}})}else if(e.linkURL){let l=e.linkURL;s.push({label:c("open_link_in_browser"),click:()=>{x(l)}},{label:c("copy_link_address"),click:()=>{Re.clipboard.writeText(l)}})}else e.selectionText&&e.selectionText.trim()?s.push({role:"copy"}):s.push({label:c("reload_gemini"),click:n},{label:c("print"),accelerator:"CmdOrCtrl+P",click:()=>{t.print()}},{type:"separator"},{role:"selectAll"});return(r||i)&&(s.push({type:"separator"}),r&&s.push({label:c("switch_account"),click:r}),i&&s.push({label:c("sign_out"),click:i})),s.push({type:"separator"},{label:c("menu_settings"),accelerator:"CmdOrCtrl+,",click:()=>{let l=Re.BrowserWindow.fromWebContents(t);Et(l,t)}}),O==="dev"&&s.push({type:"separator"},{label:c("inspect_element"),click:()=>{t.inspectElement(e.x,e.y)}}),s}function ni(e,t={}){let n=()=>t.targetWebContents&&!t.targetWebContents.isDestroyed()?t.targetWebContents:e,o=t.onReload||(()=>{n().reloadIgnoringCache()});e.on("context-menu",(r,i)=>{let s=Gm(i,e,o,{onSwitchAccount:t.onSwitchAccount,onSignOut:t.onSignOut});s.length!==0&&Re.Menu.buildFromTemplate(s).popup()}),e.on("before-input-event",(r,i)=>{if(i.type!=="keyDown")return;let s=i.key?i.key.toLowerCase():"",l=n();if(!i.alt&&!i.meta&&(i.control&&i.shift&&s==="r"||s==="f5"&&(i.shift||i.control))){r.preventDefault(),l.reloadIgnoringCache();return}if(!i.alt&&!i.meta&&!i.shift&&(i.control&&s==="r"||s==="f5")){r.preventDefault(),o();return}if(i.control&&!i.alt&&!i.meta&&!i.shift&&s==="w"){r.preventDefault();let a=Re.BrowserWindow.fromWebContents(e);a&&!a.isDestroyed()&&a.close();return}if(i.control&&!i.alt&&!i.meta&&!i.shift&&s==="q"){r.preventDefault(),Re.app.quit();return}if(i.control&&!i.alt&&!i.meta&&(s==="="||s==="+"||s==="add")){r.preventDefault(),zr(l);return}if(i.control&&!i.alt&&!i.meta&&(s==="-"||s==="_"||s==="subtract")){r.preventDefault(),jr(l);return}if(i.control&&!i.alt&&!i.meta&&!i.shift&&(s==="0"||s==="num0")){r.preventDefault(),qr(l);return}if(!i.control&&!i.alt&&!i.meta&&!i.shift&&s==="f11"){r.preventDefault();let a=Re.BrowserWindow.fromWebContents(e);a&&!a.isDestroyed()&&a.setFullScreen(!a.isFullScreen());return}if(i.control&&!i.alt&&!i.meta&&!i.shift&&s==="m"){r.preventDefault();let a=Re.BrowserWindow.fromWebContents(e);a&&!a.isDestroyed()&&a.minimize();return}if(i.control&&!i.alt&&!i.meta&&!i.shift&&s===","){r.preventDefault();let a=Re.BrowserWindow.fromWebContents(e),d=t.targetWebContents??(a&&e===a.webContents?void 0:e);Et(a,d);return}if(i.control&&!i.alt&&!i.meta&&s==="p"){r.preventDefault(),l.print();return}if(!i.control&&!i.alt&&!i.meta&&s==="f3"){r.preventDefault(),i.shift?fa():da();return}if(i.control&&!i.alt&&!i.meta){if(!i.shift&&s==="f"){r.preventDefault(),ca();return}if(s==="g"){r.preventDefault(),i.shift?fa():da();return}}if(s==="escape"&&Ke()){r.preventDefault(),$r();return}if(s==="escape"&&xo()){r.preventDefault(),ua();return}i.alt&&!i.control&&!i.meta&&s==="arrowleft"&&hd(e)&&(r.preventDefault(),e.navigationHistory.goBack())})}Cn();Xn();f();var oi=require("electron"),yd=A(require("path"));Se();Cn();qe();Te();Me();F();ee();Kt();var $m="crash-reporting:get-content",zm="crash-reporting:confirm",jm="crash-reporting:open-external",qm=460,Km=200,wd=12,q=null,Ce=null,pa=null,nn=!1,Wn=[],Lt=new Y;function _d(){q=null,Ce=null,pa=null,nn=!1;let e=Wn;Wn=[];for(let t of e)t()}function bd(){if(!q||!Ce||Ce.isDestroyed()||!nn)return;let e=Ce.getContentBounds(),t=Math.min(qm,e.width),n=Math.min(Km,e.height),o=Math.max(0,e.width-t-wd),r=Math.max(0,e.height-n-wd);q.setBounds({x:o,y:r,width:t,height:n})}function Ym(){Lt.handleIpc($m,e=>v(e,q)?{title:c("crash_dialog_title"),description:c("crash_dialog_desc"),subnote:c("crash_dialog_subnote"),declineButtonText:c("crash_dialog_decline_button"),allowButtonText:c("crash_dialog_allow_button"),closeButtonAriaLabel:c("crash_dialog_close_button")}:{title:"",description:"",subnote:"",declineButtonText:"",allowButtonText:"",closeButtonAriaLabel:""}),Lt.handleIpc(zm,(e,t)=>{if(!v(e,q))return!1;let n=!!t;u.info("crash_reporting_dialog",`User confirmed crash reporting preference: consent=${n}`),B("diagnosticConsent",n),B("hasSeenCrashReportingNotice",!0);try{oi.crashReporter.setUploadToServer(n)}catch(o){u.warn("crash_reporting_dialog",`Failed to set crashReporter upload preference: ${o instanceof Error?o.message:String(o)}`)}return Qm(),!0}),Lt.handleIpc(jm,(e,t)=>{if(!v(e,q))return!1;let n=String(t??"");return zt(n)?(x(n),!0):!1})}function Xm(e){if(Ce&&Ce!==e&&!Ce.isDestroyed()){if(q&&Ce.contentView)try{Ce.contentView.children.includes(q)&&Ce.contentView.removeChildView(q)}catch(n){u.warn("crash_reporting_dialog",`Failed to remove crash reporting dialog from previous window: ${n instanceof Error?n.message:String(n)}`)}Lt.reset(),_d()}if(Ce!==e&&(Ce=e,Lt.onWindowBoundsChange(e,bd),Lt.bindWindow(e,_d)),q)return q;q=new oi.WebContentsView({webPreferences:{preload:yd.join(__dirname,"crash_reporting_dialog","crash_reporting_dialog_preload.js"),nodeIntegration:!1,contextIsolation:!0,sandbox:!0}}),Lt.trackView(q),q.setBackgroundColor("#00000000"),q.setVisible(!1),q.webContents.loadURL(z("crash_reporting_dialog","crash_reporting_dialog.html"));let t=q.webContents;return t.on("dom-ready",()=>{K(t)}),q.webContents.on("will-navigate",(n,o)=>{n.preventDefault(),typeof o=="string"&&zt(o)&&x(o)}),typeof q.webContents.setWindowOpenHandler=="function"&&q.webContents.setWindowOpenHandler(({url:n})=>(typeof n=="string"&&zt(n)&&x(n),{action:"deny"})),Ym(),q}async function vd(e,t){pa=t??null;let n=Z("hasSeenCrashReportingNotice",!1),o=Z("diagnosticConsent",!1);if(n||o){u.info("crash_reporting_dialog","Crash reporting consent already configured; skipping dialog");return}if(nn&&Ce===e)return new Promise(s=>{Wn.push(s)});let r=Xm(e);nn=!0;let i=!1;if(e.contentView)if(e.contentView.children.includes(r))i=!0;else try{e.contentView.addChildView(r),i=!0}catch(s){u.warn("crash_reporting_dialog",`Failed to addChildView for crash reporting dialog: ${s instanceof Error?s.message:String(s)}`)}if(!i){nn=!1;return}return r.setVisible(!0),bd(),r.webContents.focus(),new Promise(s=>{Wn.push(s)})}function Qm(){let e=Ce,t=q,n=pa;if(t){if(e&&!e.isDestroyed()&&e.contentView)try{e.contentView.removeChildView(t)}catch{}try{t.setVisible(!1),t.webContents.isDestroyed()||t.webContents.close()}catch{}Lt.untrackView(t),q=null}nn=!1,T("active_window","main"),ce(e,{attachedContentWc:n,excludeView:t});let o=Wn;Wn=[];for(let r of o)r()}function ri(){return nn}f();yi();f();var Rd=require("electron"),Ld=A(require("path"));Se();f();function ga(e,t){return e==="display-capture"||e==="media"&&(!t||!t.mediaTypes||t.mediaTypes.length===0)}function Cd(e,t){return e==="media"&&ga(e,t)}function Sd(e){if(!e)return"";try{return e.top&&e.top.url?e.top.url:e.url||""}catch{return""}}qe();Te();Me();ee();var Jm="display-capture:respond",Ed="display-capture:request-data",Zm="display-capture:get-current-request",Ad=560,Td=530,fe=null,Le=null,lt=null,We=null,on=new Y;function ha(){if(!fe||!Le||Le.isDestroyed())return;let e=Le.getContentBounds(),t=Math.max(0,Math.floor((e.width-Ad)/2)),n=Math.max(0,Math.floor((e.height-Td)/2));fe.setBounds({x:t,y:n,width:Ad,height:Td})}function eh(){let e=fe;if(fe=null,e&&Le&&!Le.isDestroyed()&&Le.contentView){try{Le.contentView.removeChildView(e)}catch{}e.setVisible(!1)}if(e&&on.untrackView(e),e&&!e.webContents.isDestroyed())try{e.webContents.close()}catch{}}function ma(e){e(null)}function th(e){if(!We)return;let{onDecision:t}=We;We=null,ce(Le,{attachedContentWc:lt,excludeView:fe}),eh(),t(e)}function nh(e,t){v(e,fe)&&th(!!t?.allowed)}function Id(e){return{previewDataUrl:e.previewDataUrl,title:e.title,desc:e.desc,brand:e.brand,allowLabel:e.allowLabel,cancelLabel:e.cancelLabel}}function xd(){We&&(We.onDecision(!1),We=null),fe=null,Le=null,lt=null}function oh(e){if(fe)return;Le=e,fe=new Rd.WebContentsView({webPreferences:{preload:Ld.join(__dirname,"display_capture_dialog","display_capture_dialog_preload.js"),nodeIntegration:!1,contextIsolation:!0,sandbox:!0}}),on.trackView(fe),fe.setBackgroundColor("#00000000"),fe.webContents.on("will-navigate",(n,o)=>{n.preventDefault(),x(o)}),fe.webContents.setWindowOpenHandler(({url:n})=>(x(n),{action:"deny"})),fe.webContents.loadURL(z("display_capture_dialog","display_capture_dialog.html"));let t=fe.webContents;t.on("dom-ready",()=>{K(t)}),ha()}function rh(e){oh(e);let t=fe;if(!t||!We)return;let n=Id(We);if(ha(),e.contentView){try{e.contentView.removeChildView(t)}catch{}e.contentView.addChildView(t),t.setVisible(!0),t.webContents.focus()}t.webContents.isLoading()?t.webContents.once("did-finish-load",()=>{t.webContents.send(Ed,n)}):t.webContents.send(Ed,n)}async function Dd(e){let t=Le;if(!t||t.isDestroyed()||We){e(!1);return}let n="";try{let o=lt&&!lt.isDestroyed()?lt:t.webContents;o&&(n=(await o.capturePage()).toDataURL())}catch{}if(t.isDestroyed()){e(!1);return}We={onDecision:e,previewDataUrl:n,title:c("display_capture_title"),desc:c("display_capture_desc"),brand:c("display_capture_brand"),allowLabel:c("permission_allow"),cancelLabel:c("permission_cancel")},rh(t)}function ih(e,t){let n=Le,o=Sd(e.frame);if(!n||n.isDestroyed()||!mt(o)){ma(t);return}let r=e.frame?.top??e.frame??(lt&&!lt.isDestroyed()?lt.mainFrame:n.webContents?.mainFrame);if(!r){ma(t);return}try{t({video:r})}catch{ma(t)}}function Pd(e,t){on.reset(),xd(),Le=e,lt=t??null,on.onWindowBoundsChange(e,ha),on.onIpc(Jm,nh),on.handleIpc(Zm,o=>!v(o,fe)||!We?null:Id(We)),on.bindWindow(e,xd),(t?.session??e.webContents?.session)?.setDisplayMediaRequestHandler((o,r)=>{ih(o,r)})}f();var Nd=require("electron"),Od=A(require("path"));F();function Wd(e){e.on("will-download",(t,n)=>{let o=n.getFilename(),r=Od.join(Nd.app.getPath("downloads"),o);n.setSaveDialogOptions({defaultPath:r}),u.info("downloads",`Download started: totalBytes=${n.getTotalBytes()}, url=${ie(n.getURL())}, filename=${M(o)}`),n.on("done",(i,s)=>{s==="completed"?u.info("downloads",`Download completed: state=${s}, path=${M(n.getSavePath())}`):s==="cancelled"?u.info("downloads",`Download cancelled: state=${s}`):u.warn("downloads",`Download failed: state=${s}, filename=${M(o)}`)})})}Te();f();var kd=require("electron"),Ud=A(require("fs")),wa=A(require("path")),ii;function Md(){if(ii)return ii;let e=wa.join(__dirname,"../assets/icon.ico"),t=wa.join(__dirname,"../assets/icon.png"),n=Ud.existsSync(e)?e:t;return ii=kd.nativeImage.createFromPath(n),ii}mn();F();f();var ne=require("electron"),Hd=A(require("path"));Se();qe();Te();Me();F();xr();ee();xe();var sh="permission:respond",ah="permission:open-settings",Fd=540,lh=310,ue=null,oe=null,ai=null,It=new Y,Dt=[],te=null;function ch(e){switch(e){case"media":return c("permission_request_mic");case"camera":return c("permission_request_camera");case"geolocation":return c("permission_request_location");case"notifications":return c("permission_request_notifications");case"clipboard-read":case"clipboard-sanitized-write":return c("permission_request_clipboard");default:return c("permission_request_default").replace("$1",e)}}function Bd(){te&&(te.callback(!1),te=null);for(let e of Dt)e.callback(!1);Dt.length=0,ue=null,oe=null,ai=null}function _a(){if(!ue||!oe||oe.isDestroyed())return;let e=oe.getContentBounds(),t=Math.max(0,Math.floor((e.width-Fd)/2)),n=we+12;ue.setBounds({x:t,y:n,width:Fd,height:lh})}function uh(e){if(ue)return;oe=e,ue=new ne.WebContentsView({webPreferences:{preload:Hd.join(__dirname,"permission_dialog","permission_dialog_preload.js"),nodeIntegration:!1,contextIsolation:!0,sandbox:!0}}),It.trackView(ue),ue.setBackgroundColor("#00000000"),ue.webContents.on("will-navigate",(n,o)=>{n.preventDefault(),x(o)}),ue.webContents.setWindowOpenHandler(({url:n})=>(x(n),{action:"deny"})),ue.webContents.loadURL(z("permission_dialog","permission_dialog.html"));let t=ue.webContents;t.on("dom-ready",()=>{K(t)}),_a()}function Vd(){let e=ue;if(ue=null,e&&oe&&!oe.isDestroyed()&&oe.contentView){try{oe.contentView.removeChildView(e)}catch{}e.setVisible(!1)}if(e&&It.untrackView(e),e&&!e.webContents.isDestroyed())try{e.webContents.close()}catch{}}function Gd(e,t){It.reset(),Bd(),oe=e,ai=t??null,It.onWindowBoundsChange(e,_a),It.onIpc(sh,fh),It.onIpc(ah,dh),It.handleIpc("permission:get-current-request",n=>!v(n,ue)||!te?null:{permission:te.permission,origin:te.origin,title:te.title,desc:te.desc,subnotePrefix:te.subnotePrefix,settingsLabel:te.settingsLabel,allowLabel:te.allowLabel,blockLabel:te.blockLabel}),It.bindWindow(e,Bd)}function dh(e){v(e,ue)&&oe&&!oe.isDestroyed()&&(Vd(),te&&(te.callback(!1),te=null),Et(oe,ai??void 0))}function fh(e,t){if(!v(e,ue)||!te)return;let n=t?.allowed??!1,{permission:o,origin:r,callback:i}=te;u.info("permissions",`User responded to permission prompt: "${o}" for ${r} => allowed=${n}`),Tr(o,r,n?"granted":"denied",!0),te=null,i(!!n),Dt.length===0&&(ce(oe,{attachedContentWc:ai,excludeView:ue}),Vd()),si()}function si(){if(te||Dt.length===0||!oe||oe.isDestroyed())return;let e=oe;uh(e);let t=ue;if(!t)return;let n=Dt.shift();if(!n)return;te=n;let{permission:o,origin:r}=n,i=ch(o),s=Cs(o),l=c("permission_request_default_desc");switch(s){case"camera":l=c("permission_request_camera_desc");break;case"location":l=c("permission_request_location_desc");break;case"audio":l=c("permission_request_mic_desc");break;default:l=c("permission_request_default_desc");break}let a=c("permission_subnote_prefix"),d=c("menu_settings"),g=c("permission_allow"),m=c("permission_dont_allow");n.title=i,n.desc=l,n.subnotePrefix=a,n.settingsLabel=d,n.allowLabel=g,n.blockLabel=m;let S={permission:o,origin:r,title:i,desc:l,subnotePrefix:a,settingsLabel:d,allowLabel:g,blockLabel:m};if(_a(),e.contentView&&t){try{e.contentView.removeChildView(t)}catch{}e.contentView.addChildView(t),t.setVisible(!0),t.webContents.focus()}t.webContents.isLoading()?t.webContents.once("did-finish-load",()=>{t.webContents.send("permission:request-data",S)}):t.webContents.send("permission:request-data",S)}async function $d(e,t,n,o){let r=Er(e,o?.requestingUrl,o),i=it(t,o),s=e?e.getURL():"";if(ga(t,o)&&mt(s)){Cd(t,o)&&console.warn('[permission] Routing a "media" request with empty mediaTypes through the window-capture consent card. See b/545269366.'),Dd(k=>{n(k)});return}if(!_t(i)&&!_t(t)||!mt(r)){n(!1);return}if(Sr(t,o)){n(!0);return}let a=Cs(t,o),d=a==="audio"||t==="media"||t==="microphone"||t==="audioCapture"||o?.mediaTypes?.includes("audio")===!0,g=a==="camera"||t==="camera"||t==="videoCapture"||o?.mediaType==="video"||o?.mediaTypes?.includes("video")===!0,m=a==="location";if(d)try{if(ne.systemPreferences.getMediaAccessStatus("microphone")==="denied"){let D=oe||(e?ne.BrowserWindow.fromWebContents(e):null),L={type:"warning",title:c("dialog_mic_blocked_title"),message:c("dialog_mic_blocked_message"),detail:c("dialog_mic_blocked_detail"),buttons:[c("dialog_mic_blocked_open_settings"),c("permission_cancel")],defaultId:0,cancelId:1};(D?ne.dialog.showMessageBoxSync(D,L):ne.dialog.showMessageBoxSync(L))===0&&ne.shell.openExternal("ms-settings:privacy-microphone"),n(!1);return}}catch{}if(g)try{if(ne.systemPreferences.getMediaAccessStatus("camera")==="denied"){let D=oe||(e?ne.BrowserWindow.fromWebContents(e):null),L={type:"warning",title:c("dialog_camera_blocked_title"),message:c("dialog_camera_blocked_message"),detail:c("dialog_camera_blocked_detail"),buttons:[c("dialog_camera_blocked_open_settings"),c("permission_cancel")],defaultId:0,cancelId:1};(D?ne.dialog.showMessageBoxSync(D,L):ne.dialog.showMessageBoxSync(L))===0&&ne.shell.openExternal("ms-settings:privacy-webcam"),n(!1);return}}catch{}if(m)try{if(await Ar()){let D=oe||(e?ne.BrowserWindow.fromWebContents(e):null),L={type:"warning",title:c("dialog_location_blocked_title"),message:c("dialog_location_blocked_message"),detail:c("dialog_location_blocked_detail"),buttons:[c("dialog_location_blocked_open_settings"),c("permission_cancel")],defaultId:0,cancelId:1};(D?ne.dialog.showMessageBoxSync(D,L):ne.dialog.showMessageBoxSync(L))===0&&ne.shell.openExternal("ms-settings:privacy-location"),n(!1);return}}catch{}if(d&&g){let k=yt("media",r),D=yt("camera",r);if(k===ot&&D===ot){n(!0);return}if(k===Rn||D===Rn){n(!1);return}let L=D!==ot?"camera":"media";Dt.push({permission:L,origin:r,callback:P=>{if(!P){n(!1);return}L==="camera"&&k!==ot?(Dt.push({permission:"media",origin:r,callback:n}),si()):n(!0)}}),si();return}let S=g?"camera":m?"geolocation":i,E=yt(S,r,o);if(E===ot){n(!0);return}if(E===Rn){n(!1);return}Dt.push({permission:S,origin:r,callback:n}),si()}xr();ee();Kt();xe();Fs();f();function sn(e,t){let n=Math.max(0,Math.min(e.width,t.width)),o=Math.max(0,Math.min(e.height,t.height)),r=t.x,i=t.x+t.width-n,s=Math.max(r,Math.min(e.x,i)),l=t.y,a=t.y+t.height-o,d=Math.max(l,Math.min(e.y,a));return{x:s,y:d,width:n,height:o}}function Ro(e,t){let n=sn(e,t);return{relativeX:n.x-t.x,relativeY:n.y-t.y}}var ph=.9,ya=375,ba=484;function rn(e,t){let n=(o,r,i)=>{if(r<=0)return 0;if(o<=r)return Math.max(0,o);let s=Math.round(r*ph),l=Math.min(r,Math.max(i,s));return Math.max(0,Math.min(o,l))};return{width:n(e.width,t.width,ya),height:n(e.height,t.height,ba)}}function kn(e,t){let n=Math.max(0,Math.min(e.width,t.width)),o=Math.max(0,Math.min(e.height,t.height)),r=Math.round(t.x+Math.max(0,(t.width-n)/2)),i=Math.round(t.y+Math.max(0,(t.height-o)/2));return{x:r,y:i,width:n,height:o}}function zd(e,t){if(e.width<=t.width&&e.height<=t.height)return null;let n=rn({width:e.width,height:e.height},t);return sn({x:e.x,y:e.y,...n},t)}function li(e,t){return e.x===t.x&&e.y===t.y&&e.width===t.width&&e.height===t.height}function va(e,t){return e==null||t===void 0||t===null?!1:String(e)!==String(t)}function Ca(e,t,n){let o=t.workArea;if(!e)return kn(rn(n,o),o);let r={width:e.width>0?e.width:n.width,height:e.height>0?e.height:n.height};if(r.width>o.width||r.height>o.height||va(t.id,e.displayId))return kn(rn(r,o),o);let s=Number.isFinite(e.relativeX)?e.relativeX:0,l=Number.isFinite(e.relativeY)?e.relativeY:0,a={x:o.x+s,y:o.y+l,width:r.width,height:r.height};return sn(a,o)}function Un(e){if(!e)return!0;let{x:t,y:n,width:o,height:r}=e;return t===void 0||n===void 0||o===void 0||r===void 0||!Number.isFinite(t)||!Number.isFinite(n)||!Number.isFinite(o)||!Number.isFinite(r)||t<=-3e4||n<=-3e4||o<=0||r<=0}var Po=1200,No=900,mh=2;function Oo(e,t,n){for(let r=0;r<mh&&!li(e.getBounds(),t);r++)e.setBounds(t);let o=e.getBounds();if(n&&!Un(o)){let r=sn(o,n);li(r,o)||(e.setBounds(r),o=e.getBounds())}return fi(),o}var jd="#e3e3e3",qd="#1f1f1f",hh=3,p=null,Hn=0,Kd=0,wh=300*1e3,Vn=!1,pi=!1,Lo=null,_h=100;function Io(e){pi=!0,Lo&&(clearTimeout(Lo),Lo=null);try{e()}finally{Lo=setTimeout(()=>{pi=!1,Lo=null},_h)}}var yh=250,Yd=yh,Je=null,Mn=null,bh=5e3,Xd=bh,Fn=null;function Wo(){Fn&&(clearTimeout(Fn),Fn=null)}function rf(){Wo();let e=()=>{Fn=null,!(!p||p.isDestroyed()||p.isVisible())&&V&&!V.webContents.isDestroyed()&&V.webContents.send("gemini:purge-memory")};if(Xd<=0){e();return}Fn=setTimeout(e,Xd),Fn.unref?.()}var ko=null;function Aa(){ko&&(clearImmediate(ko),ko=null)}function Bn(){if(Je&&(clearTimeout(Je),Je=null),!Mn)return;let e=Mn;Mn=null;try{B("windowBounds",e,!0)}catch(t){u.warn("window_manager","Failed to flush saved window bounds",t)}}function Ea(){Je&&(clearTimeout(Je),Je=null),Mn=null}var an=0,He=!1,V=null,ui=0,gi="",di=!1,Be=!1,Pt=!1,ci=!1;function Qd(e){try{if(e.startsWith(`${et}://`)||e.startsWith("file:"))return!1;let t=new URL(e);return!G(t.hostname)}catch{return!1}}function Jd(e){try{e.navigationHistory?.clear?.()}catch{}e.isDestroyed()||e.send("gemini:purge-memory")}function Ze(){return p}function Ot(){return V&&!V.webContents.isDestroyed()?V.webContents:null}function Do(){!p||p.isDestroyed()||!p.isVisible()||!V||V.webContents.isDestroyed()||Ke()||ri()||xo()||V.webContents.focus()}function fi(e=ui){ui=e;let t=we+ui;if(!p||p.isDestroyed()||!V)return;let{width:n,height:o}=p.getContentBounds();V.setBounds({x:0,y:t,width:n,height:or(o,t)})}function Ta(){Vn=!0,an=0,u.info("window_manager",`Creating primary application window (${Po}x${No})`);let e,t;try{let C=R.screen.getCursorScreenPoint(),b=R.screen.getDisplayNearestPoint(C);t=b.workArea;let U=Z("windowBounds");e=Ca(U,b,{width:Po,height:No})}catch(C){u.warn("window_manager","Failed to resolve display or saved window bounds; using defaults",C),e={x:0,y:0,width:Po,height:No}}let n=R.nativeTheme.shouldUseDarkColors,o=new R.BaseWindow({x:e.x,y:e.y,width:e.width,height:e.height,minWidth:ya,minHeight:ba,title:"Gemini",icon:Md(),show:!0,titleBarStyle:"hidden",titleBarOverlay:{color:"#00000000",symbolColor:n?jd:qd,height:we}});p=o,Oo(o,e,t),Vn=!1;let r=()=>{if(!o.isDestroyed()){let C=R.nativeTheme.shouldUseDarkColors;o.setTitleBarOverlay({color:"#00000000",symbolColor:C?jd:qd,height:we})}},i=()=>{rf()},s=()=>{Wo(),He&&(He=!1,Nt())};R.nativeTheme.on("updated",r),o.on("hide",i),o.on("show",s),o.on("close",()=>{Bn(),Wo()}),o.on("closed",()=>{R.nativeTheme.removeListener("updated",r),o.removeListener("hide",i),o.removeListener("show",s),Bn(),Wo()});let l=new R.WebContentsView({webPreferences:{nodeIntegration:!1,contextIsolation:!0,sandbox:!0,preload:of.join(__dirname,"preload.js"),...Ie?{additionalArguments:Ha(Ie.host)}:{}}});o.contentView.addChildView(l),V=l;let a=l.webContents;try{require("./voice_bridge_native.js").attachToMainWebContents(a)}catch{}fi(0);let d=()=>{fi()};o.on("resize",d),o.on("maximize",d),o.on("unmaximize",d),o.on("restore",d),o.on("enter-full-screen",d),o.on("leave-full-screen",d),o.setVisibleOnAllWorkspaces(!0,{visibleOnFullScreen:!0});let g=null;o.on("will-move",()=>{if(!(g!==null||o.isDestroyed()))try{g=R.screen.getDisplayMatching(o.getBounds()).id}catch{}}),o.on("moved",()=>{let C=g;g=null,Ch(C)||tf()}),o.on("resized",()=>{tf()});let m={onReload:()=>{Uo(!0)},onSwitchAccount:hi,onSignOut:wi,targetWebContents:a};ni(a,m),o.webContents&&ni(o.webContents,m),Wd(a.session),vu(o,()=>{Et(o,a)},a,()=>{Uo(!0)}),ed(o,a,fi),Gd(o,a),Pd(o,a),md(o,a),qs(o,a),Hu(o,a),vd(o,a),a.on("page-title-updated",C=>{C.preventDefault(),o.setTitle("Gemini")}),di=!1,Be=!1,Pt=!1,ci=!1,Nt(),Hn=Date.now(),Do(),setImmediate(()=>{Do()}),a.on("did-start-navigation",(C,b,U,N)=>{N&&(T("surface",Yn(b)),T("navigation_state",ae("loading")),U||(Pt=!1))}),a.on("did-finish-load",()=>{Do();try{let C=a.getURL();u.info("window_manager",`WebContents did-finish-load: ${ie(C)}`),T("surface",Yn(C)),T("navigation_state",ae("loaded")),T("active_window",ri()?"crash_reporting":Ke()?"settings":"main"),C.startsWith(`${et}://`)||C.startsWith("file:")||(an=0,He=!1);let U=new URL(C).hostname.toLowerCase();if(G(U)){if(Hn=Date.now(),di){di=!1;try{a.navigationHistory?.clear?.()}catch{}}(Be||Pt)&&(Be=!1,Pt=!1,Jd(a)),Date.now()-Kd>=wh&&(Kd=Date.now(),co({webContents:a,isWindowHidden:!p?.isVisible()}))}}catch{}}),a.on("did-fail-load",(C,b,U,N,re)=>{if(re)try{Qd(a.getURL())||(Be=!1,Pt=!1)}catch{}b!==-3&&(Mt.warn("window_manager",`did-fail-load: code=${b} on ${ie(N)} (isMainFrame=${re}), description=`,U),T("navigation_state",ae("failed",b))),re&&b!==-3&&!N.startsWith(`${et}://`)&&p&&!p.isDestroyed()&&Zd(a)}),a.on("render-process-gone",(C,b)=>{an++,Mt.error("window_manager",`Renderer process gone (#${an}): exitCode=${b.exitCode}, reason=`,b.reason),T("navigation_state",ae("crashed",`${b.reason}:${b.exitCode}`)),b.reason!=="clean-exit"&&bo(O,R.app.getVersion(),"renderer",Xo(b.reason)),!(!p||p.isDestroyed())&&(an===1?p.isVisible()?Nt():He=!0:an<hh?(He=!1,Zd(a)):(He=!1,_r(`renderer:${b.reason}:${b.exitCode}`)||(p.isVisible()||p.show(),vh())))}),a.on("unresponsive",()=>{u.warn("window_manager","WebContents became unresponsive"),T("navigation_state",ae("unresponsive"))}),a.on("responsive",()=>{u.info("window_manager","WebContents became responsive again"),T("navigation_state",ae("loaded"))});let S=0,E=Date.now(),k=50;Yo()<=0&&a.on("console-message",(C,b,U,N,re)=>{let Wt=Date.now();if(Wt-E>1e3&&(E=Wt,S=0),++S>k)return;let pf=M(ie(re||"web_page")),gf=M(U||""),mf="window_manager:web_console",hf={0:0,1:1,2:2,3:3};ln(hf[b]??1,mf,`[${pf}:${N}]`,gf)});let D=new So;a.on("will-navigate",(C,b)=>{D.shouldAllowNavigation(b)||(u.info("window_manager",`External navigation intercepted: ${ie(b)}`),C.preventDefault(),x(b))});let L=(C,b,U)=>{try{D.onNavigate(b),U&&Qd(b)&&(Be=!0,Pt=!1);let re=new URL(b).hostname.toLowerCase();if(re==="myaccount.google.com")return C&&C.preventDefault&&C.preventDefault(),Be=!0,Pt=!1,a.loadURL(me),{redirected:!0,host:re};if(re==="accounts.google.com")return ci=!0,{redirected:!1,host:re};if(U&&G(re)&&ci){ci=!1;let Wt=ad(b,me);if(Wt)return a.loadURL(Wt),{redirected:!0,host:re}}return{redirected:!1,host:re}}catch{}return{redirected:!1,host:""}};a.on("will-redirect",(C,b,U,N)=>{N&&L(C,b,!1)}),a.on("did-navigate",(C,b)=>{let{redirected:U,host:N}=L(null,b,!0);U||ef(b),!U&&G(N)&&Be&&(Be=!1,a.isLoading()?Pt=!0:Jd(a))}),a.on("did-navigate-in-page",(C,b,U)=>{U&&(L(null,b,!0),ef(b))}),a.setWindowOpenHandler(C=>{let{url:b}=C;if(!zt(b))return{action:"deny"};try{if(G(new URL(b).hostname))return a.loadURL(Eo(b,Ie?.host??null)),o.focus(),{action:"deny"}}catch{}let U=pr(b);if(Sn(b)||as(b)||U&&C.disposition==="new-window")return{action:"allow",overrideBrowserWindowOptions:{webPreferences:{nodeIntegration:!1,contextIsolation:!0,sandbox:!0}}};if(U)u.info("window_manager",`Connector-shaped popup not admitted; disposition=${C.disposition}`);else if(!Sn(b))try{let N=new URL(b).searchParams;N.has("client_id")&&N.has("redirect_uri")&&N.has("response_type")&&u.info("window_manager","OAuth-shaped popup failed connector validation (empty or non-https redirect_uri)")}catch{}return x(b),{action:"deny"}}),a.on("did-create-window",(C,b)=>{u.info("window_manager",`Child window created for URL: ${ie(b.url)}`),T("active_window","popup"),T("surface",Yn(b.url)),C.webContents.on("did-fail-load",(U,N,re,Wt)=>{N!==-3&&(Mt.warn("window_manager:child",`Child did-fail-load: code=${N} on ${ie(Wt)}, description=`,re),T("navigation_state",ae("failed",`popup:${N}`)))}),C.webContents.on("render-process-gone",(U,N)=>{Mt.error("window_manager:child",`Child renderer process gone: exitCode=${N.exitCode}, reason=`,N.reason),T("navigation_state",ae("crashed",`popup:${N.reason}:${N.exitCode}`))}),C.webContents.on("unresponsive",()=>{u.warn("window_manager:child","Child window became unresponsive")}),C.on("closed",()=>{u.info("window_manager","Child window closed");let N=p&&!p.isDestroyed()&&p.isVisible()?ri()?"crash_reporting":Ke()?"settings":"main":"hidden";T("active_window",N);let re=a.isDestroyed()?"":a.getURL();T("surface",N==="settings"?"settings":Yn(re||me))});try{new URL(b.url).hostname.toLowerCase()==="accounts.google.com"&&(C.accessibleTitle=c("signin_title"))}catch{}}),a.session.setPermissionRequestHandler((C,b,U,N)=>{$d(C,b,U,N)}),a.session.setPermissionCheckHandler((C,b,U,N)=>{let re=Er(C,U,N);return zc(b,re,N)});let P=()=>{Sh()};typeof R.screen.on=="function"&&(R.screen.on("display-metrics-changed",P),R.screen.on("display-removed",P),R.screen.on("display-added",P));let pe=()=>{Bn()};typeof R.app.on=="function"&&R.app.on("before-quit",pe),o.on("closed",()=>{typeof R.screen.removeListener=="function"&&(R.screen.removeListener("display-metrics-changed",P),R.screen.removeListener("display-removed",P),R.screen.removeListener("display-added",P)),typeof R.app.removeListener=="function"&&R.app.removeListener("before-quit",pe),p=null,Aa(),D.dispose(),V=null,ui=0}),o.on("focus",()=>{af(),Do()})}function sf(e,t){let n=Object.entries(t).map(([o,r])=>`{const el=document.getElementById(${JSON.stringify(o)});if(el)el.textContent=${JSON.stringify(r)};}`).join("");e.executeJavaScript(n).catch(()=>{}),K(e)}function vh(){!p||p.isDestroyed()||R.dialog.showMessageBox(p,{type:"error",title:"Gemini",message:c("offline_title"),detail:c("offline_body"),buttons:[c("offline_reload"),c("tray_quit")],defaultId:0,cancelId:1}).then(e=>{if(e.response===1){R.app.quit();return}an=0,Nt()}).catch(()=>{})}function Zd(e){T("surface","offline"),T("navigation_state",ae("offline")),e.loadURL(z("offline.html")).then(()=>{sf(e,{"offline-title":c("offline_title"),"offline-body":c("offline_body"),reload:c("offline_reload")})}).catch(()=>{})}function ef(e){let t=en(e);!t||t===gi||(gi=t,B("lastAccountUrl",t,!0))}function Nt(){if(!p||p.isDestroyed()||!V)return;He=!1;let e=V.webContents,t=Z("lastAccountUrl",""),n=id(t,me)??me;gi=n,u.info("window_manager",`Loading Gemini shell: ${ie(n)}`),T("surface","loading"),T("navigation_state",ae("loading")),T("active_window",p.isVisible()?"main":"hidden"),di=!0,e.loadURL(z("loading.html")).then(()=>{if(p&&!p.isDestroyed())return sf(e,{"loading-label":c("loading_gemini")}),e.loadURL(n)}).catch(()=>{})}function Uo(e){if(!p||p.isDestroyed())return;let t=V?.webContents;if(!t||t.isLoading())return;let n="";try{n=new URL(t.getURL()).hostname.toLowerCase()}catch{return}G(n)&&(!e&&Date.now()-Hn<Va||(Hn=Date.now(),u.info("window_manager",`Reloading Gemini shell (force=${e})`),e?Nt():(T("navigation_state",ae("loading")),t.reloadIgnoringCache())))}function af(){Uo(!1)}function tf(){if(!(pi||Vn)&&!(!p||p.isDestroyed())&&!(p.isMinimized()||p.isMaximized()||typeof p.isFullScreen=="function"&&p.isFullScreen()))try{let e=p.getBounds();if(Un(e))return;let t=R.screen.getDisplayMatching(e),n=Ro(e,t.workArea);if(Mn={width:e.width,height:e.height,relativeX:n.relativeX,relativeY:n.relativeY,displayId:t.id},Yd<=0){Bn();return}Je&&clearTimeout(Je),Je=setTimeout(()=>{Je=null,Bn()},Yd)}catch(e){u.warn("window_manager","Failed to update saved window bounds on move/resize",e)}}function xa(e,t,n){Ea();let o=t;Io(()=>{e.isDestroyed()||(o=Oo(e,t,n.workArea))});let r=Ro(o,n.workArea);return B("windowBounds",{width:o.width,height:o.height,relativeX:r.relativeX,relativeY:r.relativeY,displayId:n.id},!0),o}function Ch(e){if(e===null||pi||Vn||!p||p.isDestroyed()||!p.isVisible()||p.isMinimized()||p.isMaximized()||typeof p.isFullScreen=="function"&&p.isFullScreen())return!1;try{let t=p.getBounds();if(Un(t))return!1;let n=R.screen.getDisplayMatching(t);if(!va(n.id,e))return!1;let o=zd(t,n.workArea);return o?(xa(p,o,n),!0):!1}catch(t){return u.warn("window_manager","Failed to clamp window after cross-monitor drag",t),!1}}function Sh(){if(!(!p||p.isDestroyed())&&!p.isMinimized()&&!(p.isMaximized()||typeof p.isFullScreen=="function"&&p.isFullScreen()))try{let e=p.getBounds();if(Un(e))return;let t=R.screen.getDisplayMatching(e),n=e.width>t.workArea.width||e.height>t.workArea.height,o=!p.isVisible()&&n?kn(rn({width:e.width,height:e.height},t.workArea),t.workArea):sn(e,t.workArea);(o.x!==e.x||o.y!==e.y||o.width!==e.width||o.height!==e.height)&&xa(p,o,t)}catch(e){u.warn("window_manager","Failed to handle display metrics change",e)}}function ct(){if(p&&!p.isDestroyed()){Aa(),p.isMinimized()&&Io(()=>{p?.restore()}),He?(He=!1,Nt()):af();try{let e=R.screen.getCursorScreenPoint(),t=R.screen.getDisplayNearestPoint(e),n=p.getBounds();if(Un(n)){Ea();let o=Z("windowBounds"),r=Ca(o,t,{width:Po,height:No});Io(()=>{p&&Oo(p,r,t.workArea)})}else{let o=R.screen.getDisplayMatching(n);if(String(o.id)!==String(t.id)){let r=p.isMaximized()||typeof p.isFullScreen=="function"&&p.isFullScreen(),i={width:n.width,height:n.height};if(r){let d=typeof p.getNormalBounds=="function"?p.getNormalBounds():void 0,g=Mn??Z("windowBounds");d&&d.width>0&&d.height>0&&(d.width<n.width||d.height<n.height)?i={width:d.width,height:d.height}:g&&typeof g.width=="number"&&g.width>0&&typeof g.height=="number"&&g.height>0?i={width:g.width,height:g.height}:i={width:Po,height:No}}let s=rn(i,t.workArea),l=kn(s,t.workArea);Ea();let a=null;if(Io(()=>{p&&(typeof p.isFullScreen=="function"&&p.isFullScreen()&&p.setFullScreen(!1),p.isMaximized()&&p.unmaximize(),a=Oo(p,l,t.workArea))}),a){let d=a,g=Ro(d,t.workArea);if(B("windowBounds",{width:d.width,height:d.height,relativeX:g.relativeX,relativeY:g.relativeY,displayId:t.id},!0),r){let m=t.workArea,S=t.id;ko=setImmediate(()=>{if(ko=null,!p||p.isDestroyed()||!p.isVisible()||p.isMinimized()||p.isMaximized()||typeof p.isFullScreen=="function"&&p.isFullScreen()||li(p.getBounds(),d))return;let E=null;if(Io(()=>{!p||p.isDestroyed()||(E=Oo(p,d,m))}),E){let k=E,D=Ro(k,m);B("windowBounds",{width:k.width,height:k.height,relativeX:D.relativeX,relativeY:D.relativeY,displayId:S},!0)}})}}}else if(!p.isMaximized()&&!(typeof p.isFullScreen=="function"&&p.isFullScreen())){let r=n.width>t.workArea.width||n.height>t.workArea.height,i=t.bounds??t.workArea,s=n.x<i.x||n.y<i.y||n.x+n.width>i.x+i.width||n.y+n.height>i.y+i.height;if(r||s){let l=r?kn(rn({width:n.width,height:n.height},t.workArea),t.workArea):sn(n,t.workArea);xa(p,l,t)}}}}catch(e){u.warn("window_manager","Failed to resolve displays in showWindow",e)}Wo(),p.show(),p.focus(),Do(),T("active_window","main")}else Vn||Ta()}function mi(){p&&!p.isDestroyed()&&(Aa(),Bn(),p.hide(),rf(),T("active_window","hidden"))}var nf=new WeakMap,Sa=new WeakMap;function lf(e){if(Vn||!e||e===p||e===Qt())return;let t=e.webContents,n="",o=!1,r=()=>{try{let a=t.getURL();a&&new URL(a).protocol==="https:"&&(n=new URL(a).origin)}catch{}return n||Sa.get(t)||""},i=()=>{try{if(e.isDestroyed())return;let a=r();if(!a||Sn(a)){o&&(e.setTitle(t.getTitle?.()??""),o=!1);return}e.setTitle(cd(a)),o=!0}catch{}},s=new So({armOnConnectorOAuthRequest:!0});try{let a=t.getURL?.();a&&(s.onNavigate(a),i())}catch{}nf.set(t,s),t.on("did-create-window",a=>{let d=n||Sa.get(t);d&&Sa.set(a.webContents,d),s.isInAuthFlow()&&nf.get(a.webContents)?.arm()}),ni(t),t.on("will-navigate",(a,d)=>{s.shouldAllowNavigation(d)||as(d)||s.armConnectorEntryIfUnarmed(d)||(u.info("window_manager:child",`External navigation intercepted in child window: ${ie(d)}`),a.preventDefault(),x(d))}),e.on("page-title-updated",a=>{try{let d=r();d&&!Sn(d)&&(a.preventDefault(),i())}catch{}}),t.setWindowOpenHandler(({url:a})=>Sn(a)||s.isInAuthFlow()&&(ec(a)||a==="about:blank")?{action:"allow",overrideBrowserWindowOptions:{webPreferences:{nodeIntegration:!1,contextIsolation:!0,sandbox:!0}}}:(x(a),{action:"deny"}));let l=(a,d)=>{s.onNavigate(d);let g=nd(d);if(g&&(u.info("window_manager",`Child nav completed; target: ${ie(g)}`),a&&a.preventDefault&&a.preventDefault(),e.isDestroyed()||e.close(),p&&!p.isDestroyed())){let m=V&&!V.webContents.isDestroyed()?V.webContents.getURL():"";Be=!0,V?.webContents.loadURL(sd(g,m,me,Ie?.host??null)),p.focus()}};t.on("will-redirect",(a,d,g,m)=>{m&&l(a,d)}),t.on("did-navigate",(a,d)=>{l(null,d),i()}),t.on("did-navigate-in-page",(a,d,g)=>{g&&(l(null,d),i())}),e.on("closed",()=>{s.dispose()})}function hi(){if(!p||p.isDestroyed())return;let e=V&&!V.webContents.isDestroyed()?V.webContents.getURL():"",t=ld(e,me),n="https://accounts.google.com/AccountChooser?continue="+encodeURIComponent(t);Hn=Date.now(),He=!1,ct(),Be=!0,T("surface","accounts"),T("navigation_state",ae("loading")),V?.webContents.loadURL(n)}async function wi(){if(!(!p||p.isDestroyed())){try{await R.session.defaultSession.clearStorageData({storages:["cookies"]})}catch{}!p||p.isDestroyed()||(gi=me,B("lastAccountUrl",me,!0),Hn=Date.now(),He=!1,ct(),Be=!0,wc(),T("surface","accounts"),T("navigation_state",ae("loading")),V?.webContents.loadURL(me))}}ee();ir();function Pa(e=process.argv){return O==="dev"||e.includes("--dev")||e.includes("--no-rate-limit")||!!h.app.commandLine&&(h.app.commandLine.hasSwitch("dev")||h.app.commandLine.hasSwitch("no-rate-limit"))}function Ra(e){if(e.includes("--open-logs")||h.app.commandLine.hasSwitch("open-logs")){let n=Kn();n&&(u.info("main",`Opening log directory in Explorer: ${M(n)}`),h.shell.openPath(n).then(o=>{o&&u.warn("main",`Failed to open log directory in Explorer: ${M(o)}`)}))}let t=Pa(e);e.includes("--hide")?mi():e.includes("--check-for-updates")?(ct(),Promise.resolve().then(()=>(xe(),at)).then(n=>{let o=Ze();o?n.openSettingsWindow(o,Ot()??void 0,{triggerUpdateCheck:!0}):u.warn("main","Cannot open settings for update check: main window is not available")})):e.includes("--open-settings")?(ct(),Promise.resolve().then(()=>(xe(),at)).then(n=>{let o=Ze();o?n.openSettingsWindow(o):u.warn("main","Cannot open settings: main window is not available")})):e.includes("--switch-account")?hi():e.includes("--sign-out")?wi():e.includes("--test-dump-without-crash")||h.app.commandLine.hasSwitch("test-dump-without-crash")?t&&(u.info("main","Executing diagnostic --test-dump-without-crash flag from CLI"),xl()):e.includes("--test-crash-main")||h.app.commandLine.hasSwitch("test-crash-main")?t&&(u.info("main","Executing diagnostic --test-crash-main flag: triggering process.crash()"),setTimeout(()=>{process.crash()},1e3)):(e.includes("--test-crash-renderer")||h.app.commandLine.hasSwitch("test-crash-renderer"))&&t&&(u.info("main","Executing diagnostic --test-crash-renderer flag: crashing webContents"),setTimeout(()=>{let n=Ze(),o=Ot()??n?.webContents;o&&o.forcefullyCrashRenderer()},2e3))}function Th(){try{let e=Z("diagnosticConsent",!1),t=Pa(process.argv),n=O==="prod"&&!t,o=pl(h.app.getVersion(),O,e,n),r=fl();h.app.setPath("crashDumps",r),h.crashReporter.start(o),T("channel",O),T("active_window","main"),u.info("main",`Electron Crashpad reporting initialized successfully (channel: ${O}, rateLimit: ${o.rateLimit}, uploadToServer: ${h.crashReporter.getUploadToServer()}, crashDumps: ${r})`);let i=new Set,s=()=>{let d=h.crashReporter.getUploadedReports();if(d&&d.length>0)for(let g of d)g.id&&!i.has(g.id)&&(i.add(g.id),u.info("main",`Electron verified uploaded crash report in database -> Server ID: ${g.id} (date: ${g.date.toISOString()})`))};s();let l=0,a=()=>{if(l++<3){let g=[5e3,15e3,3e4][l-1]||3e4;setTimeout(()=>{s(),a()},g).unref?.()}};a(),h.app.on("will-quit",()=>{s()})}catch(e){u.warn("main","Failed to initialize Electron Crashpad reporting",e)}}function df(e){Vu(e),_e({cmd:"UPDATE_AVAILABLE",value:e}),Promise.resolve().then(()=>(xe(),at)).then(t=>{t.sendUpdateCheckResultToSettings({status:"ready_to_install",version:e})})}function ff(e){switch(e.cmd){case"SHOW":ct();break;case"STC_TRIGGER":Jt()&&kr();break;case"HIDE":mi();break;case"RELOAD":Uo(!0);break;case"OPEN_SETTINGS":ct(),Promise.resolve().then(()=>(xe(),at)).then(t=>{t.openSettingsWindow(Ze(),Ot()??void 0)});break;case"OPEN_SETTINGS_UPDATE_CHECK":ct(),Promise.resolve().then(()=>(xe(),at)).then(t=>{t.openSettingsWindow(Ze(),Ot()??void 0,{triggerUpdateCheck:!0})});break;case"UPDATE_CHECK_RESULT":{let t=dr(e);t.status==="ready_to_install"?jl(t.version):t.reason==="install_incomplete"&&$l()&&na(),Promise.resolve().then(()=>(xe(),at)).then(n=>{n.sendUpdateCheckResultToSettings(t)});break}case"CHECK_FOR_UPDATES":Promise.resolve().then(()=>(fr(),Xl)).then(t=>{t.checkForUpdatesNow()});break;case"SWITCH_ACCOUNT":hi();break;case"SIGN_OUT":wi();break;case"QUIT":h.app.quit();break;case"HOTKEY_STATUS":Promise.resolve().then(()=>(Ws(),Qc)).then(t=>{t.handleHotkeyStatus(e.registered===!0,typeof e.error=="string"?e.error:null,typeof e.shortcut=="string"?e.shortcut:void 0)}),Promise.resolve().then(()=>(xe(),at)).then(t=>{t.updateHotkeyStatus(e.registered===!0)});break;case"RESTART_TO_UPDATE":yn(typeof e.version=="string"?e.version:void 0);break;case"CONFIG_CHANGED":if(typeof e.key=="string"&&e.value!==void 0){let t=e.value==="true"?!0:e.value==="false"?!1:e.value;B(e.key,t,!0),e.key==="openAtLogin"&&Promise.resolve().then(()=>(xe(),at)).then(n=>{n.updateOpenAtLoginStatus(!!t)})}break;default:break}}var La=!1,Ia=!1,Da=!1;function xh(){La=!1,Ia=!1,Da=!1}function Rh(){Th(),h.Menu.setApplicationMenu(null),u.info("main",`Starting ${h.app.getName()} v${h.app.getVersion()} (channel: ${O})`),Ie&&u.warn("main","Dev target override active; Gemini web target:",Ie.name,Ie.startUrl),process.on("uncaughtException",i=>{u.error("main","Uncaught exception in main process",i);try{let s=i instanceof Error&&i.name||"Error";T("navigation_state",`uncaught_exception:${s}`),Da||(Da=!0,bo(O,h.app.getVersion(),"browser","uncaught-exception"))}catch{}}),process.on("unhandledRejection",i=>{u.error("main","Unhandled promise rejection in main process",i);try{let s=i instanceof Error?i.name||"Error":"PromiseRejection";T("navigation_state",`unhandled_rejection:${s}`)}catch{}});let e=0,t=0;h.app.on("child-process-gone",(i,s)=>{u.error("main",`Child process gone: type=${s.type}, reason=${s.reason}, exitCode=${s.exitCode}`);let l=s.type==="GPU"&&s.reason!=="clean-exit";if(l){let a=Date.now();e=vc(e,t,a),t=a}if(T("navigation_state",ae("crashed",ul(s.type,s.reason,s.exitCode,l?e:void 0))),s.reason!=="clean-exit"){let a=dl(s.type);bo(O,h.app.getVersion(),a,Xo(s.reason))}l&&e>=3&&_r(`gpu:${s.reason}:${s.exitCode}`)}),h.app.enableSandbox(),h.app.commandLine.appendSwitch("process-per-site"),Ua(),h.app.setName(Ci),h.app.setAppUserModelId(Gn),h.app.userAgentFallback=Gu(h.app.userAgentFallback,h.app.getVersion(),O),h.ipcMain.on("gemini:reload",i=>{ro(i)&&Nt()}),h.ipcMain.on("gemini:get-app-version",i=>{if(!Ue(i)){i.returnValue="";return}i.returnValue=h.app.getVersion()}),h.ipcMain.on("gemini:get-local-device-id",i=>{if(!Ue(i)){i.returnValue="";return}i.returnValue=Ac()}),h.ipcMain.on("gemini:notify-turn-lifecycle",(i,s)=>{if(!Ue(i)||!s||typeof s!="object")return;let{conversationId:l,phase:a}=s;typeof l=="string"&&(a!=="start"&&a!=="complete"||Nu(i.sender,l,a,s.clientTools===!0))}),h.ipcMain.on("gemini:renderer-error",(i,s)=>{if(!gr(i)||!s||typeof s!="object")return;let l=typeof s.name=="string"?s.name:"Error",a=l.length>256?l.slice(0,256):l;u.error("main",`Unhandled JS error in renderer process: ${a}`),T("navigation_state",`renderer_error:${a}`)});let n=0,o=Date.now(),r=50;h.ipcMain.on("gemini:log",(i,s)=>{if(!Ue(i)||!s||typeof s!="object")return;let l=Date.now();if(l-o>=1e3&&(n=0,o=l),++n>r)return;let a=typeof s.tag=="string"?s.tag:"renderer";a.length>256&&(a=a.slice(0,256));let d=typeof s.message=="string"?s.message:"";d.length>4096&&(d=d.slice(0,4096));let g=(typeof s.level=="string"?s.level:"info").toLowerCase(),m=1;if(g==="debug"?m=0:g==="warn"?m=2:g==="error"&&(m=3),m===0&&Yo()>0)return;(m===3?u.error:m===2?u.warn:m===0?u.debug:u.info)(a,M(d))}),h.ipcMain.handle("gemini:get-cached-flags",async i=>Ue(i)?hc():{}),h.ipcMain.on("gemini:sync-experiment-flags",(i,s)=>{Ue(i)&&s&&typeof s=="object"&&!Array.isArray(s)&&s.flags&&typeof s.flags=="object"&&!Array.isArray(s.flags)&&gs(s.flags)}),h.ipcMain.handle("gemini:poll-web-flags",async i=>{if(!Ue(i))return{};try{return await co({webContents:Ot(),isWindowHidden:!Ze()?.isVisible()})}catch{return{}}}),h.ipcMain.handle("gemini:get-app-logs",async i=>{if(!oo(i))return"";try{return await sl({appVersion:h.app.getVersion(),helperConnected:Jn()})}catch{return""}}),Yu(),h.app.whenReady().then(async()=>{u.info("main","Application ready; creating primary UI components"),Lu(),Iu(O,h.app.getVersion()),ps(h.app.getVersion()),Bo();let i=await Tu();if(Ta(),i&&xu(Ze(),Ot()),Oc(),_c(()=>{let m=Ot();return m?co({webContents:m,isWindowHidden:!Ze()?.isVisible()}):Promise.resolve({})}),vl(ff),Ra(process.argv),B("speakToWindowEnabled",Jt()),require("./voice_bridge_native.js").initVoiceBridgeNative({getMainWebContents:Ot,getMainWindow:Ze,getStcWindow:Qt,triggerStc:kr,showMainWindow:ct,hideMainWindow:mi,reloadMainWindow:Uo,getNativeAddon:Ae}),Jt())try{if(du(),B("stcShortcut",Z("stcShortcut","Alt+Shift+D")),process.argv.includes("--start-dictation")){let S=0,E=()=>{if(Jn()){kr();return}if(++S>50){u.warn("stc","Giving up --start-dictation: helper pipe never connected");return}setTimeout(E,200)};E()}}catch(m){u.error("stc","Error initializing Speak to Window",m)}let l=10,a=15e3,d=5*6e4;(()=>{let m=Date.now()+d,S=!!h.powerMonitor&&typeof h.powerMonitor.getSystemIdleTime=="function",E,k=()=>{let D=!S;if(S)try{D=h.powerMonitor.getSystemIdleTime()>=l}catch{D=!0}if(D||Date.now()>=m){O!=="dev"&&ts(),na();return}E=setTimeout(k,a)};E=setTimeout(k,3e4),h.app.on("before-quit",()=>{E&&clearTimeout(E)})})(),O!=="dev"&&zl(df)}),h.app.on("second-instance",(i,s)=>{u.info("main","Second instance launched; surfacing main window");let l=to(s);if(l!==null){B("suppressQuitConfirmation",l);return}if(s.includes("--hide")){mi();return}if(Jt()&&s.includes("--start-dictation")){kr();return}let a=Ze();a&&(a.isMinimized()&&a.restore(),ct()),Ra(s)}),h.app.on("browser-window-created",(i,s)=>{lf(s)}),Hl(()=>{Ia=!0}),h.app.on("will-quit",i=>{if(Ia){u.info("main","Application will quit for update relaunch; flushing streamz asynchronously"),Vi(),dt(),Js().catch(l=>{u.warn("main","Failed to flush Streamz logger on update relaunch",l)});return}if(La)return;i.preventDefault(),La=!0,u.info("main","Application will quit; cleaning up helper IPC"),Vi(),ms();let s=setTimeout(()=>{dt(),h.app.quit()},500);Js().catch(l=>{u.warn("main","Failed to flush Streamz logger on quit",l)}).finally(()=>{clearTimeout(s),dt(),h.app.quit()})}),h.app.on("before-quit",()=>{u.info("main","Application before-quit received")}),h.app.on("window-all-closed",()=>{h.app.quit()})}function Lh(){if((h.app.commandLine.hasSwitch("verbose")||h.app.commandLine.getSwitchValue("log-level")==="debug"||process.argv.includes("--verbose")||process.argv.includes("--log-level=debug"))&&el(0),h.app.commandLine.hasSwitch("enable-logging")||h.app.commandLine.hasSwitch("verbose")||process.argv.includes("--enable-logging")||process.argv.includes("--verbose")){h.app.commandLine.appendSwitch("enable-logging");let t=Kn();t&&h.app.commandLine.appendSwitch("log-file",uf.join(t,"chromium.log")),h.app.commandLine.appendSwitch("v","1")}xc();let e=to(process.argv);e!==null?(B("suppressQuitConfirmation",e),dt(),h.app.exit(0)):h.app.requestSingleInstanceLock()?Rh():(u.warn("main","Primary single-instance lock acquisition failed; delegating to running instance"),dt(),h.app.quit())}h.app.setName(Ci);Za(O);var cf=Lc(h.app.isPackaged&&O!=="dev",process.argv,process.execArgv);cf?(u.error("security",Ic,`(switch: --${cf})`),dt(),h.app.exit(1)):Lh();0&&(module.exports={handleCommandLineArgs,handleHelperCommand,handleStagedUpdateDetected,isDevEnvironment,isTrustedAppSender,isTrustedGeminiSender,isTrustedNavigationSender,parseSuppressQuitConfirmationArg,resetMainStateForTesting});
+  })()`,
+      )
+      .catch(() => null),
+    r,
+    i = new Promise((s) => {
+      r = setTimeout(() => {
+        s(null);
+      }, t);
+    });
+  try {
+    let s = await Promise.race([o, i]);
+    if (!s || typeof s != "object") return null;
+    let l = s;
+    return {
+      gaiaId:
+        typeof l.gaiaId == "string" && l.gaiaId.trim().length > 0
+          ? l.gaiaId.trim()
+          : void 0,
+      rawWizPayload: ht(l.rawWizPayload) ? l.rawWizPayload : void 0,
+    };
+  } finally {
+    clearTimeout(r);
+  }
+}
+function En(e, t = []) {
+  if (!ht(e)) return {};
+  let n = new Set(t.map(String));
+  return e.startsWith(nc) ? Wp(e, n) : kp(e, n);
+}
+function Wp(e, t) {
+  let n = {};
+  try {
+    let r = JSON.parse(e)?.flags;
+    r &&
+      typeof r == "object" &&
+      !Array.isArray(r) &&
+      Op(Object.entries(r), t, n);
+  } catch {}
+  return n;
+}
+function kp(e, t) {
+  let n = {};
+  try {
+    let r = [JSON.parse("[" + e.slice(tc.length))];
+    for (; r.length > 0;) {
+      let i = r.shift();
+      if (Array.isArray(i))
+        if (i.length >= 2 && typeof i[0] == "number") {
+          let s = String(i[0]);
+          (t.size === 0 || t.has(s)) &&
+            (typeof i[2] == "boolean" || typeof i[2] == "number"
+              ? (n[s] = !!i[2])
+              : typeof i[1] == "number"
+                ? (n[s] = i[1])
+                : typeof i[3] == "number"
+                  ? (n[s] = i[3])
+                  : typeof i[4] == "string" && (n[s] = i[4]));
+        } else for (let s of i) Array.isArray(s) && r.push(s);
+    }
+  } catch {}
+  return n;
+}
+function ls(e) {
+  let t = /window\.WIZ_global_data\s*=\s*\{/.exec(e);
+  if (!t) return;
+  let n = t.index + t[0].length - 1,
+    o = 0,
+    r = !1,
+    i = "",
+    s = !1;
+  for (let l = n; l < e.length; l++) {
+    let a = e[l];
+    if (r) s ? (s = !1) : a === "\\" ? (s = !0) : a === i && (r = !1);
+    else if (a === '"' || a === "'") ((r = !0), (i = a), (s = !1));
+    else if (a === "{") o++;
+    else if (a === "}" && (o--, o === 0)) return e.substring(n, l + 1);
+  }
+}
+function rc(e) {
+  if (!e || typeof e != "string") return;
+  let t = ls(e);
+  if (t)
+    try {
+      let n = JSON.parse(t),
+        o = n?.TSDtV;
+      if (ht(o)) return o;
+      for (let r of Object.values(n))
+        if (ht(r)) {
+          let i = En(r);
+          if (Object.keys(i).length > 0) return r;
+        }
+      return;
+    } catch {
+      return;
+    }
+}
+function ic(e, t = []) {
+  if (!e || typeof e != "string") return {};
+  let n = ls(e);
+  if (!n) return {};
+  try {
+    let o = JSON.parse(n);
+    if (!o || typeof o != "object" || Array.isArray(o)) return {};
+    let r = o,
+      i = {};
+    for (let s of Object.values(r)) ht(s) && Object.assign(i, En(s, t));
+    return i;
+  } catch {
+    return {};
+  }
+}
+function sc(e) {
+  if (!e || typeof e != "string") return;
+  let t = ls(e);
+  if (t)
+    try {
+      let o = JSON.parse(t)?.S06Grb;
+      return typeof o == "string" && o.trim().length > 0 ? o.trim() : void 0;
+    } catch {
+      return;
+    }
+}
+var ac = "flags";
+function Up(e) {
+  return e ? [ac, e.host] : [ac];
+}
+var Mp = "active_account.json",
+  io = "default",
+  Fp = 336 * 60 * 60 * 1e3,
+  Bp = 14400 * 1e3,
+  Hp = Ie?.startUrl ?? "https://gemini.google.com/app",
+  cs = {
+    ENABLE_CAPTURE_WINDOW_BUTTON: "45861415",
+    ENABLE_DESKTOP_BRIDGE_TOGGLE: "45861412",
+    ENABLE_WINDOWS_REQUEST_SOURCE: "45861413",
+  },
+  Vp = {
+    enableCaptureWindow: cs.ENABLE_CAPTURE_WINDOW_BUTTON,
+    enableDesktopBridge: cs.ENABLE_DESKTOP_BRIDGE_TOGGLE,
+    enableWindowsRequestSource: cs.ENABLE_WINDOWS_REQUEST_SOURCE,
+  },
+  lc = null,
+  nt = null,
+  so = {},
+  us = "",
+  An = io,
+  hr,
+  mr = null;
+function fc() {
+  return lc || Tn.join(jt.app.getPath("userData"), ...Up(Ie));
+}
+function lo(e) {
+  if (!e || typeof e != "string") return io;
+  let t = e.trim();
+  return t.length === 0
+    ? io
+    : /^[a-zA-Z0-9_-]{1,64}$/.test(t)
+      ? t
+      : dc.createHash("sha256").update(t).digest("hex").slice(0, 24);
+}
+function Gp(e) {
+  if (/^\d+$/.test(e)) return e;
+  let t = Vp[e];
+  return t && /^\d+$/.test(t) ? t : null;
+}
+function ao(e) {
+  let t = {};
+  for (let [n, o] of Object.entries(e)) {
+    let r = Gp(n);
+    r &&
+      (typeof o == "boolean" || typeof o == "number" || typeof o == "string") &&
+      (t[r] = o);
+  }
+  return t;
+}
+function ds(e) {
+  let t = lo(e);
+  return Tn.join(fc(), `${t}.json`);
+}
+function fs() {
+  return Tn.join(fc(), Mp);
+}
+function pc(e) {
+  let t = be.readFileSync(e, "utf8").replace(/^\uFEFF/, "");
+  return JSON.parse(t);
+}
+function gc() {
+  try {
+    let e = fs();
+    if (be.existsSync(e)) {
+      let t = pc(e);
+      if (
+        typeof t?.activeAccountId == "string" &&
+        t.activeAccountId.trim().length > 0
+      )
+        return lo(t.activeAccountId);
+    }
+  } catch {}
+  return io;
+}
+var cc = Promise.resolve();
+async function uc(e, t) {
+  let n = cc.then(async () => {
+    let o = Tn.dirname(e);
+    await be.promises.mkdir(o, { recursive: !0 });
+    let r = `${e}.tmp`;
+    (await be.promises.writeFile(r, JSON.stringify(t, null, 2), "utf8"),
+      await be.promises.rename(r, e));
+  });
+  return ((cc = n.catch(() => {})), n);
+}
+function mc(e) {
+  try {
+    let t = ds(e);
+    if (!be.existsSync(t)) return null;
+    let n = pc(t);
+    if (!n || typeof n != "object" || Array.isArray(n)) return null;
+    let o = n;
+    return typeof o.updatedAtMs != "number" ||
+      !o.flags ||
+      typeof o.flags != "object"
+      ? null
+      : {
+          updatedAtMs: o.updatedAtMs,
+          appVersion: typeof o.appVersion == "string" ? o.appVersion : "",
+          rawWizPayload: ht(o.rawWizPayload) ? o.rawWizPayload : void 0,
+          flags: ao(o.flags),
+        };
+  } catch {
+    return null;
+  }
+}
+function ps(e = us, t) {
+  e && (us = e);
+  let n = t ? lo(t) : gc();
+  An = n;
+  let o = mc(n),
+    r = Date.now();
+  if (o && r - o.updatedAtMs <= Fp) {
+    hr = o.rawWizPayload;
+    let s = {
+      ...(o.rawWizPayload ? ao(En(o.rawWizPayload)) : {}),
+      ...ao(o.flags),
+    };
+    ((nt = Object.freeze({ ...s })),
+      (so = { ...s }),
+      u.info(
+        "flag_cache",
+        "Loaded cached Mendel flags for cold boot:",
+        "account=",
+        tt(n),
+        "count=",
+        Object.keys(s).length,
+        "rawPayload=",
+        !!o.rawWizPayload,
+        "ageSec=",
+        Math.round((r - o.updatedAtMs) / 1e3),
+      ));
+  } else
+    ((hr = void 0),
+      (nt = Object.freeze({})),
+      (so = {}),
+      u.info(
+        "flag_cache",
+        "Initialized empty Mendel flag cache:",
+        "account=",
+        tt(n),
+      ));
+  return nt;
+}
+function hc() {
+  return (nt || ps(), nt ?? Object.freeze({}));
+}
+async function gs(e, t, n = !1, o) {
+  let r = ao(e),
+    i = t ? lo(t) : An || gc(),
+    s = mc(i),
+    l = r,
+    a = ht(o) ? o : void 0,
+    d = !s || An !== i;
+  if ((!d && s && a !== s.rawWizPayload && (d = !0), !d && s)) {
+    let S = Object.keys(s.flags),
+      E = Object.keys(l);
+    if (S.length !== E.length) d = !0;
+    else
+      for (let k of E)
+        if (s.flags[k] !== l[k]) {
+          d = !0;
+          break;
+        }
+  }
+  let m = { ...(a ? ao(En(a)) : {}), ...l };
+  ((so = { ...m }),
+    (An = i),
+    (hr = a),
+    (n || !nt || Object.keys(nt).length === 0) &&
+      (nt = Object.freeze({ ...m })));
+  try {
+    await uc(fs(), { activeAccountId: i });
+    let S = {
+      updatedAtMs: Date.now(),
+      appVersion: us,
+      ...(a ? { rawWizPayload: a } : {}),
+      flags: l,
+    };
+    (await uc(ds(i), S),
+      u.info(
+        "flag_cache",
+        "Synced Mendel flags to per-account cache file:",
+        "account=",
+        tt(i),
+        "changed=",
+        d,
+        "relatch=",
+        n,
+        "rawPayload=",
+        !!a,
+        "count=",
+        Object.keys(l).length,
+      ));
+  } catch (S) {
+    u.warn("flag_cache", "Failed to write flag cache file:", tt(S));
+  }
+  return d;
+}
+function wc(e) {
+  let t = e ? lo(e) : An;
+  try {
+    let n = ds(t);
+    be.existsSync(n) && be.unlinkSync(n);
+  } catch {}
+  try {
+    let n = fs();
+    be.existsSync(n) && be.unlinkSync(n);
+  } catch {}
+  ((An = io),
+    (nt = Object.freeze({})),
+    (so = {}),
+    (hr = void 0),
+    u.info("flag_cache", "Cleared cached Mendel flags on sign-out"));
+}
+async function co(e) {
+  let t = e.accountUrl || Hp,
+    n = {},
+    o,
+    r;
+  if (e.webContents)
+    try {
+      let s = await oc(e.webContents);
+      (s?.gaiaId && (o = s.gaiaId),
+        s?.rawWizPayload &&
+          ((r = s.rawWizPayload), Object.assign(n, En(s.rawWizPayload))));
+    } catch {}
+  let i =
+    e.fetcher ??
+    (!r &&
+    jt.session?.defaultSession &&
+    typeof jt.session.defaultSession.fetch == "function"
+      ? jt.session.defaultSession.fetch.bind(jt.session.defaultSession)
+      : void 0);
+  if (i && !no(t))
+    u.warn(
+      "flag_cache",
+      "Skipping background flag poll: accountUrl is not a trusted Google origin",
+    );
+  else if (i)
+    try {
+      let s = await i(t, { credentials: "include" });
+      if (s && s.ok) {
+        let l = await s.text(),
+          a = sc(l);
+        a && (o = a);
+        let d = rc(l);
+        d && (r = d);
+        let g = ic(l);
+        Object.assign(n, g);
+      }
+    } catch (s) {
+      u.warn("flag_cache", "Background HTTP flag poll failed:", tt(s));
+    }
+  return (
+    (Object.keys(n).length > 0 || r) && (await gs(n, o, !!e.isWindowHidden, r)),
+    { ...so }
+  );
+}
+function _c(e, t = Bp) {
+  (ms(),
+    (mr = setInterval(() => {
+      e();
+    }, t)));
+}
+function ms() {
+  mr !== null && (clearInterval(mr), (mr = null));
+}
+f();
+var xn = require("electron");
+f();
+var hs = "gpuSoftwareRenderingFallback",
+  ws = "force-software-rendering";
+function yc(e, t, n) {
+  return e || n || t.includes(`--${ws}`);
+}
+function bc() {
+  return [
+    { name: "disable-gpu-compositing" },
+    { name: "disable-direct-composition" },
+  ];
+}
+function vc(e, t, n) {
+  return t > 0 && n - t > 3e4 ? 1 : e + 1;
+}
+F();
+Kt();
+function Tc() {
+  return yc(Z(hs, !1), process.argv, xn.app.commandLine.hasSwitch(ws));
+}
+function xc() {
+  if (Tc()) {
+    u.warn(
+      "gpu_fallback",
+      "Software-rendering fallback active; forcing software compositing",
+    );
+    for (let { name: e, value: t } of bc())
+      (u.info(
+        "gpu_fallback",
+        `Applying software-rendering switch --${e}${t === void 0 ? "" : `=${t}`}`,
+      ),
+        t === void 0
+          ? xn.app.commandLine.appendSwitch(e)
+          : xn.app.commandLine.appendSwitch(e, t));
+  }
+}
+function _r(e) {
+  return Tc()
+    ? (u.error(
+        "gpu_fallback",
+        `Crash persists with software rendering (${e}); not relaunching`,
+      ),
+      !1)
+    : (u.error(
+        "gpu_fallback",
+        `Fatal GPU/renderer crash storm (${e}); enabling software-rendering fallback and relaunching`,
+      ),
+      B(hs, !0),
+      xn.app.relaunch(),
+      xn.app.exit(0),
+      !0);
+}
+pn();
+F();
+f();
+var qp = [
+    "remote-debugging-port",
+    "remote-debugging-pipe",
+    "remote-allow-origins",
+    "inspect",
+    "inspect-brk",
+    "inspect-port",
+    "inspect-publish-uid",
+    "proxy-server",
+    "proxy-pac-url",
+    "host-rules",
+    "host-resolver-rules",
+    "ignore-certificate-errors",
+    "disable-web-security",
+  ],
+  Kp = ["--", "-", "/"];
+function Yp(e) {
+  if (typeof e != "string") return null;
+  let t = e.trim(),
+    n = Kp.find((s) => t.startsWith(s) && t.length > s.length);
+  if (!n) return null;
+  let o = t.slice(n.length),
+    r = o.indexOf("=");
+  return (r === -1 ? o : o.slice(0, r)).toLowerCase();
+}
+function Rc(e) {
+  if (!Array.isArray(e)) return null;
+  for (let t of e) {
+    let n = Yp(t);
+    if (n && qp.includes(n)) return n;
+  }
+  return null;
+}
+function Lc(e, t, n = []) {
+  return e ? (Rc(t) ?? Rc(n)) : null;
+}
+var Ic =
+  "Gemini: refusing to start \u2014 a debugging or network-override switch is present on the command line.";
+ee();
+Kt();
+f();
+var Yt = require("electron"),
+  Pc = A(require("fs")),
+  De = A(require("path"));
+he();
+F();
+var Dc = "Gemini.lnk",
+  Xp = "app-";
+function Qp() {
+  return [
+    De.join(
+      Yt.app.getPath("appData"),
+      "Microsoft",
+      "Windows",
+      "Start Menu",
+      "Programs",
+      Dc,
+    ),
+    De.join(Yt.app.getPath("desktop"), Dc),
+  ];
+}
+function Nc(e, t) {
+  return De.resolve(e).toLowerCase() === De.resolve(t).toLowerCase();
+}
+function Jp(e, t) {
+  return !!e.icon && Nc(e.icon, t) && (e.iconIndex ?? 0) === 0;
+}
+function Oc() {
+  if (process.platform !== "win32") return 0;
+  let e;
+  try {
+    e = De.dirname(Yt.app.getPath("exe"));
+  } catch (o) {
+    return (
+      u.warn("shortcut_aumid", "Failed to resolve executable path", tt(o)),
+      0
+    );
+  }
+  if (!De.basename(e).startsWith(Xp)) return 0;
+  let t = De.join(De.dirname(e), "Gemini.exe"),
+    n = 0;
+  for (let o of Qp())
+    try {
+      if (!Pc.existsSync(o)) continue;
+      let r = Yt.shell.readShortcutLink(o);
+      if (!Nc(r.target, t) || (r.appUserModelId === Gn && Jp(r, t))) continue;
+      Yt.shell.writeShortcutLink(o, "update", {
+        target: r.target,
+        icon: t,
+        iconIndex: 0,
+        appUserModelId: Gn,
+      })
+        ? n++
+        : u.warn(
+            "shortcut_aumid",
+            "Failed to write AppUserModelID and icon onto installer shortcut",
+          );
+    } catch (r) {
+      u.warn(
+        "shortcut_aumid",
+        "Failed to read or update installer shortcut",
+        tt(r),
+      );
+    }
+  return (
+    n > 0 &&
+      u.info(
+        "shortcut_aumid",
+        `Stamped AppUserModelID and icon onto ${n} installer shortcut(s)`,
+      ),
+    n
+  );
+}
+f();
+var Su = require("electron"),
+  Eu = A(require("path"));
+Se();
+Cn();
+qe();
+Te();
+mn();
+Me();
+F();
+gn();
+ee();
+f();
+var Kr = require("electron"),
+  bu = A(require("path"));
+Se();
+he();
+qe();
+Te();
+Me();
+ee();
+xe();
+f();
+var _u = -7.5,
+  yu = 9;
+function zr(e) {
+  e.isDestroyed() || e.setZoomLevel(Math.min(e.getZoomLevel() + 0.5, yu));
+}
+function jr(e) {
+  e.isDestroyed() || e.setZoomLevel(Math.max(e.getZoomLevel() - 0.5, _u));
+}
+function qr(e) {
+  e.isDestroyed() || e.setZoomLevel(0);
+}
+var we = 36,
+  $g = "topbar:open-menu",
+  zg = "topbar:menu-closed",
+  jg = "topbar:set-label",
+  _o = new Y();
+function qg(e, t, n, o) {
+  let r = () => {
+      let l = typeof t == "function" ? t() : t;
+      return l && !l.isDestroyed() ? l : n && !n.isDestroyed() ? yr(n) : null;
+    },
+    i = (l, a = !1) => {
+      let d = r();
+      !d ||
+        d.isDestroyed() ||
+        (a && (n && !n.isDestroyed() && n.focus(), d.focus()), l(d));
+    },
+    s = (l) => {
+      let a = n ?? l;
+      return a && !a.isDestroyed() ? a : null;
+    };
+  return [
+    {
+      label: c("menu_file"),
+      submenu: [
+        {
+          label: c("menu_settings"),
+          accelerator: "CmdOrCtrl+,",
+          click: () => {
+            e();
+          },
+        },
+        { type: "separator" },
+        { role: "quit", label: c("menu_exit"), accelerator: "CmdOrCtrl+Q" },
+      ],
+    },
+    {
+      label: c("menu_edit"),
+      submenu: [
+        {
+          label: c("menu_undo"),
+          accelerator: "CmdOrCtrl+Z",
+          click: () => {
+            i((l) => l.undo(), !0);
+          },
+        },
+        {
+          label: c("menu_redo"),
+          accelerator: "CmdOrCtrl+Y",
+          click: () => {
+            i((l) => l.redo(), !0);
+          },
+        },
+        { type: "separator" },
+        {
+          label: c("menu_cut"),
+          accelerator: "CmdOrCtrl+X",
+          click: () => {
+            i((l) => l.cut(), !0);
+          },
+        },
+        {
+          label: c("menu_copy"),
+          accelerator: "CmdOrCtrl+C",
+          click: () => {
+            i((l) => l.copy(), !0);
+          },
+        },
+        {
+          label: c("menu_paste"),
+          accelerator: "CmdOrCtrl+V",
+          click: () => {
+            i((l) => l.paste(), !0);
+          },
+        },
+        {
+          label: c("menu_delete"),
+          accelerator: "Delete",
+          click: () => {
+            i((l) => l.delete(), !0);
+          },
+        },
+        { type: "separator" },
+        {
+          label: c("menu_select_all"),
+          accelerator: "CmdOrCtrl+A",
+          click: () => {
+            i((l) => l.selectAll(), !0);
+          },
+        },
+      ],
+    },
+    {
+      label: c("menu_view"),
+      submenu: [
+        {
+          label: c("menu_reload"),
+          accelerator: "CmdOrCtrl+R",
+          click: () => {
+            o ? o() : i((l) => l.reload());
+          },
+        },
+        {
+          label: c("menu_force_reload"),
+          accelerator: "CmdOrCtrl+Shift+R",
+          click: () => {
+            i((l) => l.reloadIgnoringCache());
+          },
+        },
+        ...(O === "dev"
+          ? [
+              {
+                label: c("menu_toggle_dev_tools"),
+                accelerator: "CmdOrCtrl+Shift+I",
+                click: () => {
+                  i((l) => l.toggleDevTools());
+                },
+              },
+            ]
+          : []),
+        { type: "separator" },
+        {
+          label: c("menu_actual_size"),
+          accelerator: "CmdOrCtrl+0",
+          click: () => {
+            i((l) => qr(l));
+          },
+        },
+        {
+          label: c("menu_zoom_in"),
+          accelerator: "CmdOrCtrl+Plus",
+          click: () => {
+            i((l) => zr(l));
+          },
+        },
+        {
+          label: c("menu_zoom_out"),
+          accelerator: "CmdOrCtrl+-",
+          click: () => {
+            i((l) => jr(l));
+          },
+        },
+        { type: "separator" },
+        {
+          label: c("menu_toggle_fullscreen"),
+          accelerator: "F11",
+          click: (l, a) => {
+            let d = s(a);
+            d && d.setFullScreen(!d.isFullScreen());
+          },
+        },
+      ],
+    },
+    {
+      label: c("menu_window"),
+      submenu: [
+        {
+          label: c("menu_minimize"),
+          accelerator: "CmdOrCtrl+M",
+          click: (l, a) => {
+            let d = s(a);
+            d && d.minimize();
+          },
+        },
+        {
+          label: c("menu_close_window"),
+          accelerator: "CmdOrCtrl+W",
+          click: (l, a) => {
+            let d = s(a);
+            d && d.close();
+          },
+        },
+      ],
+    },
+  ];
+}
+function vu(e, t, n, o) {
+  _o.reset();
+  let r = new Kr.WebContentsView({
+    webPreferences: {
+      preload: bu.join(__dirname, "top_bar", "top_bar_preload.js"),
+      nodeIntegration: !1,
+      contextIsolation: !0,
+      sandbox: !0,
+    },
+  });
+  (_o.trackView(r),
+    r.setBackgroundColor("#00000000"),
+    e.contentView.addChildView(r),
+    r.webContents.on("will-navigate", (a, d) => {
+      (a.preventDefault(), x(d));
+    }),
+    r.webContents.setWindowOpenHandler(
+      ({ url: a }) => (x(a), { action: "deny" }),
+    ));
+  let i = () => {
+    let { width: a } = e.getContentBounds();
+    r.setBounds({ x: 0, y: 0, width: a, height: we });
+  };
+  (i(),
+    _o.onWindowBoundsChange(e, i),
+    r.webContents.on("dom-ready", () => {
+      (K(r.webContents), r.webContents.send(jg, c("top_bar_menu_title")));
+    }),
+    r.webContents.loadURL(z("top_bar", "top_bar.html")));
+  try {
+    require("./voice_bridge_native.js").attachToTopBarWebContents(
+      r.webContents,
+    );
+  } catch {}
+  let s = () => yr(e, { attachedContentWc: n, excludeView: r }),
+    l = (a, d) => {
+      try {
+        if (!v(a, r) || e.isDestroyed()) return;
+        if (!Ke()) {
+          let E = s();
+          E && !E.isDestroyed() && E.focus();
+        }
+        let g = qg(t, s, e, o),
+          m = Kr.Menu.buildFromTemplate(g),
+          S = {
+            window: e,
+            callback: () => {
+              try {
+                (r.webContents.isDestroyed() || r.webContents.send(zg),
+                  Ke() || ce(e, { attachedContentWc: n, excludeView: r }));
+              } catch {}
+            },
+          };
+        (d &&
+          Number.isFinite(d.x) &&
+          Number.isFinite(d.y) &&
+          ((S.x = Math.round(d.x)), (S.y = Math.round(d.y))),
+          m.popup(S));
+      } catch {}
+    };
+  (_o.onIpc($g, l), _o.bindWindow(e));
+}
+var X = null,
+  Oe = null,
+  Xr = null,
+  Pn = !1,
+  At = null,
+  Ks = null,
+  yo = null,
+  Ye = new Y(),
+  Kg = 1500,
+  Yr = null;
+function Qr() {
+  Yr !== null && (clearTimeout(Yr), (Yr = null));
+}
+function Ys() {
+  (Qr(),
+    Pn &&
+      (!X ||
+        X.webContents.isDestroyed() ||
+        (X.setVisible(!0), X.webContents.focus())));
+}
+function Au() {
+  return At === null ? 0 : At.getRuntimeAuthInfo().signinStatus;
+}
+function Yg() {
+  if (!At) return;
+  let e = Au();
+  if (!(e === 2 || e === 1 || e === 0)) {
+    if ((yo && (yo(), (yo = null)), e === 6)) {
+      At.forceRefreshAccessToken("OAuth browser flow required");
+      return;
+    }
+    if (e === 9) {
+      tm();
+      return;
+    }
+  }
+}
+function Xg() {
+  if (At) return;
+  let e = Ae();
+  e &&
+    ((At = e.argoLib),
+    (Ks = new Promise((t) => {
+      yo = t;
+    })),
+    e.argoLib.initialize(Yg) || ((At = null), (Ks = null), (yo = null)));
+}
+async function Tu() {
+  return (Xg(), At ? (await Ks, Au() === 3) : !1);
+}
+function Qg() {
+  return exports.getCurrentUserInfo();
+}
+function Xs() {
+  if (!Oe || Oe.isDestroyed() || !X) return;
+  let { width: e, height: t } = Oe.getContentBounds();
+  X.setBounds({ x: 0, y: we, width: e, height: or(t, we) });
+}
+function Jg() {
+  (Ye.handleIpc("sign-in:get-content", async (e) =>
+    v(e, X)
+      ? {
+          title: c("signInTitle"),
+          signInButton: c("signInButton"),
+          createAccountButton: c("signInCreateAccountButton"),
+          logOutButton: c("signInLogOutButton"),
+          user: Qg(),
+        }
+      : null,
+  ),
+    Ye.handleIpc("sign-in:sign-in", async (e) =>
+      v(e, X) ? (exports.startNewAccountLogin(), !0) : !1,
+    ),
+    Ye.handleIpc("sign-in:create-account", async (e) =>
+      v(e, X) ? (exports.openCreateAccountPage(), !0) : !1,
+    ),
+    Ye.handleIpc("sign-in:log-out", async (e) =>
+      v(e, X) ? (exports.logoutCurrentUser(), !0) : !1,
+    ),
+    Ye.onIpc("sign-in:ready", (e) => {
+      v(e, X) && Ys();
+    }));
+}
+function Zg() {
+  if (X && !X.webContents.isDestroyed()) return X;
+  ((X = new Su.WebContentsView({
+    webPreferences: {
+      preload: Eu.join(__dirname, "sign_in", "sign_in_preload.js"),
+      nodeIntegration: !1,
+      contextIsolation: !0,
+      sandbox: !0,
+    },
+  })),
+    X.setBackgroundColor("#00000000"),
+    X.setVisible(!1));
+  let e = X;
+  return (
+    Ye.trackView(e),
+    e.webContents.on("dom-ready", () => {
+      K(e.webContents);
+    }),
+    e.webContents.on("will-navigate", (t, n) => {
+      (t.preventDefault(), x(n));
+    }),
+    e.webContents.setWindowOpenHandler(
+      ({ url: t }) => (x(t), { action: "deny" }),
+    ),
+    e.webContents.loadURL(z("sign_in", "sign_in.html")),
+    Xs(),
+    X
+  );
+}
+function em(e, t) {
+  (Ye.reset(),
+    Cu(),
+    (Oe = e),
+    (Xr = t ?? null),
+    Ye.onWindowBoundsChange(e, Xs),
+    Jg(),
+    Ye.bindWindow(e, Cu));
+}
+function xu(e, t) {
+  let n = e || Oe;
+  if (!n || n.isDestroyed()) return;
+  if ((Oe !== n ? em(n, t) : t && (Xr = t), Pn)) {
+    Ys();
+    return;
+  }
+  let o = Zg();
+  if ((Xs(), n.contentView)) {
+    try {
+      n.contentView.removeChildView(o);
+    } catch {}
+    (n.contentView.addChildView(o),
+      o.setVisible(!1),
+      (Pn = !0),
+      T("active_window", "sign_in"),
+      Qr(),
+      (Yr = setTimeout(Ys, Kg)));
+  }
+}
+function tm() {
+  (Qr(), (Pn = !1), T("active_window", "main"));
+  let e = X;
+  if (
+    ((X = null),
+    e && !e.webContents.isDestroyed() && e.setVisible(!1),
+    ce(Oe, {
+      attachedContentWc: Xr,
+      excludeView: e,
+      shouldSkipDeferredFocus: () => Pn,
+    }),
+    e && Oe && !Oe.isDestroyed() && Oe.contentView)
+  )
+    try {
+      Oe.contentView.removeChildView(e);
+    } catch {}
+  if ((e && Ye.untrackView(e), e && !e.webContents.isDestroyed()))
+    try {
+      e.webContents.close();
+    } catch {}
+}
+function Cu() {
+  (Qr(), (X = null), (Oe = null), (Xr = null), (Pn = !1));
+}
+Gs();
+f();
+var Qs = A(require("path"));
+F();
+var nm = "clearcut_offline_queue.json",
+  Ru = !1;
+function Jr() {
+  if (!Ru) {
+    Ru = !0;
+    try {
+      require(Qs.join(__dirname, "streamz_client_bundle.js"));
+    } catch (e) {
+      u.warn("streamz", "Failed to load streamz_client_bundle.js", e);
+    }
+  }
+  return globalThis.geminiWindowsStreamz;
+}
+function Lu(e) {
+  let t = Jr();
+  if (!t) return;
+  let n = e ?? Kn();
+  if (!n) return;
+  let o = Qs.join(n, nm);
+  (t.init(o, (r, ...i) => {
+    u.info("streamz", r, ...i);
+  }),
+    u.info("streamz", "Initialized Client Streamz logger"));
+}
+function Iu(e, t) {
+  let n = Jr();
+  n &&
+    (n.logClientLaunchedCount(e, t),
+    u.info("streamz", "Incremented client_launched_count"));
+}
+function bo(e, t, n, o) {
+  let r = Jr();
+  if (r)
+    try {
+      (r.logClientCrashedCount(e, t, n, o),
+        u.info("streamz", "Incremented client_crashed_count:", n, o));
+    } catch (i) {
+      u.warn("streamz", "Failed to increment client_crashed_count:", i);
+    }
+}
+async function Js() {
+  let e = Jr();
+  e && (await e.flush(), u.info("streamz", "Flushed Client Streamz logger"));
+}
+f();
+F();
+f();
+var om = /^c_[0-9a-fA-F]{1,16}$/;
+function Du(e) {
+  return typeof e != "string" ? null : om.test(e) ? e : null;
+}
+function Pu(e, t, n, o) {
+  if (n === "start") {
+    if (!o || e.has(t)) return e;
+    let i = new Set(e);
+    return (i.add(t), i);
+  }
+  if (!e.has(t)) return e;
+  let r = new Set(e);
+  return (r.delete(t), r);
+}
+var rm = new Set(),
+  Nn = new Map(),
+  Zs = new Set();
+function Nu(e, t, n, o) {
+  let r = Du(t);
+  if (r === null) {
+    u.warn(
+      "turn_lifecycle",
+      "Ignoring a turn-lifecycle emit with a malformed conversation id.",
+    );
+    return;
+  }
+  let i = e.id,
+    s = Nn.get(i) ?? rm,
+    l = Pu(s, r, n, o);
+  l !== s && (l.size === 0 ? Nn.delete(i) : (Nn.set(i, l), im(e)), Ou());
+}
+function im(e) {
+  let t = e.id;
+  Zs.has(t) ||
+    (Zs.add(t),
+    e.on("render-process-gone", () => {
+      ea(t, "render-process-gone");
+    }),
+    e.on("did-navigate", () => {
+      ea(t, "did-navigate");
+    }),
+    e.once("destroyed", () => {
+      (Zs.delete(t), ea(t, "destroyed"));
+    }));
+}
+function ea(e, t) {
+  let n = Nn.get(e);
+  n !== void 0 &&
+    (Nn.delete(e),
+    u.info(
+      "turn_lifecycle",
+      "Dropped the client-tool sessions of a departed renderer:",
+      t,
+      n.size,
+    ),
+    Ou());
+}
+function sm() {
+  let e = new Set();
+  for (let t of Nn.values()) for (let n of t) e.add(n);
+  return Array.from(e);
+}
+function Ou() {
+  let e = sm();
+  u.info(
+    "turn_lifecycle",
+    "Updated active client-tool session set; conversations:",
+    e.length,
+  );
+}
+f();
+var ku = require("child_process"),
+  Uu = require("electron"),
+  vo = A(require("fs")),
+  Fe = A(require("path"));
+he();
+F();
+bn();
+nr();
+var Wu =
+  "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Gemini";
+function ta(e, t, n) {
+  let o = Fe.join(
+    process.env.SystemRoot || "C:\\Windows",
+    "System32",
+    "reg.exe",
+  );
+  return new Promise((r) => {
+    (0, ku.execFile)(
+      o,
+      ["add", e, "/v", t, "/t", "REG_SZ", "/d", n, "/f"],
+      { windowsHide: !0 },
+      (i) => {
+        r(!i);
+      },
+    );
+  });
+}
+async function na() {
+  if (process.platform === "win32")
+    try {
+      let e = Uu.app.getPath("exe"),
+        t = Fe.dirname(e),
+        n = Fe.dirname(t),
+        o = Fe.basename(t);
+      if (!o.startsWith("app-")) return;
+      let r = o.substring(4);
+      if (O !== "dev") {
+        let d = Gl();
+        if (d) {
+          u.info(
+            "uninstaller_sync",
+            `Newer version v${d} already staged on disk; skipping uninstaller sync from v${r}`,
+          );
+          return;
+        }
+      }
+      (u.info(
+        "uninstaller_sync",
+        `Synchronizing Windows Registry and uninstaller for version: ${r}`,
+      ),
+        await ta(Wu, "DisplayVersion", r),
+        await ta(Wu, "DisplayIcon", `"${Fe.join(n, "Gemini.exe")}",0`),
+        O !== "dev" && (await ta(tr, "pv", r)));
+      let i = Fe.join(
+          t,
+          "resources",
+          "app.asar.unpacked",
+          "installer",
+          "Uninstall Gemini.exe",
+        ),
+        s = Fe.join(t, "resources", "app", "installer", "Uninstall Gemini.exe"),
+        l = vo.existsSync(i) ? i : s,
+        a = Fe.join(n, "Uninstall Gemini.exe");
+      if (vo.existsSync(l))
+        try {
+          (vo.copyFileSync(l, a),
+            u.info(
+              "uninstaller_sync",
+              "Updated root uninstaller binary from staged package",
+            ));
+        } catch (d) {
+          u.warn(
+            "uninstaller_sync",
+            "Failed to copy staged uninstaller to root directory",
+            d,
+          );
+        }
+    } catch (e) {
+      u.warn(
+        "uninstaller_sync",
+        "Failed to synchronize Windows Registry uninstaller entries",
+        e,
+      );
+    }
+}
+f();
+var Fu = require("electron"),
+  Bu = A(require("path"));
+Se();
+qe();
+Te();
+mn();
+Me();
+ee();
+bn();
+var am = "update-banner:relaunch",
+  lm = "update-banner:dismiss",
+  Q = null,
+  ve = null,
+  Zt = null,
+  Zr = !1,
+  ei = !1,
+  On = new Y();
+function Mu() {
+  ((ve = null), (Zt = null), (Q = null), (Zr = !1), (ei = !1));
+}
+function cm(e) {
+  return {
+    version: e,
+    title: c("settings_update_ready"),
+    restartLabel: c("settings_restart_to_update"),
+    dismissLabel: c("update_banner_dismiss"),
+  };
+}
+function oa() {
+  if (!Q || !ve || ve.isDestroyed()) return;
+  let [e, t] = ve.getContentSize();
+  Q.setBounds(Ki(e, t));
+}
+function um(e) {
+  v(e, Q) && yn();
+}
+function dm(e) {
+  v(e, Q) && ((ei = !0), gm());
+}
+function fm() {
+  (On.onIpc(am, um), On.onIpc(lm, dm));
+}
+function Hu(e, t) {
+  ((Zt = t),
+    ve !== e &&
+      (On.reset(),
+      Mu(),
+      (ve = e),
+      (Zt = t),
+      fm(),
+      On.onWindowBoundsChange(e, oa),
+      On.bindWindow(e, Mu)));
+}
+function pm() {
+  if (Q || !ve || ve.isDestroyed()) return;
+  ((Q = new Fu.WebContentsView({
+    webPreferences: {
+      preload: Bu.join(__dirname, "update_banner", "update_banner_preload.js"),
+      nodeIntegration: !1,
+      contextIsolation: !0,
+      sandbox: !0,
+    },
+  })),
+    On.trackView(Q),
+    Q.setBackgroundColor("#00000000"),
+    ve.contentView.addChildView(Q),
+    Q.setVisible(!1),
+    Q.webContents.on("will-navigate", (t, n) => {
+      (t.preventDefault(), x(n));
+    }),
+    Q.webContents.setWindowOpenHandler(
+      ({ url: t }) => (x(t), { action: "deny" }),
+    ),
+    Q.webContents.loadURL(z("update_banner", "update_banner.html")));
+  let e = Q.webContents;
+  (e.on("dom-ready", () => {
+    K(e);
+  }),
+    oa());
+}
+function Vu(e) {
+  if (ei || ((Zr = !0), pm(), !Q || !ve || ve.isDestroyed())) return;
+  let t = () => {
+    !Zr ||
+      ei ||
+      !Q ||
+      !ve ||
+      ve.isDestroyed() ||
+      (oa(), Q.setVisible(!0), Q.webContents.send("update-banner:show", cm(e)));
+  };
+  Zt && Zt.isLoading()
+    ? Zt.once("did-finish-load", () => {
+        setTimeout(t, 1500);
+      })
+    : setTimeout(t, 1e3);
+}
+function gm() {
+  ((Zr = !1),
+    Q && Q.setVisible(!1),
+    ce(ve, { attachedContentWc: Zt, excludeView: Q }));
+}
+bn();
+f();
+var mm = "GeminiWindowsApp",
+  hm = /Electron\/[0-9.]+\s/;
+function Gu(e, t, n) {
+  return `${e.replace(hm, "")} ${mm}/${t} (${n})`;
+}
+ir();
+f();
+var Xe = require("electron");
+F();
+ee();
+var wm = "gemini:get-window-sources",
+  _m = "gemini:capture-window",
+  ym = { width: 320, height: 200 },
+  bm = 50,
+  vm = /^window:[1-9]\d{0,19}:0$/,
+  $u = 2560,
+  Cm = { width: 1920, height: 1080 },
+  Co = null,
+  ju = new Set(),
+  ra = !1,
+  zu = !1;
+function qu(e) {
+  return typeof e != "string" || !vm.test(e) ? null : e.split(":")[1];
+}
+function Sm(e) {
+  try {
+    if (e.length >= 8) return e.readBigUInt64LE(0).toString(10);
+    if (e.length >= 4) return e.readUInt32LE(0).toString(10);
+  } catch {}
+  return null;
+}
+function Ku() {
+  let e = new Set(),
+    t = [];
+  try {
+    t = Xe.BaseWindow.getAllWindows();
+  } catch {
+    return e;
+  }
+  for (let n of t)
+    try {
+      if (n.isDestroyed()) continue;
+      let o = Sm(n.getNativeWindowHandle());
+      o && e.add(o);
+    } catch {}
+  return e;
+}
+function ia(e) {
+  if (!e) return "";
+  try {
+    if (e.isEmpty()) return "";
+    let t = e.getSize();
+    return !t || t.width <= 0 || t.height <= 0 ? "" : e.toDataURL();
+  } catch {
+    return "";
+  }
+}
+function Em(e, t) {
+  let n = qu(e.id);
+  if (!n || t.has(n)) return null;
+  let o = typeof e.name == "string" ? e.name.trim() : "";
+  if (!o) return null;
+  let r = ia(e.thumbnail);
+  if (!r) return null;
+  let i = ia(e.appIcon);
+  return {
+    id: e.id,
+    name: o,
+    thumbnailDataUrl: r,
+    ...(i ? { appIconDataUrl: i } : {}),
+  };
+}
+async function Am() {
+  let e;
+  try {
+    e = await Xe.desktopCapturer.getSources({
+      types: ["window"],
+      thumbnailSize: ym,
+      fetchWindowIcons: !0,
+    });
+  } catch (o) {
+    throw (
+      u.warn(
+        "window_capture",
+        "Failed to enumerate windows:",
+        o instanceof Error ? o.name : "Error",
+      ),
+      new Error("Failed to enumerate windows.")
+    );
+  }
+  let t = Ku(),
+    n = [];
+  for (let o of e) {
+    let r = Em(o, t);
+    if ((r && n.push(r), n.length >= bm)) break;
+  }
+  return (
+    (ju = new Set(n.map((o) => o.id))),
+    u.debug(
+      "window_capture",
+      "Listed shareable windows:",
+      n.length,
+      "of",
+      e.length,
+    ),
+    n
+  );
+}
+function Tm() {
+  if (Co) return Co;
+  let e = Am().finally(() => {
+    Co === e && (Co = null);
+  });
+  return ((Co = e), e);
+}
+function xm() {
+  let e = 0,
+    t = 0;
+  try {
+    for (let r of Xe.screen.getAllDisplays()) {
+      let i = r.scaleFactor > 0 ? r.scaleFactor : 1;
+      ((e = Math.max(e, Math.round(r.size.width * i))),
+        (t = Math.max(t, Math.round(r.size.height * i))));
+    }
+  } catch {}
+  if (!(e > 0 && t > 0)) return { ...Cm };
+  let n = Math.max(e, t);
+  if (n <= $u) return { width: e, height: t };
+  let o = $u / n;
+  return {
+    width: Math.max(1, Math.round(e * o)),
+    height: Math.max(1, Math.round(t * o)),
+  };
+}
+async function Rm(e) {
+  let t = qu(e);
+  if (!t || typeof e != "string" || !ju.has(e) || Ku().has(t))
+    throw new Error("Invalid window source.");
+  if (ra) throw new Error("A window capture is already in progress.");
+  ra = !0;
+  try {
+    let o = (
+        await Xe.desktopCapturer.getSources({
+          types: ["window"],
+          thumbnailSize: xm(),
+          fetchWindowIcons: !1,
+        })
+      ).find((i) => i.id === e),
+      r = ia(o?.thumbnail);
+    if (!r)
+      throw (
+        u.info(
+          "window_capture",
+          "Window capture produced no frame (window closed or not renderable).",
+        ),
+        new Error("Window is no longer available.")
+      );
+    return r;
+  } finally {
+    ra = !1;
+  }
+}
+function Yu() {
+  zu ||
+    ((zu = !0),
+    Xe.ipcMain.handle(wm, async (e) => (oo(e) ? Tm() : [])),
+    Xe.ipcMain.handle(_m, async (e, t) => {
+      if (!oo(e)) throw new Error("Unauthorized.");
+      return Rm(t);
+    }));
+}
+f();
+var R = require("electron"),
+  of = A(require("path"));
+Se();
+f();
+he();
+ee();
+var Lm = 900 * 1e3,
+  Im = 1800 * 1e3,
+  Dm = 10,
+  Pm = "accounts.google.com",
+  So = class {
+    inAuthFlow = !1;
+    timeoutTimer = null;
+    absoluteDeadline = 0;
+    visitedExternalHosts = new Set();
+    timeoutMs;
+    maxDurationMs;
+    maxHops;
+    isTrustedOrigin;
+    armOnConnectorOAuthRequest;
+    hasArmedBefore = !1;
+    constructor(t) {
+      ((this.timeoutMs = t?.timeoutMs ?? Lm),
+        (this.maxDurationMs = t?.maxDurationMs ?? Im),
+        (this.maxHops = t?.maxHops ?? Dm),
+        (this.isTrustedOrigin = t?.isTrustedOrigin ?? no),
+        (this.armOnConnectorOAuthRequest =
+          t?.armOnConnectorOAuthRequest ?? !1));
+    }
+    isInAuthFlow() {
+      return (
+        this.inAuthFlow &&
+          this.absoluteDeadline > 0 &&
+          Date.now() >= this.absoluteDeadline &&
+          this.disarm(),
+        this.inAuthFlow
+      );
+    }
+    shouldAllowNavigation(t) {
+      try {
+        let n = new URL(t);
+        if (n.protocol !== "https:") return !1;
+        if (this.isTrustedOrigin(t)) return !0;
+        if (!this.isInAuthFlow()) return !1;
+        let o = n.hostname.toLowerCase();
+        return !(
+          this.maxHops > 0 &&
+          !this.visitedExternalHosts.has(o) &&
+          this.visitedExternalHosts.size >= this.maxHops
+        );
+      } catch {
+        return !1;
+      }
+    }
+    onNavigate(t) {
+      try {
+        let o = new URL(t).hostname.toLowerCase();
+        if (G(o)) {
+          this.disarm();
+          return;
+        }
+        if (o === Pm) this.arm();
+        else if (!this.armConnectorEntryIfUnarmed(t)) {
+          if (this.isInAuthFlow()) {
+            if (
+              !this.isTrustedOrigin(t) &&
+              (this.visitedExternalHosts.add(o),
+              this.maxHops > 0 && this.visitedExternalHosts.size > this.maxHops)
+            ) {
+              this.disarm();
+              return;
+            }
+            this.resetTimer();
+          }
+        }
+      } catch {}
+    }
+    arm() {
+      ((this.hasArmedBefore = !0),
+        this.isInAuthFlow() ||
+          ((this.inAuthFlow = !0),
+          this.visitedExternalHosts.clear(),
+          (this.absoluteDeadline =
+            this.maxDurationMs > 0 ? Date.now() + this.maxDurationMs : 0)),
+        this.resetTimer());
+    }
+    armConnectorEntryIfUnarmed(t) {
+      return !this.armOnConnectorOAuthRequest ||
+        this.hasArmedBefore ||
+        this.isInAuthFlow() ||
+        this.isTrustedOrigin(t) ||
+        !pr(t)
+        ? !1
+        : (this.arm(), !0);
+    }
+    disarm() {
+      ((this.inAuthFlow = !1),
+        (this.absoluteDeadline = 0),
+        this.visitedExternalHosts.clear(),
+        this.clearTimer());
+    }
+    dispose() {
+      this.disarm();
+    }
+    resetTimer() {
+      this.clearTimer();
+      let t = this.timeoutMs;
+      if (this.absoluteDeadline > 0) {
+        let n = this.absoluteDeadline - Date.now();
+        if (n <= 0) {
+          this.disarm();
+          return;
+        }
+        t = t > 0 ? Math.min(t, n) : n;
+      }
+      t > 0 &&
+        ((this.timeoutTimer = setTimeout(() => {
+          ((this.timeoutTimer = null), this.disarm());
+        }, t)),
+        typeof this.timeoutTimer?.unref == "function" &&
+          this.timeoutTimer.unref());
+    }
+    clearTimer() {
+      this.timeoutTimer &&
+        (clearTimeout(this.timeoutTimer), (this.timeoutTimer = null));
+    }
+  };
+f();
+var Ju = require("electron"),
+  Zu = A(require("path"));
+Se();
+he();
+qe();
+Te();
+Me();
+ee();
+var Xu = 44,
+  Nm = "backbar:home",
+  xt = null,
+  Tt = new Y();
+function Om(e) {
+  try {
+    return G(new URL(e).hostname);
+  } catch {
+    return !1;
+  }
+}
+function Wm(e) {
+  try {
+    let t = new URL(e).protocol;
+    return t === "file:" || t === `${et}:`;
+  } catch {
+    return !1;
+  }
+}
+function Qu() {
+  xt = null;
+}
+function ed(e, t, n) {
+  (Tt.reset(), Qu());
+  let o = () => {
+    if (!xt) return;
+    let { width: l } = e.getContentBounds();
+    xt.setBounds({ x: 0, y: we, width: l, height: Xu });
+  };
+  Tt.onWindowBoundsChange(e, o);
+  let r = () => {
+      if (xt) return xt;
+      let l = new Ju.WebContentsView({
+        webPreferences: {
+          preload: Zu.join(__dirname, "back_bar", "back_bar_preload.js"),
+          nodeIntegration: !1,
+          contextIsolation: !0,
+          sandbox: !0,
+        },
+      });
+      return (
+        (xt = l),
+        Tt.trackView(l),
+        l.setBackgroundColor("#00000000"),
+        e.contentView.addChildView(l),
+        l.setVisible(!1),
+        l.webContents.on("will-navigate", (a, d) => {
+          (a.preventDefault(), x(d));
+        }),
+        l.webContents.setWindowOpenHandler(
+          ({ url: a }) => (x(a), { action: "deny" }),
+        ),
+        o(),
+        l.webContents.loadURL(z("back_bar", "back_bar.html")),
+        l.webContents.on("dom-ready", () => {
+          K(l.webContents);
+          let a = JSON.stringify(c("back_to_gemini"));
+          l.webContents.executeJavaScript(
+            `document.getElementById('label').textContent = ${a};`,
+          );
+        }),
+        l
+      );
+    },
+    i = (l) => {
+      let a = !Om(l) && !Wm(l);
+      if (!a && !xt) return;
+      let d = r();
+      d.webContents.isDestroyed() || (d.setVisible(a), o(), n(a ? Xu : 0));
+    };
+  (Tt.onWebContents(t, "did-navigate", (l, a) => {
+    i(String(a ?? ""));
+  }),
+    Tt.onWebContents(t, "did-navigate-in-page", (l, a, d) => {
+      d && i(String(a ?? ""));
+    }),
+    Tt.onWebContents(t, "did-redirect-navigation", (l, a, d, g) => {
+      g && i(String(a ?? ""));
+    }));
+  let s = (l) => {
+    let a = xt;
+    v(l, a) &&
+      !e.isDestroyed() &&
+      (t.loadURL(me), ce(e, { attachedContentWc: t, excludeView: a }));
+  };
+  (Tt.onIpc(Nm, s), Tt.bindWindow(e, Qu));
+}
+f();
+he();
+function nd(e) {
+  try {
+    let t = new URL(e).hostname.toLowerCase();
+    return G(t) ? e : null;
+  } catch {
+    return null;
+  }
+}
+var Ao = /^((?:\/(?:u\/\d+|corp))*)(\/(?:app|projects|project)(?:\/.*|$))$/;
+function od(e) {
+  return (
+    e === "/projects" ||
+    e.startsWith("/projects/") ||
+    e === "/project" ||
+    e.startsWith("/project/")
+  );
+}
+function To(e) {
+  return /(?:^|\/)corp(?:\/|$)/.test(e);
+}
+function sa(e) {
+  try {
+    let t = new URL(e).pathname.match(Ao);
+    return !!(t && To(t[1]));
+  } catch {
+    return !1;
+  }
+}
+function rd(e, t) {
+  let n = t.get("authuser"),
+    o = n !== null && /^\d+$/.test(n) ? n : null,
+    r = e.match(/\/u\/(\d+)/),
+    i = "";
+  return (
+    o !== null ? (i = o === "0" ? "" : `/u/${o}`) : r && (i = `/u/${r[1]}`),
+    `${To(e) ? "/corp" : ""}${i}`
+  );
+}
+function en(e) {
+  try {
+    let t = new URL(e);
+    if (!G(t.hostname)) return null;
+    let n = t.pathname.match(Ao);
+    if (!n) return null;
+    let o = rd(n[1], t.searchParams);
+    return (
+      (t.pathname = `${o}/app`),
+      (t.search = ""),
+      (t.hash = ""),
+      t.toString()
+    );
+  } catch {
+    return null;
+  }
+}
+function id(e, t) {
+  let n = en(e);
+  if (!n) return null;
+  try {
+    return new URL(n).hostname === new URL(t).hostname.toLowerCase() ? n : null;
+  } catch {
+    return null;
+  }
+}
+function km(e) {
+  let t = en(e);
+  if (t) return t;
+  try {
+    let n = new URL(e),
+      o = n.pathname.match(/^(\/corp)?(?:\/u\/(\d+))?(?:\/|$)/),
+      r = o && o[1] ? "/corp" : "",
+      i = o && o[2] ? o[2] : null,
+      s = n.searchParams.get("authuser"),
+      l = s !== null && /^\d+$/.test(s) ? s : null,
+      a = G(n.hostname) ? n.hostname.toLowerCase() : bi;
+    if (l !== null)
+      return l === "0" ? `https://${a}${r}/app` : `https://${a}${r}/u/${l}/app`;
+    if (i !== null) return `https://${a}${r}/u/${i}/app`;
+  } catch {}
+  return null;
+}
+function td(e) {
+  if (!e) return null;
+  try {
+    let t = new URL(e);
+    return (
+      (t.pathname = t.pathname
+        .replace(/^\/corp(?=\/)/, "")
+        .replace(/^\/u\/0(?=\/)/, "")),
+      t.toString()
+    );
+  } catch {
+    return e;
+  }
+}
+function sd(e, t, n, o) {
+  let r = km(e) ?? n,
+    i = Eo(r, o);
+  if (!t) return i;
+  try {
+    let s = new URL(t);
+    if (s.protocol !== "https:" || !G(s.hostname)) return i;
+    let l = s.pathname.match(Ao);
+    if (!l || !od(l[2])) return i;
+    let a = td(en(Eo(t, o))),
+      d = td(en(i));
+    if (a && d && a === d) return Eo(t, o);
+    let g = en(i);
+    if (g) {
+      let m = new URL(g);
+      ((To(l[1]) || sa(n)) &&
+        !m.pathname.startsWith("/corp/") &&
+        (m.pathname = `/corp${m.pathname}`),
+        (m.pathname = m.pathname.replace(/\/app$/, "/projects")));
+      let E = s.searchParams.get("e");
+      return (
+        E && /^\d+(?:,\d+)*$/.test(E) && m.searchParams.set("e", E),
+        m.toString()
+      );
+    }
+  } catch {}
+  return i;
+}
+function ad(e, t) {
+  try {
+    let n = new URL(e),
+      o = new URL(t),
+      r = n.hostname.toLowerCase(),
+      i = o.hostname.toLowerCase(),
+      s = n.pathname.match(Ao);
+    if (!s) return t;
+    let l = s[1],
+      a = s[2],
+      d = sa(t),
+      g = To(l);
+    if (r === i && (!d || g)) return null;
+    let m = rd(l, n.searchParams),
+      S = d && !m.startsWith("/corp") ? `/corp${m}` : m;
+    ((n.hostname = i), (n.pathname = `${S}${a}`));
+    for (let [E, k] of o.searchParams.entries())
+      n.searchParams.has(E) || n.searchParams.set(E, k);
+    return n.toString();
+  } catch {
+    return t;
+  }
+}
+function ld(e, t) {
+  if (!e) return t;
+  try {
+    let n = new URL(e);
+    if (n.protocol !== "https:" || !G(n.hostname)) return t;
+    let o = n.pathname.match(Ao);
+    if (!o || !od(o[2])) return t;
+    let r = new URL(t),
+      i = sa(t) || To(o[1]) ? "/corp" : "";
+    r.pathname = `${i}/projects`;
+    let s = n.searchParams.get("e");
+    return (
+      s && /^\d+(?:,\d+)*$/.test(s) && r.searchParams.set("e", s),
+      r.toString()
+    );
+  } catch {
+    return t;
+  }
+}
+function Eo(e, t) {
+  if (!t) return e;
+  try {
+    let n = new URL(e),
+      o = n.hostname.toLowerCase();
+    return n.protocol !== "https:" || o === t || !G(o)
+      ? e
+      : ((n.hostname = t), n.toString());
+  } catch {
+    return e;
+  }
+}
+function cd(e) {
+  let t = e;
+  try {
+    t = new URL(e).host;
+  } catch {}
+  let n = 40;
+  return t.length > n ? "\u2026" + t.slice(t.length - n) : t;
+}
+he();
+f();
+var Re = require("electron");
+he();
+f();
+var pd = require("electron"),
+  gd = A(require("path"));
+Se();
+qe();
+Te();
+mn();
+Me();
+ee();
+var Um = "findbar:search",
+  Mm = "findbar:next",
+  Fm = "findbar:prev",
+  Bm = "findbar:close",
+  Hm = "findbar:clear",
+  ud = "findbar:result",
+  dd = "findbar:focus",
+  I = null,
+  aa = !1,
+  la = !1,
+  tn = null,
+  ti = null,
+  Rt = null,
+  Qe = new Y();
+function fd() {
+  ((I = null), (tn = null), (ti = null), (Rt = null), (aa = !1), (la = !1));
+}
+function md(e, t) {
+  (Qe.reset(),
+    fd(),
+    (tn = e),
+    (ti = t),
+    (I = { view: null, visible: !1, lastQuery: "" }));
+  let n = () => {
+    if (!I || !I.visible || !I.view || I.view.webContents.isDestroyed()) return;
+    let { width: L } = e.getContentBounds();
+    I.view.setBounds(qi(L, we));
+  };
+  Qe.onWindowBoundsChange(e, n);
+  let o = 0,
+    r = !1,
+    i = !0,
+    s = !1,
+    l = [],
+    a = (L) => {
+      let P = I;
+      P && ((r = !0), (i = L), t.findInPage(P.lastQuery, { forward: L }));
+    },
+    d = () => {
+      let L = l.shift();
+      L !== void 0 ? a(L) : (r = !1);
+    };
+  Qe.onWebContents(t, "found-in-page", (L, P) => {
+    let pe = P,
+      C = I;
+    if (!pe.finalUpdate) {
+      C &&
+        C.view &&
+        !C.view.webContents.isDestroyed() &&
+        C.view.webContents.send(ud, {
+          activeMatchOrdinal: pe.activeMatchOrdinal,
+          matches: pe.matches,
+        });
+      return;
+    }
+    if (r && !s && pe.activeMatchOrdinal === o) {
+      ((s = !0), C && t.findInPage(C.lastQuery, { forward: i }));
+      return;
+    }
+    ((s = !1),
+      (o = pe.activeMatchOrdinal),
+      C &&
+        C.view &&
+        !C.view.webContents.isDestroyed() &&
+        C.view.webContents.send(ud, {
+          activeMatchOrdinal: pe.activeMatchOrdinal,
+          matches: pe.matches,
+        }),
+      r && d());
+  });
+  let g = (L, P) => {
+      let pe = I;
+      !pe ||
+        !v(L, pe.view) ||
+        ((pe.lastQuery = typeof P == "string" ? P : ""),
+        pe.lastQuery
+          ? ((o = 0),
+            (r = !1),
+            (s = !1),
+            (l.length = 0),
+            t.findInPage(pe.lastQuery, { findNext: !0 }))
+          : t.stopFindInPage("clearSelection"));
+    },
+    m = (L) => {
+      r ? l.push(L) : a(L);
+    };
+  Rt = m;
+  let S = (L) => {
+      let P = I;
+      !P || !v(L, P.view) || (P.lastQuery && m(!0));
+    },
+    E = (L) => {
+      let P = I;
+      !P || !v(L, P.view) || (P.lastQuery && m(!1));
+    },
+    k = (L) => {
+      let P = I;
+      !P || !v(L, P.view) || ua();
+    },
+    D = (L) => {
+      let P = I;
+      !P ||
+        !v(L, P.view) ||
+        ((P.lastQuery = ""), t.stopFindInPage("clearSelection"));
+    };
+  (Qe.onIpc(Um, g),
+    Qe.onIpc(Mm, S),
+    Qe.onIpc(Fm, E),
+    Qe.onIpc(Bm, k),
+    Qe.onIpc(Hm, D),
+    Qe.bindWindow(e, fd));
+}
+function ca() {
+  let e = I;
+  if (!e || !tn) return;
+  if (!aa) {
+    aa = !0;
+    let n = new pd.WebContentsView({
+      webPreferences: {
+        preload: gd.join(__dirname, "find_bar", "find_bar_preload.js"),
+        nodeIntegration: !1,
+        contextIsolation: !0,
+        sandbox: !0,
+      },
+    });
+    (Qe.trackView(n),
+      n.setBackgroundColor("#00000000"),
+      n.setVisible(!1),
+      (e.view = n),
+      tn.contentView.addChildView(n),
+      n.webContents.on("will-navigate", (o, r) => {
+        (o.preventDefault(), x(r));
+      }),
+      n.webContents.setWindowOpenHandler(
+        ({ url: o }) => (x(o), { action: "deny" }),
+      ),
+      n.webContents.on("before-input-event", (o, r) => {
+        if (r.type !== "keyDown") return;
+        let i = I;
+        if (!r.control && !r.alt && !r.meta && r.key === "F3") {
+          (o.preventDefault(), i && i.lastQuery && Rt?.(!r.shift));
+          return;
+        }
+        if (r.control && !r.alt && !r.meta) {
+          let s = r.key ? r.key.toLowerCase() : "";
+          if (s === "g") {
+            (o.preventDefault(), i && i.lastQuery && Rt?.(!r.shift));
+            return;
+          }
+          if (!r.shift && s === "f") {
+            (o.preventDefault(), ca());
+            return;
+          }
+        }
+      }),
+      n.webContents.once("did-finish-load", () => {
+        ((la = !0), K(n.webContents));
+        let o = JSON.stringify(c("find_previous_match")),
+          r = JSON.stringify(c("find_next_match")),
+          i = JSON.stringify(c("find_close"));
+        (n.webContents
+          .executeJavaScript(
+            `{const p=document.getElementById('prev');if(p)p.title=${o};const n=document.getElementById('next');if(n)n.title=${r};const c=document.getElementById('close');if(c)c.title=${i};}`,
+          )
+          .catch(() => {}),
+          I &&
+            I.visible &&
+            I.view &&
+            (I.view.webContents.focus(), I.view.webContents.send(dd)));
+      }),
+      n.webContents.loadURL(z("find_bar", "find_bar.html")));
+  }
+  let t = e.view;
+  if (!(!t || t.webContents.isDestroyed())) {
+    if (!e.visible) {
+      (t.setVisible(!0), (e.visible = !0));
+      let { width: n } = tn.getContentBounds();
+      t.setBounds(qi(n, we));
+    }
+    la && (t.webContents.focus(), t.webContents.send(dd));
+  }
+}
+function ua() {
+  !I ||
+    !I.visible ||
+    !tn ||
+    (I.view && !I.view.webContents.isDestroyed() && I.view.setVisible(!1),
+    (I.visible = !1),
+    (I.lastQuery = ""),
+    ti?.stopFindInPage("clearSelection"),
+    ce(tn, {
+      attachedContentWc: ti,
+      excludeView: I?.view,
+      shouldSkipDeferredFocus: () => xo(),
+    }));
+}
+function da() {
+  !I || !I.visible || !I.lastQuery || !Rt || Rt(!0);
+}
+function fa() {
+  !I || !I.visible || !I.lastQuery || !Rt || Rt(!1);
+}
+function xo() {
+  return !!(I && I.visible);
+}
+Te();
+ee();
+xe();
+function Vm(e) {
+  try {
+    return new URL(e.getURL()).hostname.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+function hd(e) {
+  return !G(Vm(e)) && e.navigationHistory.canGoBack();
+}
+function Gm(e, t, n, o = {}) {
+  let { onSwitchAccount: r, onSignOut: i } = o,
+    s = [];
+  if (
+    (hd(t) &&
+      s.push(
+        {
+          label: c("back_to_gemini"),
+          click: () => {
+            t.navigationHistory.canGoBack() && t.navigationHistory.goBack();
+          },
+        },
+        { type: "separator" },
+      ),
+    e.isEditable)
+  )
+    s.push(
+      { role: "undo" },
+      { role: "redo" },
+      { type: "separator" },
+      { role: "cut" },
+      { role: "copy" },
+      { role: "paste" },
+      { role: "pasteAndMatchStyle", label: c("paste_as_plain_text") },
+      { role: "delete" },
+      { type: "separator" },
+      { role: "selectAll" },
+    );
+  else if (e.mediaType === "image") {
+    let l = e.srcURL;
+    s.push(
+      {
+        label: c("copy_image"),
+        click: () => {
+          t.copyImageAt(e.x, e.y);
+        },
+      },
+      {
+        label: c("save_image_as"),
+        click: () => {
+          l && t.downloadURL(l);
+        },
+      },
+      {
+        label: c("copy_image_address"),
+        click: () => {
+          l && Re.clipboard.writeText(l);
+        },
+      },
+    );
+  } else if (e.linkURL) {
+    let l = e.linkURL;
+    s.push(
+      {
+        label: c("open_link_in_browser"),
+        click: () => {
+          x(l);
+        },
+      },
+      {
+        label: c("copy_link_address"),
+        click: () => {
+          Re.clipboard.writeText(l);
+        },
+      },
+    );
+  } else
+    e.selectionText && e.selectionText.trim()
+      ? s.push({ role: "copy" })
+      : s.push(
+          { label: c("reload_gemini"), click: n },
+          {
+            label: c("print"),
+            accelerator: "CmdOrCtrl+P",
+            click: () => {
+              t.print();
+            },
+          },
+          { type: "separator" },
+          { role: "selectAll" },
+        );
+  return (
+    (r || i) &&
+      (s.push({ type: "separator" }),
+      r && s.push({ label: c("switch_account"), click: r }),
+      i && s.push({ label: c("sign_out"), click: i })),
+    s.push(
+      { type: "separator" },
+      {
+        label: c("menu_settings"),
+        accelerator: "CmdOrCtrl+,",
+        click: () => {
+          let l = Re.BrowserWindow.fromWebContents(t);
+          Et(l, t);
+        },
+      },
+    ),
+    O === "dev" &&
+      s.push(
+        { type: "separator" },
+        {
+          label: c("inspect_element"),
+          click: () => {
+            t.inspectElement(e.x, e.y);
+          },
+        },
+      ),
+    s
+  );
+}
+function ni(e, t = {}) {
+  let n = () =>
+      t.targetWebContents && !t.targetWebContents.isDestroyed()
+        ? t.targetWebContents
+        : e,
+    o =
+      t.onReload ||
+      (() => {
+        n().reloadIgnoringCache();
+      });
+  (e.on("context-menu", (r, i) => {
+    let s = Gm(i, e, o, {
+      onSwitchAccount: t.onSwitchAccount,
+      onSignOut: t.onSignOut,
+    });
+    s.length !== 0 && Re.Menu.buildFromTemplate(s).popup();
+  }),
+    e.on("before-input-event", (r, i) => {
+      if (i.type !== "keyDown") return;
+      let s = i.key ? i.key.toLowerCase() : "",
+        l = n();
+      if (
+        !i.alt &&
+        !i.meta &&
+        ((i.control && i.shift && s === "r") ||
+          (s === "f5" && (i.shift || i.control)))
+      ) {
+        (r.preventDefault(), l.reloadIgnoringCache());
+        return;
+      }
+      if (
+        !i.alt &&
+        !i.meta &&
+        !i.shift &&
+        ((i.control && s === "r") || s === "f5")
+      ) {
+        (r.preventDefault(), o());
+        return;
+      }
+      if (i.control && !i.alt && !i.meta && !i.shift && s === "w") {
+        r.preventDefault();
+        let a = Re.BrowserWindow.fromWebContents(e);
+        a && !a.isDestroyed() && a.close();
+        return;
+      }
+      if (i.control && !i.alt && !i.meta && !i.shift && s === "q") {
+        (r.preventDefault(), Re.app.quit());
+        return;
+      }
+      if (
+        i.control &&
+        !i.alt &&
+        !i.meta &&
+        (s === "=" || s === "+" || s === "add")
+      ) {
+        (r.preventDefault(), zr(l));
+        return;
+      }
+      if (
+        i.control &&
+        !i.alt &&
+        !i.meta &&
+        (s === "-" || s === "_" || s === "subtract")
+      ) {
+        (r.preventDefault(), jr(l));
+        return;
+      }
+      if (
+        i.control &&
+        !i.alt &&
+        !i.meta &&
+        !i.shift &&
+        (s === "0" || s === "num0")
+      ) {
+        (r.preventDefault(), qr(l));
+        return;
+      }
+      if (!i.control && !i.alt && !i.meta && !i.shift && s === "f11") {
+        r.preventDefault();
+        let a = Re.BrowserWindow.fromWebContents(e);
+        a && !a.isDestroyed() && a.setFullScreen(!a.isFullScreen());
+        return;
+      }
+      if (i.control && !i.alt && !i.meta && !i.shift && s === "m") {
+        r.preventDefault();
+        let a = Re.BrowserWindow.fromWebContents(e);
+        a && !a.isDestroyed() && a.minimize();
+        return;
+      }
+      if (i.control && !i.alt && !i.meta && !i.shift && s === ",") {
+        r.preventDefault();
+        let a = Re.BrowserWindow.fromWebContents(e),
+          d = t.targetWebContents ?? (a && e === a.webContents ? void 0 : e);
+        Et(a, d);
+        return;
+      }
+      if (i.control && !i.alt && !i.meta && s === "p") {
+        (r.preventDefault(), l.print());
+        return;
+      }
+      if (!i.control && !i.alt && !i.meta && s === "f3") {
+        (r.preventDefault(), i.shift ? fa() : da());
+        return;
+      }
+      if (i.control && !i.alt && !i.meta) {
+        if (!i.shift && s === "f") {
+          (r.preventDefault(), ca());
+          return;
+        }
+        if (s === "g") {
+          (r.preventDefault(), i.shift ? fa() : da());
+          return;
+        }
+      }
+      if (s === "escape" && Ke()) {
+        (r.preventDefault(), $r());
+        return;
+      }
+      if (s === "escape" && xo()) {
+        (r.preventDefault(), ua());
+        return;
+      }
+      i.alt &&
+        !i.control &&
+        !i.meta &&
+        s === "arrowleft" &&
+        hd(e) &&
+        (r.preventDefault(), e.navigationHistory.goBack());
+    }));
+}
+Cn();
+Xn();
+f();
+var oi = require("electron"),
+  yd = A(require("path"));
+Se();
+Cn();
+qe();
+Te();
+Me();
+F();
+ee();
+Kt();
+var $m = "crash-reporting:get-content",
+  zm = "crash-reporting:confirm",
+  jm = "crash-reporting:open-external",
+  qm = 460,
+  Km = 200,
+  wd = 12,
+  q = null,
+  Ce = null,
+  pa = null,
+  nn = !1,
+  Wn = [],
+  Lt = new Y();
+function _d() {
+  ((q = null), (Ce = null), (pa = null), (nn = !1));
+  let e = Wn;
+  Wn = [];
+  for (let t of e) t();
+}
+function bd() {
+  if (!q || !Ce || Ce.isDestroyed() || !nn) return;
+  let e = Ce.getContentBounds(),
+    t = Math.min(qm, e.width),
+    n = Math.min(Km, e.height),
+    o = Math.max(0, e.width - t - wd),
+    r = Math.max(0, e.height - n - wd);
+  q.setBounds({ x: o, y: r, width: t, height: n });
+}
+function Ym() {
+  (Lt.handleIpc($m, (e) =>
+    v(e, q)
+      ? {
+          title: c("crash_dialog_title"),
+          description: c("crash_dialog_desc"),
+          subnote: c("crash_dialog_subnote"),
+          declineButtonText: c("crash_dialog_decline_button"),
+          allowButtonText: c("crash_dialog_allow_button"),
+          closeButtonAriaLabel: c("crash_dialog_close_button"),
+        }
+      : {
+          title: "",
+          description: "",
+          subnote: "",
+          declineButtonText: "",
+          allowButtonText: "",
+          closeButtonAriaLabel: "",
+        },
+  ),
+    Lt.handleIpc(zm, (e, t) => {
+      if (!v(e, q)) return !1;
+      let n = !!t;
+      (u.info(
+        "crash_reporting_dialog",
+        `User confirmed crash reporting preference: consent=${n}`,
+      ),
+        B("diagnosticConsent", n),
+        B("hasSeenCrashReportingNotice", !0));
+      try {
+        oi.crashReporter.setUploadToServer(n);
+      } catch (o) {
+        u.warn(
+          "crash_reporting_dialog",
+          `Failed to set crashReporter upload preference: ${o instanceof Error ? o.message : String(o)}`,
+        );
+      }
+      return (Qm(), !0);
+    }),
+    Lt.handleIpc(jm, (e, t) => {
+      if (!v(e, q)) return !1;
+      let n = String(t ?? "");
+      return zt(n) ? (x(n), !0) : !1;
+    }));
+}
+function Xm(e) {
+  if (Ce && Ce !== e && !Ce.isDestroyed()) {
+    if (q && Ce.contentView)
+      try {
+        Ce.contentView.children.includes(q) &&
+          Ce.contentView.removeChildView(q);
+      } catch (n) {
+        u.warn(
+          "crash_reporting_dialog",
+          `Failed to remove crash reporting dialog from previous window: ${n instanceof Error ? n.message : String(n)}`,
+        );
+      }
+    (Lt.reset(), _d());
+  }
+  if (
+    (Ce !== e &&
+      ((Ce = e), Lt.onWindowBoundsChange(e, bd), Lt.bindWindow(e, _d)),
+    q)
+  )
+    return q;
+  ((q = new oi.WebContentsView({
+    webPreferences: {
+      preload: yd.join(
+        __dirname,
+        "crash_reporting_dialog",
+        "crash_reporting_dialog_preload.js",
+      ),
+      nodeIntegration: !1,
+      contextIsolation: !0,
+      sandbox: !0,
+    },
+  })),
+    Lt.trackView(q),
+    q.setBackgroundColor("#00000000"),
+    q.setVisible(!1),
+    q.webContents.loadURL(
+      z("crash_reporting_dialog", "crash_reporting_dialog.html"),
+    ));
+  let t = q.webContents;
+  return (
+    t.on("dom-ready", () => {
+      K(t);
+    }),
+    q.webContents.on("will-navigate", (n, o) => {
+      (n.preventDefault(), typeof o == "string" && zt(o) && x(o));
+    }),
+    typeof q.webContents.setWindowOpenHandler == "function" &&
+      q.webContents.setWindowOpenHandler(
+        ({ url: n }) => (
+          typeof n == "string" && zt(n) && x(n),
+          { action: "deny" }
+        ),
+      ),
+    Ym(),
+    q
+  );
+}
+async function vd(e, t) {
+  pa = t ?? null;
+  let n = Z("hasSeenCrashReportingNotice", !1),
+    o = Z("diagnosticConsent", !1);
+  if (n || o) {
+    u.info(
+      "crash_reporting_dialog",
+      "Crash reporting consent already configured; skipping dialog",
+    );
+    return;
+  }
+  if (nn && Ce === e)
+    return new Promise((s) => {
+      Wn.push(s);
+    });
+  let r = Xm(e);
+  nn = !0;
+  let i = !1;
+  if (e.contentView)
+    if (e.contentView.children.includes(r)) i = !0;
+    else
+      try {
+        (e.contentView.addChildView(r), (i = !0));
+      } catch (s) {
+        u.warn(
+          "crash_reporting_dialog",
+          `Failed to addChildView for crash reporting dialog: ${s instanceof Error ? s.message : String(s)}`,
+        );
+      }
+  if (!i) {
+    nn = !1;
+    return;
+  }
+  return (
+    r.setVisible(!0),
+    bd(),
+    r.webContents.focus(),
+    new Promise((s) => {
+      Wn.push(s);
+    })
+  );
+}
+function Qm() {
+  let e = Ce,
+    t = q,
+    n = pa;
+  if (t) {
+    if (e && !e.isDestroyed() && e.contentView)
+      try {
+        e.contentView.removeChildView(t);
+      } catch {}
+    try {
+      (t.setVisible(!1), t.webContents.isDestroyed() || t.webContents.close());
+    } catch {}
+    (Lt.untrackView(t), (q = null));
+  }
+  ((nn = !1),
+    T("active_window", "main"),
+    ce(e, { attachedContentWc: n, excludeView: t }));
+  let o = Wn;
+  Wn = [];
+  for (let r of o) r();
+}
+function ri() {
+  return nn;
+}
+f();
+yi();
+f();
+var Rd = require("electron"),
+  Ld = A(require("path"));
+Se();
+f();
+function ga(e, t) {
+  return (
+    e === "display-capture" ||
+    (e === "media" && (!t || !t.mediaTypes || t.mediaTypes.length === 0))
+  );
+}
+function Cd(e, t) {
+  return e === "media" && ga(e, t);
+}
+function Sd(e) {
+  if (!e) return "";
+  try {
+    return e.top && e.top.url ? e.top.url : e.url || "";
+  } catch {
+    return "";
+  }
+}
+qe();
+Te();
+Me();
+ee();
+var Jm = "display-capture:respond",
+  Ed = "display-capture:request-data",
+  Zm = "display-capture:get-current-request",
+  Ad = 560,
+  Td = 530,
+  fe = null,
+  Le = null,
+  lt = null,
+  We = null,
+  on = new Y();
+function ha() {
+  if (!fe || !Le || Le.isDestroyed()) return;
+  let e = Le.getContentBounds(),
+    t = Math.max(0, Math.floor((e.width - Ad) / 2)),
+    n = Math.max(0, Math.floor((e.height - Td) / 2));
+  fe.setBounds({ x: t, y: n, width: Ad, height: Td });
+}
+function eh() {
+  let e = fe;
+  if (((fe = null), e && Le && !Le.isDestroyed() && Le.contentView)) {
+    try {
+      Le.contentView.removeChildView(e);
+    } catch {}
+    e.setVisible(!1);
+  }
+  if ((e && on.untrackView(e), e && !e.webContents.isDestroyed()))
+    try {
+      e.webContents.close();
+    } catch {}
+}
+function ma(e) {
+  e(null);
+}
+function th(e) {
+  if (!We) return;
+  let { onDecision: t } = We;
+  ((We = null), ce(Le, { attachedContentWc: lt, excludeView: fe }), eh(), t(e));
+}
+function nh(e, t) {
+  v(e, fe) && th(!!t?.allowed);
+}
+function Id(e) {
+  return {
+    previewDataUrl: e.previewDataUrl,
+    title: e.title,
+    desc: e.desc,
+    brand: e.brand,
+    allowLabel: e.allowLabel,
+    cancelLabel: e.cancelLabel,
+  };
+}
+function xd() {
+  (We && (We.onDecision(!1), (We = null)),
+    (fe = null),
+    (Le = null),
+    (lt = null));
+}
+function oh(e) {
+  if (fe) return;
+  ((Le = e),
+    (fe = new Rd.WebContentsView({
+      webPreferences: {
+        preload: Ld.join(
+          __dirname,
+          "display_capture_dialog",
+          "display_capture_dialog_preload.js",
+        ),
+        nodeIntegration: !1,
+        contextIsolation: !0,
+        sandbox: !0,
+      },
+    })),
+    on.trackView(fe),
+    fe.setBackgroundColor("#00000000"),
+    fe.webContents.on("will-navigate", (n, o) => {
+      (n.preventDefault(), x(o));
+    }),
+    fe.webContents.setWindowOpenHandler(
+      ({ url: n }) => (x(n), { action: "deny" }),
+    ),
+    fe.webContents.loadURL(
+      z("display_capture_dialog", "display_capture_dialog.html"),
+    ));
+  let t = fe.webContents;
+  (t.on("dom-ready", () => {
+    K(t);
+  }),
+    ha());
+}
+function rh(e) {
+  oh(e);
+  let t = fe;
+  if (!t || !We) return;
+  let n = Id(We);
+  if ((ha(), e.contentView)) {
+    try {
+      e.contentView.removeChildView(t);
+    } catch {}
+    (e.contentView.addChildView(t), t.setVisible(!0), t.webContents.focus());
+  }
+  t.webContents.isLoading()
+    ? t.webContents.once("did-finish-load", () => {
+        t.webContents.send(Ed, n);
+      })
+    : t.webContents.send(Ed, n);
+}
+async function Dd(e) {
+  let t = Le;
+  if (!t || t.isDestroyed() || We) {
+    e(!1);
+    return;
+  }
+  let n = "";
+  try {
+    let o = lt && !lt.isDestroyed() ? lt : t.webContents;
+    o && (n = (await o.capturePage()).toDataURL());
+  } catch {}
+  if (t.isDestroyed()) {
+    e(!1);
+    return;
+  }
+  ((We = {
+    onDecision: e,
+    previewDataUrl: n,
+    title: c("display_capture_title"),
+    desc: c("display_capture_desc"),
+    brand: c("display_capture_brand"),
+    allowLabel: c("permission_allow"),
+    cancelLabel: c("permission_cancel"),
+  }),
+    rh(t));
+}
+function ih(e, t) {
+  let n = Le,
+    o = Sd(e.frame);
+  if (!n || n.isDestroyed() || !mt(o)) {
+    ma(t);
+    return;
+  }
+  let r =
+    e.frame?.top ??
+    e.frame ??
+    (lt && !lt.isDestroyed() ? lt.mainFrame : n.webContents?.mainFrame);
+  if (!r) {
+    ma(t);
+    return;
+  }
+  try {
+    t({ video: r });
+  } catch {
+    ma(t);
+  }
+}
+function Pd(e, t) {
+  (on.reset(),
+    xd(),
+    (Le = e),
+    (lt = t ?? null),
+    on.onWindowBoundsChange(e, ha),
+    on.onIpc(Jm, nh),
+    on.handleIpc(Zm, (o) => (!v(o, fe) || !We ? null : Id(We))),
+    on.bindWindow(e, xd),
+    (t?.session ?? e.webContents?.session)?.setDisplayMediaRequestHandler(
+      (o, r) => {
+        ih(o, r);
+      },
+    ));
+}
+f();
+var Nd = require("electron"),
+  Od = A(require("path"));
+F();
+function Wd(e) {
+  e.on("will-download", (t, n) => {
+    let o = n.getFilename(),
+      r = Od.join(Nd.app.getPath("downloads"), o);
+    (n.setSaveDialogOptions({ defaultPath: r }),
+      u.info(
+        "downloads",
+        `Download started: totalBytes=${n.getTotalBytes()}, url=${ie(n.getURL())}, filename=${M(o)}`,
+      ),
+      n.on("done", (i, s) => {
+        s === "completed"
+          ? u.info(
+              "downloads",
+              `Download completed: state=${s}, path=${M(n.getSavePath())}`,
+            )
+          : s === "cancelled"
+            ? u.info("downloads", `Download cancelled: state=${s}`)
+            : u.warn(
+                "downloads",
+                `Download failed: state=${s}, filename=${M(o)}`,
+              );
+      }));
+  });
+}
+Te();
+f();
+var kd = require("electron"),
+  Ud = A(require("fs")),
+  wa = A(require("path")),
+  ii;
+function Md() {
+  if (ii) return ii;
+  let e = wa.join(__dirname, "../assets/icon.ico"),
+    t = wa.join(__dirname, "../assets/icon.png"),
+    n = Ud.existsSync(e) ? e : t;
+  return ((ii = kd.nativeImage.createFromPath(n)), ii);
+}
+mn();
+F();
+f();
+var ne = require("electron"),
+  Hd = A(require("path"));
+Se();
+qe();
+Te();
+Me();
+F();
+xr();
+ee();
+xe();
+var sh = "permission:respond",
+  ah = "permission:open-settings",
+  Fd = 540,
+  lh = 310,
+  ue = null,
+  oe = null,
+  ai = null,
+  It = new Y(),
+  Dt = [],
+  te = null;
+function ch(e) {
+  switch (e) {
+    case "media":
+      return c("permission_request_mic");
+    case "camera":
+      return c("permission_request_camera");
+    case "geolocation":
+      return c("permission_request_location");
+    case "notifications":
+      return c("permission_request_notifications");
+    case "clipboard-read":
+    case "clipboard-sanitized-write":
+      return c("permission_request_clipboard");
+    default:
+      return c("permission_request_default").replace("$1", e);
+  }
+}
+function Bd() {
+  te && (te.callback(!1), (te = null));
+  for (let e of Dt) e.callback(!1);
+  ((Dt.length = 0), (ue = null), (oe = null), (ai = null));
+}
+function _a() {
+  if (!ue || !oe || oe.isDestroyed()) return;
+  let e = oe.getContentBounds(),
+    t = Math.max(0, Math.floor((e.width - Fd) / 2)),
+    n = we + 12;
+  ue.setBounds({ x: t, y: n, width: Fd, height: lh });
+}
+function uh(e) {
+  if (ue) return;
+  ((oe = e),
+    (ue = new ne.WebContentsView({
+      webPreferences: {
+        preload: Hd.join(
+          __dirname,
+          "permission_dialog",
+          "permission_dialog_preload.js",
+        ),
+        nodeIntegration: !1,
+        contextIsolation: !0,
+        sandbox: !0,
+      },
+    })),
+    It.trackView(ue),
+    ue.setBackgroundColor("#00000000"),
+    ue.webContents.on("will-navigate", (n, o) => {
+      (n.preventDefault(), x(o));
+    }),
+    ue.webContents.setWindowOpenHandler(
+      ({ url: n }) => (x(n), { action: "deny" }),
+    ),
+    ue.webContents.loadURL(z("permission_dialog", "permission_dialog.html")));
+  let t = ue.webContents;
+  (t.on("dom-ready", () => {
+    K(t);
+  }),
+    _a());
+}
+function Vd() {
+  let e = ue;
+  if (((ue = null), e && oe && !oe.isDestroyed() && oe.contentView)) {
+    try {
+      oe.contentView.removeChildView(e);
+    } catch {}
+    e.setVisible(!1);
+  }
+  if ((e && It.untrackView(e), e && !e.webContents.isDestroyed()))
+    try {
+      e.webContents.close();
+    } catch {}
+}
+function Gd(e, t) {
+  (It.reset(),
+    Bd(),
+    (oe = e),
+    (ai = t ?? null),
+    It.onWindowBoundsChange(e, _a),
+    It.onIpc(sh, fh),
+    It.onIpc(ah, dh),
+    It.handleIpc("permission:get-current-request", (n) =>
+      !v(n, ue) || !te
+        ? null
+        : {
+            permission: te.permission,
+            origin: te.origin,
+            title: te.title,
+            desc: te.desc,
+            subnotePrefix: te.subnotePrefix,
+            settingsLabel: te.settingsLabel,
+            allowLabel: te.allowLabel,
+            blockLabel: te.blockLabel,
+          },
+    ),
+    It.bindWindow(e, Bd));
+}
+function dh(e) {
+  v(e, ue) &&
+    oe &&
+    !oe.isDestroyed() &&
+    (Vd(), te && (te.callback(!1), (te = null)), Et(oe, ai ?? void 0));
+}
+function fh(e, t) {
+  if (!v(e, ue) || !te) return;
+  let n = t?.allowed ?? !1,
+    { permission: o, origin: r, callback: i } = te;
+  (u.info(
+    "permissions",
+    `User responded to permission prompt: "${o}" for ${r} => allowed=${n}`,
+  ),
+    Tr(o, r, n ? "granted" : "denied", !0),
+    (te = null),
+    i(!!n),
+    Dt.length === 0 &&
+      (ce(oe, { attachedContentWc: ai, excludeView: ue }), Vd()),
+    si());
+}
+function si() {
+  if (te || Dt.length === 0 || !oe || oe.isDestroyed()) return;
+  let e = oe;
+  uh(e);
+  let t = ue;
+  if (!t) return;
+  let n = Dt.shift();
+  if (!n) return;
+  te = n;
+  let { permission: o, origin: r } = n,
+    i = ch(o),
+    s = Cs(o),
+    l = c("permission_request_default_desc");
+  switch (s) {
+    case "camera":
+      l = c("permission_request_camera_desc");
+      break;
+    case "location":
+      l = c("permission_request_location_desc");
+      break;
+    case "audio":
+      l = c("permission_request_mic_desc");
+      break;
+    default:
+      l = c("permission_request_default_desc");
+      break;
+  }
+  let a = c("permission_subnote_prefix"),
+    d = c("menu_settings"),
+    g = c("permission_allow"),
+    m = c("permission_dont_allow");
+  ((n.title = i),
+    (n.desc = l),
+    (n.subnotePrefix = a),
+    (n.settingsLabel = d),
+    (n.allowLabel = g),
+    (n.blockLabel = m));
+  let S = {
+    permission: o,
+    origin: r,
+    title: i,
+    desc: l,
+    subnotePrefix: a,
+    settingsLabel: d,
+    allowLabel: g,
+    blockLabel: m,
+  };
+  if ((_a(), e.contentView && t)) {
+    try {
+      e.contentView.removeChildView(t);
+    } catch {}
+    (e.contentView.addChildView(t), t.setVisible(!0), t.webContents.focus());
+  }
+  t.webContents.isLoading()
+    ? t.webContents.once("did-finish-load", () => {
+        t.webContents.send("permission:request-data", S);
+      })
+    : t.webContents.send("permission:request-data", S);
+}
+async function $d(e, t, n, o) {
+  let r = Er(e, o?.requestingUrl, o),
+    i = it(t, o),
+    s = e ? e.getURL() : "";
+  if (ga(t, o) && mt(s)) {
+    (Cd(t, o) &&
+      console.warn(
+        '[permission] Routing a "media" request with empty mediaTypes through the window-capture consent card. See b/545269366.',
+      ),
+      Dd((k) => {
+        n(k);
+      }));
+    return;
+  }
+  if ((!_t(i) && !_t(t)) || !mt(r)) {
+    n(!1);
+    return;
+  }
+  if (Sr(t, o)) {
+    n(!0);
+    return;
+  }
+  let a = Cs(t, o),
+    d =
+      a === "audio" ||
+      t === "media" ||
+      t === "microphone" ||
+      t === "audioCapture" ||
+      o?.mediaTypes?.includes("audio") === !0,
+    g =
+      a === "camera" ||
+      t === "camera" ||
+      t === "videoCapture" ||
+      o?.mediaType === "video" ||
+      o?.mediaTypes?.includes("video") === !0,
+    m = a === "location";
+  if (d)
+    try {
+      if (
+        ne.systemPreferences.getMediaAccessStatus("microphone") === "denied"
+      ) {
+        let D = oe || (e ? ne.BrowserWindow.fromWebContents(e) : null),
+          L = {
+            type: "warning",
+            title: c("dialog_mic_blocked_title"),
+            message: c("dialog_mic_blocked_message"),
+            detail: c("dialog_mic_blocked_detail"),
+            buttons: [
+              c("dialog_mic_blocked_open_settings"),
+              c("permission_cancel"),
+            ],
+            defaultId: 0,
+            cancelId: 1,
+          };
+        ((D
+          ? ne.dialog.showMessageBoxSync(D, L)
+          : ne.dialog.showMessageBoxSync(L)) === 0 &&
+          ne.shell.openExternal("ms-settings:privacy-microphone"),
+          n(!1));
+        return;
+      }
+    } catch {}
+  if (g)
+    try {
+      if (ne.systemPreferences.getMediaAccessStatus("camera") === "denied") {
+        let D = oe || (e ? ne.BrowserWindow.fromWebContents(e) : null),
+          L = {
+            type: "warning",
+            title: c("dialog_camera_blocked_title"),
+            message: c("dialog_camera_blocked_message"),
+            detail: c("dialog_camera_blocked_detail"),
+            buttons: [
+              c("dialog_camera_blocked_open_settings"),
+              c("permission_cancel"),
+            ],
+            defaultId: 0,
+            cancelId: 1,
+          };
+        ((D
+          ? ne.dialog.showMessageBoxSync(D, L)
+          : ne.dialog.showMessageBoxSync(L)) === 0 &&
+          ne.shell.openExternal("ms-settings:privacy-webcam"),
+          n(!1));
+        return;
+      }
+    } catch {}
+  if (m)
+    try {
+      if (await Ar()) {
+        let D = oe || (e ? ne.BrowserWindow.fromWebContents(e) : null),
+          L = {
+            type: "warning",
+            title: c("dialog_location_blocked_title"),
+            message: c("dialog_location_blocked_message"),
+            detail: c("dialog_location_blocked_detail"),
+            buttons: [
+              c("dialog_location_blocked_open_settings"),
+              c("permission_cancel"),
+            ],
+            defaultId: 0,
+            cancelId: 1,
+          };
+        ((D
+          ? ne.dialog.showMessageBoxSync(D, L)
+          : ne.dialog.showMessageBoxSync(L)) === 0 &&
+          ne.shell.openExternal("ms-settings:privacy-location"),
+          n(!1));
+        return;
+      }
+    } catch {}
+  if (d && g) {
+    let k = yt("media", r),
+      D = yt("camera", r);
+    if (k === ot && D === ot) {
+      n(!0);
+      return;
+    }
+    if (k === Rn || D === Rn) {
+      n(!1);
+      return;
+    }
+    let L = D !== ot ? "camera" : "media";
+    (Dt.push({
+      permission: L,
+      origin: r,
+      callback: (P) => {
+        if (!P) {
+          n(!1);
+          return;
+        }
+        L === "camera" && k !== ot
+          ? (Dt.push({ permission: "media", origin: r, callback: n }), si())
+          : n(!0);
+      },
+    }),
+      si());
+    return;
+  }
+  let S = g ? "camera" : m ? "geolocation" : i,
+    E = yt(S, r, o);
+  if (E === ot) {
+    n(!0);
+    return;
+  }
+  if (E === Rn) {
+    n(!1);
+    return;
+  }
+  (Dt.push({ permission: S, origin: r, callback: n }), si());
+}
+xr();
+ee();
+Kt();
+xe();
+Fs();
+f();
+function sn(e, t) {
+  let n = Math.max(0, Math.min(e.width, t.width)),
+    o = Math.max(0, Math.min(e.height, t.height)),
+    r = t.x,
+    i = t.x + t.width - n,
+    s = Math.max(r, Math.min(e.x, i)),
+    l = t.y,
+    a = t.y + t.height - o,
+    d = Math.max(l, Math.min(e.y, a));
+  return { x: s, y: d, width: n, height: o };
+}
+function Ro(e, t) {
+  let n = sn(e, t);
+  return { relativeX: n.x - t.x, relativeY: n.y - t.y };
+}
+var ph = 0.9,
+  ya = 375,
+  ba = 484;
+function rn(e, t) {
+  let n = (o, r, i) => {
+    if (r <= 0) return 0;
+    if (o <= r) return Math.max(0, o);
+    let s = Math.round(r * ph),
+      l = Math.min(r, Math.max(i, s));
+    return Math.max(0, Math.min(o, l));
+  };
+  return { width: n(e.width, t.width, ya), height: n(e.height, t.height, ba) };
+}
+function kn(e, t) {
+  let n = Math.max(0, Math.min(e.width, t.width)),
+    o = Math.max(0, Math.min(e.height, t.height)),
+    r = Math.round(t.x + Math.max(0, (t.width - n) / 2)),
+    i = Math.round(t.y + Math.max(0, (t.height - o) / 2));
+  return { x: r, y: i, width: n, height: o };
+}
+function zd(e, t) {
+  if (e.width <= t.width && e.height <= t.height) return null;
+  let n = rn({ width: e.width, height: e.height }, t);
+  return sn({ x: e.x, y: e.y, ...n }, t);
+}
+function li(e, t) {
+  return (
+    e.x === t.x && e.y === t.y && e.width === t.width && e.height === t.height
+  );
+}
+function va(e, t) {
+  return e == null || t === void 0 || t === null ? !1 : String(e) !== String(t);
+}
+function Ca(e, t, n) {
+  let o = t.workArea;
+  if (!e) return kn(rn(n, o), o);
+  let r = {
+    width: e.width > 0 ? e.width : n.width,
+    height: e.height > 0 ? e.height : n.height,
+  };
+  if (r.width > o.width || r.height > o.height || va(t.id, e.displayId))
+    return kn(rn(r, o), o);
+  let s = Number.isFinite(e.relativeX) ? e.relativeX : 0,
+    l = Number.isFinite(e.relativeY) ? e.relativeY : 0,
+    a = { x: o.x + s, y: o.y + l, width: r.width, height: r.height };
+  return sn(a, o);
+}
+function Un(e) {
+  if (!e) return !0;
+  let { x: t, y: n, width: o, height: r } = e;
+  return (
+    t === void 0 ||
+    n === void 0 ||
+    o === void 0 ||
+    r === void 0 ||
+    !Number.isFinite(t) ||
+    !Number.isFinite(n) ||
+    !Number.isFinite(o) ||
+    !Number.isFinite(r) ||
+    t <= -3e4 ||
+    n <= -3e4 ||
+    o <= 0 ||
+    r <= 0
+  );
+}
+var Po = 1200,
+  No = 900,
+  mh = 2;
+function Oo(e, t, n) {
+  for (let r = 0; r < mh && !li(e.getBounds(), t); r++) e.setBounds(t);
+  let o = e.getBounds();
+  if (n && !Un(o)) {
+    let r = sn(o, n);
+    li(r, o) || (e.setBounds(r), (o = e.getBounds()));
+  }
+  return (fi(), o);
+}
+var jd = "#e3e3e3",
+  qd = "#1f1f1f",
+  hh = 3,
+  p = null,
+  Hn = 0,
+  Kd = 0,
+  wh = 300 * 1e3,
+  Vn = !1,
+  pi = !1,
+  Lo = null,
+  _h = 100;
+function Io(e) {
+  ((pi = !0), Lo && (clearTimeout(Lo), (Lo = null)));
+  try {
+    e();
+  } finally {
+    Lo = setTimeout(() => {
+      ((pi = !1), (Lo = null));
+    }, _h);
+  }
+}
+var yh = 250,
+  Yd = yh,
+  Je = null,
+  Mn = null,
+  bh = 5e3,
+  Xd = bh,
+  Fn = null;
+function Wo() {
+  Fn && (clearTimeout(Fn), (Fn = null));
+}
+function rf() {
+  Wo();
+  let e = () => {
+    ((Fn = null),
+      !(!p || p.isDestroyed() || p.isVisible()) &&
+        V &&
+        !V.webContents.isDestroyed() &&
+        V.webContents.send("gemini:purge-memory"));
+  };
+  if (Xd <= 0) {
+    e();
+    return;
+  }
+  ((Fn = setTimeout(e, Xd)), Fn.unref?.());
+}
+var ko = null;
+function Aa() {
+  ko && (clearImmediate(ko), (ko = null));
+}
+function Bn() {
+  if ((Je && (clearTimeout(Je), (Je = null)), !Mn)) return;
+  let e = Mn;
+  Mn = null;
+  try {
+    B("windowBounds", e, !0);
+  } catch (t) {
+    u.warn("window_manager", "Failed to flush saved window bounds", t);
+  }
+}
+function Ea() {
+  (Je && (clearTimeout(Je), (Je = null)), (Mn = null));
+}
+var an = 0,
+  He = !1,
+  V = null,
+  ui = 0,
+  gi = "",
+  di = !1,
+  Be = !1,
+  Pt = !1,
+  ci = !1;
+function Qd(e) {
+  try {
+    if (e.startsWith(`${et}://`) || e.startsWith("file:")) return !1;
+    let t = new URL(e);
+    return !G(t.hostname);
+  } catch {
+    return !1;
+  }
+}
+function Jd(e) {
+  try {
+    e.navigationHistory?.clear?.();
+  } catch {}
+  e.isDestroyed() || e.send("gemini:purge-memory");
+}
+function Ze() {
+  return p;
+}
+function Ot() {
+  return V && !V.webContents.isDestroyed() ? V.webContents : null;
+}
+function Do() {
+  !p ||
+    p.isDestroyed() ||
+    !p.isVisible() ||
+    !V ||
+    V.webContents.isDestroyed() ||
+    Ke() ||
+    ri() ||
+    xo() ||
+    V.webContents.focus();
+}
+function fi(e = ui) {
+  ui = e;
+  let t = we + ui;
+  if (!p || p.isDestroyed() || !V) return;
+  let { width: n, height: o } = p.getContentBounds();
+  V.setBounds({ x: 0, y: t, width: n, height: or(o, t) });
+}
+function Ta() {
+  ((Vn = !0),
+    (an = 0),
+    u.info(
+      "window_manager",
+      `Creating primary application window (${Po}x${No})`,
+    ));
+  let e, t;
+  try {
+    let C = R.screen.getCursorScreenPoint(),
+      b = R.screen.getDisplayNearestPoint(C);
+    t = b.workArea;
+    let U = Z("windowBounds");
+    e = Ca(U, b, { width: Po, height: No });
+  } catch (C) {
+    (u.warn(
+      "window_manager",
+      "Failed to resolve display or saved window bounds; using defaults",
+      C,
+    ),
+      (e = { x: 0, y: 0, width: Po, height: No }));
+  }
+  let n = R.nativeTheme.shouldUseDarkColors,
+    o = new R.BaseWindow({
+      x: e.x,
+      y: e.y,
+      width: e.width,
+      height: e.height,
+      minWidth: ya,
+      minHeight: ba,
+      title: "Gemini",
+      icon: Md(),
+      show: !0,
+      titleBarStyle: "hidden",
+      titleBarOverlay: {
+        color: "#00000000",
+        symbolColor: n ? jd : qd,
+        height: we,
+      },
+    });
+  ((p = o), Oo(o, e, t), (Vn = !1));
+  let r = () => {
+      if (!o.isDestroyed()) {
+        let C = R.nativeTheme.shouldUseDarkColors;
+        o.setTitleBarOverlay({
+          color: "#00000000",
+          symbolColor: C ? jd : qd,
+          height: we,
+        });
+      }
+    },
+    i = () => {
+      rf();
+    },
+    s = () => {
+      (Wo(), He && ((He = !1), Nt()));
+    };
+  (R.nativeTheme.on("updated", r),
+    o.on("hide", i),
+    o.on("show", s),
+    o.on("close", () => {
+      (Bn(), Wo());
+    }),
+    o.on("closed", () => {
+      (R.nativeTheme.removeListener("updated", r),
+        o.removeListener("hide", i),
+        o.removeListener("show", s),
+        Bn(),
+        Wo());
+    }));
+  let l = new R.WebContentsView({
+    webPreferences: {
+      nodeIntegration: !1,
+      contextIsolation: !0,
+      sandbox: !0,
+      preload: of.join(__dirname, "preload.js"),
+      ...(Ie ? { additionalArguments: Ha(Ie.host) } : {}),
+    },
+  });
+  (o.contentView.addChildView(l), (V = l));
+  let a = l.webContents;
+  try {
+    require("./voice_bridge_native.js").attachToMainWebContents(a);
+  } catch {}
+  fi(0);
+  let d = () => {
+    fi();
+  };
+  (o.on("resize", d),
+    o.on("maximize", d),
+    o.on("unmaximize", d),
+    o.on("restore", d),
+    o.on("enter-full-screen", d),
+    o.on("leave-full-screen", d),
+    o.setVisibleOnAllWorkspaces(!0, { visibleOnFullScreen: !0 }));
+  let g = null;
+  (o.on("will-move", () => {
+    if (!(g !== null || o.isDestroyed()))
+      try {
+        g = R.screen.getDisplayMatching(o.getBounds()).id;
+      } catch {}
+  }),
+    o.on("moved", () => {
+      let C = g;
+      ((g = null), Ch(C) || tf());
+    }),
+    o.on("resized", () => {
+      tf();
+    }));
+  let m = {
+    onReload: () => {
+      Uo(!0);
+    },
+    onSwitchAccount: hi,
+    onSignOut: wi,
+    targetWebContents: a,
+  };
+  (ni(a, m),
+    o.webContents && ni(o.webContents, m),
+    Wd(a.session),
+    vu(
+      o,
+      () => {
+        Et(o, a);
+      },
+      a,
+      () => {
+        Uo(!0);
+      },
+    ),
+    ed(o, a, fi),
+    Gd(o, a),
+    Pd(o, a),
+    md(o, a),
+    qs(o, a),
+    Hu(o, a),
+    vd(o, a),
+    a.on("page-title-updated", (C) => {
+      (C.preventDefault(), o.setTitle("Gemini"));
+    }),
+    (di = !1),
+    (Be = !1),
+    (Pt = !1),
+    (ci = !1),
+    Nt(),
+    (Hn = Date.now()),
+    Do(),
+    setImmediate(() => {
+      Do();
+    }),
+    a.on("did-start-navigation", (C, b, U, N) => {
+      N &&
+        (T("surface", Yn(b)),
+        T("navigation_state", ae("loading")),
+        U || (Pt = !1));
+    }),
+    a.on("did-finish-load", () => {
+      Do();
+      try {
+        let C = a.getURL();
+        (u.info("window_manager", `WebContents did-finish-load: ${ie(C)}`),
+          T("surface", Yn(C)),
+          T("navigation_state", ae("loaded")),
+          T(
+            "active_window",
+            ri() ? "crash_reporting" : Ke() ? "settings" : "main",
+          ),
+          C.startsWith(`${et}://`) ||
+            C.startsWith("file:") ||
+            ((an = 0), (He = !1)));
+        let U = new URL(C).hostname.toLowerCase();
+        if (G(U)) {
+          if (((Hn = Date.now()), di)) {
+            di = !1;
+            try {
+              a.navigationHistory?.clear?.();
+            } catch {}
+          }
+          ((Be || Pt) && ((Be = !1), (Pt = !1), Jd(a)),
+            Date.now() - Kd >= wh &&
+              ((Kd = Date.now()),
+              co({ webContents: a, isWindowHidden: !p?.isVisible() })));
+        }
+      } catch {}
+    }),
+    a.on("did-fail-load", (C, b, U, N, re) => {
+      if (re)
+        try {
+          Qd(a.getURL()) || ((Be = !1), (Pt = !1));
+        } catch {}
+      (b !== -3 &&
+        (Mt.warn(
+          "window_manager",
+          `did-fail-load: code=${b} on ${ie(N)} (isMainFrame=${re}), description=`,
+          U,
+        ),
+        T("navigation_state", ae("failed", b))),
+        re &&
+          b !== -3 &&
+          !N.startsWith(`${et}://`) &&
+          p &&
+          !p.isDestroyed() &&
+          Zd(a));
+    }),
+    a.on("render-process-gone", (C, b) => {
+      (an++,
+        Mt.error(
+          "window_manager",
+          `Renderer process gone (#${an}): exitCode=${b.exitCode}, reason=`,
+          b.reason,
+        ),
+        T("navigation_state", ae("crashed", `${b.reason}:${b.exitCode}`)),
+        b.reason !== "clean-exit" &&
+          bo(O, R.app.getVersion(), "renderer", Xo(b.reason)),
+        !(!p || p.isDestroyed()) &&
+          (an === 1
+            ? p.isVisible()
+              ? Nt()
+              : (He = !0)
+            : an < hh
+              ? ((He = !1), Zd(a))
+              : ((He = !1),
+                _r(`renderer:${b.reason}:${b.exitCode}`) ||
+                  (p.isVisible() || p.show(), vh()))));
+    }),
+    a.on("unresponsive", () => {
+      (u.warn("window_manager", "WebContents became unresponsive"),
+        T("navigation_state", ae("unresponsive")));
+    }),
+    a.on("responsive", () => {
+      (u.info("window_manager", "WebContents became responsive again"),
+        T("navigation_state", ae("loaded")));
+    }));
+  let S = 0,
+    E = Date.now(),
+    k = 50;
+  Yo() <= 0 &&
+    a.on("console-message", (C, b, U, N, re) => {
+      let Wt = Date.now();
+      if ((Wt - E > 1e3 && ((E = Wt), (S = 0)), ++S > k)) return;
+      let pf = M(ie(re || "web_page")),
+        gf = M(U || ""),
+        mf = "window_manager:web_console",
+        hf = { 0: 0, 1: 1, 2: 2, 3: 3 };
+      ln(hf[b] ?? 1, mf, `[${pf}:${N}]`, gf);
+    });
+  let D = new So();
+  a.on("will-navigate", (C, b) => {
+    D.shouldAllowNavigation(b) ||
+      (u.info("window_manager", `External navigation intercepted: ${ie(b)}`),
+      C.preventDefault(),
+      x(b));
+  });
+  let L = (C, b, U) => {
+    try {
+      (D.onNavigate(b), U && Qd(b) && ((Be = !0), (Pt = !1)));
+      let re = new URL(b).hostname.toLowerCase();
+      if (re === "myaccount.google.com")
+        return (
+          C && C.preventDefault && C.preventDefault(),
+          (Be = !0),
+          (Pt = !1),
+          a.loadURL(me),
+          { redirected: !0, host: re }
+        );
+      if (re === "accounts.google.com")
+        return ((ci = !0), { redirected: !1, host: re });
+      if (U && G(re) && ci) {
+        ci = !1;
+        let Wt = ad(b, me);
+        if (Wt) return (a.loadURL(Wt), { redirected: !0, host: re });
+      }
+      return { redirected: !1, host: re };
+    } catch {}
+    return { redirected: !1, host: "" };
+  };
+  (a.on("will-redirect", (C, b, U, N) => {
+    N && L(C, b, !1);
+  }),
+    a.on("did-navigate", (C, b) => {
+      let { redirected: U, host: N } = L(null, b, !0);
+      (U || ef(b),
+        !U && G(N) && Be && ((Be = !1), a.isLoading() ? (Pt = !0) : Jd(a)));
+    }),
+    a.on("did-navigate-in-page", (C, b, U) => {
+      U && (L(null, b, !0), ef(b));
+    }),
+    a.setWindowOpenHandler((C) => {
+      let { url: b } = C;
+      if (!zt(b)) return { action: "deny" };
+      try {
+        if (G(new URL(b).hostname))
+          return (
+            a.loadURL(Eo(b, Ie?.host ?? null)),
+            o.focus(),
+            { action: "deny" }
+          );
+      } catch {}
+      let U = pr(b);
+      if (Sn(b) || as(b) || (U && C.disposition === "new-window"))
+        return {
+          action: "allow",
+          overrideBrowserWindowOptions: {
+            webPreferences: {
+              nodeIntegration: !1,
+              contextIsolation: !0,
+              sandbox: !0,
+            },
+          },
+        };
+      if (U)
+        u.info(
+          "window_manager",
+          `Connector-shaped popup not admitted; disposition=${C.disposition}`,
+        );
+      else if (!Sn(b))
+        try {
+          let N = new URL(b).searchParams;
+          N.has("client_id") &&
+            N.has("redirect_uri") &&
+            N.has("response_type") &&
+            u.info(
+              "window_manager",
+              "OAuth-shaped popup failed connector validation (empty or non-https redirect_uri)",
+            );
+        } catch {}
+      return (x(b), { action: "deny" });
+    }),
+    a.on("did-create-window", (C, b) => {
+      (u.info("window_manager", `Child window created for URL: ${ie(b.url)}`),
+        T("active_window", "popup"),
+        T("surface", Yn(b.url)),
+        C.webContents.on("did-fail-load", (U, N, re, Wt) => {
+          N !== -3 &&
+            (Mt.warn(
+              "window_manager:child",
+              `Child did-fail-load: code=${N} on ${ie(Wt)}, description=`,
+              re,
+            ),
+            T("navigation_state", ae("failed", `popup:${N}`)));
+        }),
+        C.webContents.on("render-process-gone", (U, N) => {
+          (Mt.error(
+            "window_manager:child",
+            `Child renderer process gone: exitCode=${N.exitCode}, reason=`,
+            N.reason,
+          ),
+            T(
+              "navigation_state",
+              ae("crashed", `popup:${N.reason}:${N.exitCode}`),
+            ));
+        }),
+        C.webContents.on("unresponsive", () => {
+          u.warn("window_manager:child", "Child window became unresponsive");
+        }),
+        C.on("closed", () => {
+          u.info("window_manager", "Child window closed");
+          let N =
+            p && !p.isDestroyed() && p.isVisible()
+              ? ri()
+                ? "crash_reporting"
+                : Ke()
+                  ? "settings"
+                  : "main"
+              : "hidden";
+          T("active_window", N);
+          let re = a.isDestroyed() ? "" : a.getURL();
+          T("surface", N === "settings" ? "settings" : Yn(re || me));
+        }));
+      try {
+        new URL(b.url).hostname.toLowerCase() === "accounts.google.com" &&
+          (C.accessibleTitle = c("signin_title"));
+      } catch {}
+    }),
+    a.session.setPermissionRequestHandler((C, b, U, N) => {
+      $d(C, b, U, N);
+    }),
+    a.session.setPermissionCheckHandler((C, b, U, N) => {
+      let re = Er(C, U, N);
+      return zc(b, re, N);
+    }));
+  let P = () => {
+    Sh();
+  };
+  typeof R.screen.on == "function" &&
+    (R.screen.on("display-metrics-changed", P),
+    R.screen.on("display-removed", P),
+    R.screen.on("display-added", P));
+  let pe = () => {
+    Bn();
+  };
+  (typeof R.app.on == "function" && R.app.on("before-quit", pe),
+    o.on("closed", () => {
+      (typeof R.screen.removeListener == "function" &&
+        (R.screen.removeListener("display-metrics-changed", P),
+        R.screen.removeListener("display-removed", P),
+        R.screen.removeListener("display-added", P)),
+        typeof R.app.removeListener == "function" &&
+          R.app.removeListener("before-quit", pe),
+        (p = null),
+        Aa(),
+        D.dispose(),
+        (V = null),
+        (ui = 0));
+    }),
+    o.on("focus", () => {
+      (af(), Do());
+    }));
+}
+function sf(e, t) {
+  let n = Object.entries(t)
+    .map(
+      ([o, r]) =>
+        `{const el=document.getElementById(${JSON.stringify(o)});if(el)el.textContent=${JSON.stringify(r)};}`,
+    )
+    .join("");
+  (e.executeJavaScript(n).catch(() => {}), K(e));
+}
+function vh() {
+  !p ||
+    p.isDestroyed() ||
+    R.dialog
+      .showMessageBox(p, {
+        type: "error",
+        title: "Gemini",
+        message: c("offline_title"),
+        detail: c("offline_body"),
+        buttons: [c("offline_reload"), c("tray_quit")],
+        defaultId: 0,
+        cancelId: 1,
+      })
+      .then((e) => {
+        if (e.response === 1) {
+          R.app.quit();
+          return;
+        }
+        ((an = 0), Nt());
+      })
+      .catch(() => {});
+}
+function Zd(e) {
+  (T("surface", "offline"),
+    T("navigation_state", ae("offline")),
+    e
+      .loadURL(z("offline.html"))
+      .then(() => {
+        sf(e, {
+          "offline-title": c("offline_title"),
+          "offline-body": c("offline_body"),
+          reload: c("offline_reload"),
+        });
+      })
+      .catch(() => {}));
+}
+function ef(e) {
+  let t = en(e);
+  !t || t === gi || ((gi = t), B("lastAccountUrl", t, !0));
+}
+function Nt() {
+  if (!p || p.isDestroyed() || !V) return;
+  He = !1;
+  let e = V.webContents,
+    t = Z("lastAccountUrl", ""),
+    n = id(t, me) ?? me;
+  ((gi = n),
+    u.info("window_manager", `Loading Gemini shell: ${ie(n)}`),
+    T("surface", "loading"),
+    T("navigation_state", ae("loading")),
+    T("active_window", p.isVisible() ? "main" : "hidden"),
+    (di = !0),
+    e
+      .loadURL(z("loading.html"))
+      .then(() => {
+        if (p && !p.isDestroyed())
+          return (
+            sf(e, { "loading-label": c("loading_gemini") }),
+            e.loadURL(n)
+          );
+      })
+      .catch(() => {}));
+}
+function Uo(e) {
+  if (!p || p.isDestroyed()) return;
+  let t = V?.webContents;
+  if (!t || t.isLoading()) return;
+  let n = "";
+  try {
+    n = new URL(t.getURL()).hostname.toLowerCase();
+  } catch {
+    return;
+  }
+  G(n) &&
+    ((!e && Date.now() - Hn < Va) ||
+      ((Hn = Date.now()),
+      u.info("window_manager", `Reloading Gemini shell (force=${e})`),
+      e
+        ? Nt()
+        : (T("navigation_state", ae("loading")), t.reloadIgnoringCache())));
+}
+function af() {
+  Uo(!1);
+}
+function tf() {
+  if (
+    !(pi || Vn) &&
+    !(!p || p.isDestroyed()) &&
+    !(
+      p.isMinimized() ||
+      p.isMaximized() ||
+      (typeof p.isFullScreen == "function" && p.isFullScreen())
+    )
+  )
+    try {
+      let e = p.getBounds();
+      if (Un(e)) return;
+      let t = R.screen.getDisplayMatching(e),
+        n = Ro(e, t.workArea);
+      if (
+        ((Mn = {
+          width: e.width,
+          height: e.height,
+          relativeX: n.relativeX,
+          relativeY: n.relativeY,
+          displayId: t.id,
+        }),
+        Yd <= 0)
+      ) {
+        Bn();
+        return;
+      }
+      (Je && clearTimeout(Je),
+        (Je = setTimeout(() => {
+          ((Je = null), Bn());
+        }, Yd)));
+    } catch (e) {
+      u.warn(
+        "window_manager",
+        "Failed to update saved window bounds on move/resize",
+        e,
+      );
+    }
+}
+function xa(e, t, n) {
+  Ea();
+  let o = t;
+  Io(() => {
+    e.isDestroyed() || (o = Oo(e, t, n.workArea));
+  });
+  let r = Ro(o, n.workArea);
+  return (
+    B(
+      "windowBounds",
+      {
+        width: o.width,
+        height: o.height,
+        relativeX: r.relativeX,
+        relativeY: r.relativeY,
+        displayId: n.id,
+      },
+      !0,
+    ),
+    o
+  );
+}
+function Ch(e) {
+  if (
+    e === null ||
+    pi ||
+    Vn ||
+    !p ||
+    p.isDestroyed() ||
+    !p.isVisible() ||
+    p.isMinimized() ||
+    p.isMaximized() ||
+    (typeof p.isFullScreen == "function" && p.isFullScreen())
+  )
+    return !1;
+  try {
+    let t = p.getBounds();
+    if (Un(t)) return !1;
+    let n = R.screen.getDisplayMatching(t);
+    if (!va(n.id, e)) return !1;
+    let o = zd(t, n.workArea);
+    return o ? (xa(p, o, n), !0) : !1;
+  } catch (t) {
+    return (
+      u.warn(
+        "window_manager",
+        "Failed to clamp window after cross-monitor drag",
+        t,
+      ),
+      !1
+    );
+  }
+}
+function Sh() {
+  if (
+    !(!p || p.isDestroyed()) &&
+    !p.isMinimized() &&
+    !(
+      p.isMaximized() ||
+      (typeof p.isFullScreen == "function" && p.isFullScreen())
+    )
+  )
+    try {
+      let e = p.getBounds();
+      if (Un(e)) return;
+      let t = R.screen.getDisplayMatching(e),
+        n = e.width > t.workArea.width || e.height > t.workArea.height,
+        o =
+          !p.isVisible() && n
+            ? kn(
+                rn({ width: e.width, height: e.height }, t.workArea),
+                t.workArea,
+              )
+            : sn(e, t.workArea);
+      (o.x !== e.x ||
+        o.y !== e.y ||
+        o.width !== e.width ||
+        o.height !== e.height) &&
+        xa(p, o, t);
+    } catch (e) {
+      u.warn("window_manager", "Failed to handle display metrics change", e);
+    }
+}
+function ct() {
+  if (p && !p.isDestroyed()) {
+    (Aa(),
+      p.isMinimized() &&
+        Io(() => {
+          p?.restore();
+        }),
+      He ? ((He = !1), Nt()) : af());
+    try {
+      let e = R.screen.getCursorScreenPoint(),
+        t = R.screen.getDisplayNearestPoint(e),
+        n = p.getBounds();
+      if (Un(n)) {
+        Ea();
+        let o = Z("windowBounds"),
+          r = Ca(o, t, { width: Po, height: No });
+        Io(() => {
+          p && Oo(p, r, t.workArea);
+        });
+      } else {
+        let o = R.screen.getDisplayMatching(n);
+        if (String(o.id) !== String(t.id)) {
+          let r =
+              p.isMaximized() ||
+              (typeof p.isFullScreen == "function" && p.isFullScreen()),
+            i = { width: n.width, height: n.height };
+          if (r) {
+            let d =
+                typeof p.getNormalBounds == "function"
+                  ? p.getNormalBounds()
+                  : void 0,
+              g = Mn ?? Z("windowBounds");
+            d &&
+            d.width > 0 &&
+            d.height > 0 &&
+            (d.width < n.width || d.height < n.height)
+              ? (i = { width: d.width, height: d.height })
+              : g &&
+                  typeof g.width == "number" &&
+                  g.width > 0 &&
+                  typeof g.height == "number" &&
+                  g.height > 0
+                ? (i = { width: g.width, height: g.height })
+                : (i = { width: Po, height: No });
+          }
+          let s = rn(i, t.workArea),
+            l = kn(s, t.workArea);
+          Ea();
+          let a = null;
+          if (
+            (Io(() => {
+              p &&
+                (typeof p.isFullScreen == "function" &&
+                  p.isFullScreen() &&
+                  p.setFullScreen(!1),
+                p.isMaximized() && p.unmaximize(),
+                (a = Oo(p, l, t.workArea)));
+            }),
+            a)
+          ) {
+            let d = a,
+              g = Ro(d, t.workArea);
+            if (
+              (B(
+                "windowBounds",
+                {
+                  width: d.width,
+                  height: d.height,
+                  relativeX: g.relativeX,
+                  relativeY: g.relativeY,
+                  displayId: t.id,
+                },
+                !0,
+              ),
+              r)
+            ) {
+              let m = t.workArea,
+                S = t.id;
+              ko = setImmediate(() => {
+                if (
+                  ((ko = null),
+                  !p ||
+                    p.isDestroyed() ||
+                    !p.isVisible() ||
+                    p.isMinimized() ||
+                    p.isMaximized() ||
+                    (typeof p.isFullScreen == "function" && p.isFullScreen()) ||
+                    li(p.getBounds(), d))
+                )
+                  return;
+                let E = null;
+                if (
+                  (Io(() => {
+                    !p || p.isDestroyed() || (E = Oo(p, d, m));
+                  }),
+                  E)
+                ) {
+                  let k = E,
+                    D = Ro(k, m);
+                  B(
+                    "windowBounds",
+                    {
+                      width: k.width,
+                      height: k.height,
+                      relativeX: D.relativeX,
+                      relativeY: D.relativeY,
+                      displayId: S,
+                    },
+                    !0,
+                  );
+                }
+              });
+            }
+          }
+        } else if (
+          !p.isMaximized() &&
+          !(typeof p.isFullScreen == "function" && p.isFullScreen())
+        ) {
+          let r = n.width > t.workArea.width || n.height > t.workArea.height,
+            i = t.bounds ?? t.workArea,
+            s =
+              n.x < i.x ||
+              n.y < i.y ||
+              n.x + n.width > i.x + i.width ||
+              n.y + n.height > i.y + i.height;
+          if (r || s) {
+            let l = r
+              ? kn(
+                  rn({ width: n.width, height: n.height }, t.workArea),
+                  t.workArea,
+                )
+              : sn(n, t.workArea);
+            xa(p, l, t);
+          }
+        }
+      }
+    } catch (e) {
+      u.warn("window_manager", "Failed to resolve displays in showWindow", e);
+    }
+    (Wo(), p.show(), p.focus(), Do(), T("active_window", "main"));
+  } else Vn || Ta();
+}
+function mi() {
+  p &&
+    !p.isDestroyed() &&
+    (Aa(), Bn(), p.hide(), rf(), T("active_window", "hidden"));
+}
+var nf = new WeakMap(),
+  Sa = new WeakMap();
+function lf(e) {
+  if (Vn || !e || e === p || e === Qt()) return;
+  let t = e.webContents,
+    n = "",
+    o = !1,
+    r = () => {
+      try {
+        let a = t.getURL();
+        a && new URL(a).protocol === "https:" && (n = new URL(a).origin);
+      } catch {}
+      return n || Sa.get(t) || "";
+    },
+    i = () => {
+      try {
+        if (e.isDestroyed()) return;
+        let a = r();
+        if (!a || Sn(a)) {
+          o && (e.setTitle(t.getTitle?.() ?? ""), (o = !1));
+          return;
+        }
+        (e.setTitle(cd(a)), (o = !0));
+      } catch {}
+    },
+    s = new So({ armOnConnectorOAuthRequest: !0 });
+  try {
+    let a = t.getURL?.();
+    a && (s.onNavigate(a), i());
+  } catch {}
+  (nf.set(t, s),
+    t.on("did-create-window", (a) => {
+      let d = n || Sa.get(t);
+      (d && Sa.set(a.webContents, d),
+        s.isInAuthFlow() && nf.get(a.webContents)?.arm());
+    }),
+    ni(t),
+    t.on("will-navigate", (a, d) => {
+      s.shouldAllowNavigation(d) ||
+        as(d) ||
+        s.armConnectorEntryIfUnarmed(d) ||
+        (u.info(
+          "window_manager:child",
+          `External navigation intercepted in child window: ${ie(d)}`,
+        ),
+        a.preventDefault(),
+        x(d));
+    }),
+    e.on("page-title-updated", (a) => {
+      try {
+        let d = r();
+        d && !Sn(d) && (a.preventDefault(), i());
+      } catch {}
+    }),
+    t.setWindowOpenHandler(({ url: a }) =>
+      Sn(a) || (s.isInAuthFlow() && (ec(a) || a === "about:blank"))
+        ? {
+            action: "allow",
+            overrideBrowserWindowOptions: {
+              webPreferences: {
+                nodeIntegration: !1,
+                contextIsolation: !0,
+                sandbox: !0,
+              },
+            },
+          }
+        : (x(a), { action: "deny" }),
+    ));
+  let l = (a, d) => {
+    s.onNavigate(d);
+    let g = nd(d);
+    if (
+      g &&
+      (u.info("window_manager", `Child nav completed; target: ${ie(g)}`),
+      a && a.preventDefault && a.preventDefault(),
+      e.isDestroyed() || e.close(),
+      p && !p.isDestroyed())
+    ) {
+      let m = V && !V.webContents.isDestroyed() ? V.webContents.getURL() : "";
+      ((Be = !0),
+        V?.webContents.loadURL(sd(g, m, me, Ie?.host ?? null)),
+        p.focus());
+    }
+  };
+  (t.on("will-redirect", (a, d, g, m) => {
+    m && l(a, d);
+  }),
+    t.on("did-navigate", (a, d) => {
+      (l(null, d), i());
+    }),
+    t.on("did-navigate-in-page", (a, d, g) => {
+      g && (l(null, d), i());
+    }),
+    e.on("closed", () => {
+      s.dispose();
+    }));
+}
+function hi() {
+  if (!p || p.isDestroyed()) return;
+  let e = V && !V.webContents.isDestroyed() ? V.webContents.getURL() : "",
+    t = ld(e, me),
+    n =
+      "https://accounts.google.com/AccountChooser?continue=" +
+      encodeURIComponent(t);
+  ((Hn = Date.now()),
+    (He = !1),
+    ct(),
+    (Be = !0),
+    T("surface", "accounts"),
+    T("navigation_state", ae("loading")),
+    V?.webContents.loadURL(n));
+}
+async function wi() {
+  if (!(!p || p.isDestroyed())) {
+    try {
+      await R.session.defaultSession.clearStorageData({
+        storages: ["cookies"],
+      });
+    } catch {}
+    !p ||
+      p.isDestroyed() ||
+      ((gi = me),
+      B("lastAccountUrl", me, !0),
+      (Hn = Date.now()),
+      (He = !1),
+      ct(),
+      (Be = !0),
+      wc(),
+      T("surface", "accounts"),
+      T("navigation_state", ae("loading")),
+      V?.webContents.loadURL(me));
+  }
+}
+ee();
+ir();
+function Pa(e = process.argv) {
+  return (
+    O === "dev" ||
+    e.includes("--dev") ||
+    e.includes("--no-rate-limit") ||
+    (!!h.app.commandLine &&
+      (h.app.commandLine.hasSwitch("dev") ||
+        h.app.commandLine.hasSwitch("no-rate-limit")))
+  );
+}
+function Ra(e) {
+  if (e.includes("--open-logs") || h.app.commandLine.hasSwitch("open-logs")) {
+    let n = Kn();
+    n &&
+      (u.info("main", `Opening log directory in Explorer: ${M(n)}`),
+      h.shell.openPath(n).then((o) => {
+        o &&
+          u.warn("main", `Failed to open log directory in Explorer: ${M(o)}`);
+      }));
+  }
+  let t = Pa(e);
+  e.includes("--hide")
+    ? mi()
+    : e.includes("--check-for-updates")
+      ? (ct(),
+        Promise.resolve()
+          .then(() => (xe(), at))
+          .then((n) => {
+            let o = Ze();
+            o
+              ? n.openSettingsWindow(o, Ot() ?? void 0, {
+                  triggerUpdateCheck: !0,
+                })
+              : u.warn(
+                  "main",
+                  "Cannot open settings for update check: main window is not available",
+                );
+          }))
+      : e.includes("--open-settings")
+        ? (ct(),
+          Promise.resolve()
+            .then(() => (xe(), at))
+            .then((n) => {
+              let o = Ze();
+              o
+                ? n.openSettingsWindow(o)
+                : u.warn(
+                    "main",
+                    "Cannot open settings: main window is not available",
+                  );
+            }))
+        : e.includes("--switch-account")
+          ? hi()
+          : e.includes("--sign-out")
+            ? wi()
+            : e.includes("--test-dump-without-crash") ||
+                h.app.commandLine.hasSwitch("test-dump-without-crash")
+              ? t &&
+                (u.info(
+                  "main",
+                  "Executing diagnostic --test-dump-without-crash flag from CLI",
+                ),
+                xl())
+              : e.includes("--test-crash-main") ||
+                  h.app.commandLine.hasSwitch("test-crash-main")
+                ? t &&
+                  (u.info(
+                    "main",
+                    "Executing diagnostic --test-crash-main flag: triggering process.crash()",
+                  ),
+                  setTimeout(() => {
+                    process.crash();
+                  }, 1e3))
+                : (e.includes("--test-crash-renderer") ||
+                    h.app.commandLine.hasSwitch("test-crash-renderer")) &&
+                  t &&
+                  (u.info(
+                    "main",
+                    "Executing diagnostic --test-crash-renderer flag: crashing webContents",
+                  ),
+                  setTimeout(() => {
+                    let n = Ze(),
+                      o = Ot() ?? n?.webContents;
+                    o && o.forcefullyCrashRenderer();
+                  }, 2e3));
+}
+function Th() {
+  try {
+    let e = Z("diagnosticConsent", !1),
+      t = Pa(process.argv),
+      n = O === "prod" && !t,
+      o = pl(h.app.getVersion(), O, e, n),
+      r = fl();
+    (h.app.setPath("crashDumps", r),
+      h.crashReporter.start(o),
+      T("channel", O),
+      T("active_window", "main"),
+      u.info(
+        "main",
+        `Electron Crashpad reporting initialized successfully (channel: ${O}, rateLimit: ${o.rateLimit}, uploadToServer: ${h.crashReporter.getUploadToServer()}, crashDumps: ${r})`,
+      ));
+    let i = new Set(),
+      s = () => {
+        let d = h.crashReporter.getUploadedReports();
+        if (d && d.length > 0)
+          for (let g of d)
+            g.id &&
+              !i.has(g.id) &&
+              (i.add(g.id),
+              u.info(
+                "main",
+                `Electron verified uploaded crash report in database -> Server ID: ${g.id} (date: ${g.date.toISOString()})`,
+              ));
+      };
+    s();
+    let l = 0,
+      a = () => {
+        if (l++ < 3) {
+          let g = [5e3, 15e3, 3e4][l - 1] || 3e4;
+          setTimeout(() => {
+            (s(), a());
+          }, g).unref?.();
+        }
+      };
+    (a(),
+      h.app.on("will-quit", () => {
+        s();
+      }));
+  } catch (e) {
+    u.warn("main", "Failed to initialize Electron Crashpad reporting", e);
+  }
+}
+function df(e) {
+  (Vu(e),
+    _e({ cmd: "UPDATE_AVAILABLE", value: e }),
+    Promise.resolve()
+      .then(() => (xe(), at))
+      .then((t) => {
+        t.sendUpdateCheckResultToSettings({
+          status: "ready_to_install",
+          version: e,
+        });
+      }));
+}
+function ff(e) {
+  switch (e.cmd) {
+    case "SHOW":
+      ct();
+      break;
+    case "STC_TRIGGER":
+      Jt() && kr();
+      break;
+    case "HIDE":
+      mi();
+      break;
+    case "RELOAD":
+      Uo(!0);
+      break;
+    case "OPEN_SETTINGS":
+      (ct(),
+        Promise.resolve()
+          .then(() => (xe(), at))
+          .then((t) => {
+            t.openSettingsWindow(Ze(), Ot() ?? void 0);
+          }));
+      break;
+    case "OPEN_SETTINGS_UPDATE_CHECK":
+      (ct(),
+        Promise.resolve()
+          .then(() => (xe(), at))
+          .then((t) => {
+            t.openSettingsWindow(Ze(), Ot() ?? void 0, {
+              triggerUpdateCheck: !0,
+            });
+          }));
+      break;
+    case "UPDATE_CHECK_RESULT": {
+      let t = dr(e);
+      (t.status === "ready_to_install"
+        ? jl(t.version)
+        : t.reason === "install_incomplete" && $l() && na(),
+        Promise.resolve()
+          .then(() => (xe(), at))
+          .then((n) => {
+            n.sendUpdateCheckResultToSettings(t);
+          }));
+      break;
+    }
+    case "CHECK_FOR_UPDATES":
+      Promise.resolve()
+        .then(() => (fr(), Xl))
+        .then((t) => {
+          t.checkForUpdatesNow();
+        });
+      break;
+    case "SWITCH_ACCOUNT":
+      hi();
+      break;
+    case "SIGN_OUT":
+      wi();
+      break;
+    case "QUIT":
+      h.app.quit();
+      break;
+    case "HOTKEY_STATUS":
+      (Promise.resolve()
+        .then(() => (Ws(), Qc))
+        .then((t) => {
+          t.handleHotkeyStatus(
+            e.registered === !0,
+            typeof e.error == "string" ? e.error : null,
+            typeof e.shortcut == "string" ? e.shortcut : void 0,
+          );
+        }),
+        Promise.resolve()
+          .then(() => (xe(), at))
+          .then((t) => {
+            t.updateHotkeyStatus(e.registered === !0);
+          }));
+      break;
+    case "RESTART_TO_UPDATE":
+      yn(typeof e.version == "string" ? e.version : void 0);
+      break;
+    case "CONFIG_CHANGED":
+      if (typeof e.key == "string" && e.value !== void 0) {
+        let t = e.value === "true" ? !0 : e.value === "false" ? !1 : e.value;
+        (B(e.key, t, !0),
+          e.key === "openAtLogin" &&
+            Promise.resolve()
+              .then(() => (xe(), at))
+              .then((n) => {
+                n.updateOpenAtLoginStatus(!!t);
+              }));
+      }
+      break;
+    default:
+      break;
+  }
+}
+var La = !1,
+  Ia = !1,
+  Da = !1;
+function xh() {
+  ((La = !1), (Ia = !1), (Da = !1));
+}
+function Rh() {
+  (Th(),
+    h.Menu.setApplicationMenu(null),
+    u.info(
+      "main",
+      `Starting ${h.app.getName()} v${h.app.getVersion()} (channel: ${O})`,
+    ),
+    Ie &&
+      u.warn(
+        "main",
+        "Dev target override active; Gemini web target:",
+        Ie.name,
+        Ie.startUrl,
+      ),
+    process.on("uncaughtException", (i) => {
+      u.error("main", "Uncaught exception in main process", i);
+      try {
+        let s = (i instanceof Error && i.name) || "Error";
+        (T("navigation_state", `uncaught_exception:${s}`),
+          Da ||
+            ((Da = !0),
+            bo(O, h.app.getVersion(), "browser", "uncaught-exception")));
+      } catch {}
+    }),
+    process.on("unhandledRejection", (i) => {
+      u.error("main", "Unhandled promise rejection in main process", i);
+      try {
+        let s = i instanceof Error ? i.name || "Error" : "PromiseRejection";
+        T("navigation_state", `unhandled_rejection:${s}`);
+      } catch {}
+    }));
+  let e = 0,
+    t = 0;
+  (h.app.on("child-process-gone", (i, s) => {
+    u.error(
+      "main",
+      `Child process gone: type=${s.type}, reason=${s.reason}, exitCode=${s.exitCode}`,
+    );
+    let l = s.type === "GPU" && s.reason !== "clean-exit";
+    if (l) {
+      let a = Date.now();
+      ((e = vc(e, t, a)), (t = a));
+    }
+    if (
+      (T(
+        "navigation_state",
+        ae("crashed", ul(s.type, s.reason, s.exitCode, l ? e : void 0)),
+      ),
+      s.reason !== "clean-exit")
+    ) {
+      let a = dl(s.type);
+      bo(O, h.app.getVersion(), a, Xo(s.reason));
+    }
+    l && e >= 3 && _r(`gpu:${s.reason}:${s.exitCode}`);
+  }),
+    h.app.enableSandbox(),
+    h.app.commandLine.appendSwitch("process-per-site"),
+    Ua(),
+    h.app.setName(Ci),
+    h.app.setAppUserModelId(Gn),
+    (h.app.userAgentFallback = Gu(
+      h.app.userAgentFallback,
+      h.app.getVersion(),
+      O,
+    )),
+    h.ipcMain.on("gemini:reload", (i) => {
+      ro(i) && Nt();
+    }),
+    h.ipcMain.on("gemini:get-app-version", (i) => {
+      if (!Ue(i)) {
+        i.returnValue = "";
+        return;
+      }
+      i.returnValue = h.app.getVersion();
+    }),
+    h.ipcMain.on("gemini:get-local-device-id", (i) => {
+      if (!Ue(i)) {
+        i.returnValue = "";
+        return;
+      }
+      i.returnValue = Ac();
+    }),
+    h.ipcMain.on("gemini:notify-turn-lifecycle", (i, s) => {
+      if (!Ue(i) || !s || typeof s != "object") return;
+      let { conversationId: l, phase: a } = s;
+      typeof l == "string" &&
+        ((a !== "start" && a !== "complete") ||
+          Nu(i.sender, l, a, s.clientTools === !0));
+    }),
+    h.ipcMain.on("gemini:renderer-error", (i, s) => {
+      if (!gr(i) || !s || typeof s != "object") return;
+      let l = typeof s.name == "string" ? s.name : "Error",
+        a = l.length > 256 ? l.slice(0, 256) : l;
+      (u.error("main", `Unhandled JS error in renderer process: ${a}`),
+        T("navigation_state", `renderer_error:${a}`));
+    }));
+  let n = 0,
+    o = Date.now(),
+    r = 50;
+  (h.ipcMain.on("gemini:log", (i, s) => {
+    if (!Ue(i) || !s || typeof s != "object") return;
+    let l = Date.now();
+    if ((l - o >= 1e3 && ((n = 0), (o = l)), ++n > r)) return;
+    let a = typeof s.tag == "string" ? s.tag : "renderer";
+    a.length > 256 && (a = a.slice(0, 256));
+    let d = typeof s.message == "string" ? s.message : "";
+    d.length > 4096 && (d = d.slice(0, 4096));
+    let g = (typeof s.level == "string" ? s.level : "info").toLowerCase(),
+      m = 1;
+    if (
+      (g === "debug"
+        ? (m = 0)
+        : g === "warn"
+          ? (m = 2)
+          : g === "error" && (m = 3),
+      m === 0 && Yo() > 0)
+    )
+      return;
+    (m === 3 ? u.error : m === 2 ? u.warn : m === 0 ? u.debug : u.info)(
+      a,
+      M(d),
+    );
+  }),
+    h.ipcMain.handle("gemini:get-cached-flags", async (i) =>
+      Ue(i) ? hc() : {},
+    ),
+    h.ipcMain.on("gemini:sync-experiment-flags", (i, s) => {
+      Ue(i) &&
+        s &&
+        typeof s == "object" &&
+        !Array.isArray(s) &&
+        s.flags &&
+        typeof s.flags == "object" &&
+        !Array.isArray(s.flags) &&
+        gs(s.flags);
+    }),
+    h.ipcMain.handle("gemini:poll-web-flags", async (i) => {
+      if (!Ue(i)) return {};
+      try {
+        return await co({
+          webContents: Ot(),
+          isWindowHidden: !Ze()?.isVisible(),
+        });
+      } catch {
+        return {};
+      }
+    }),
+    h.ipcMain.handle("gemini:get-app-logs", async (i) => {
+      if (!oo(i)) return "";
+      try {
+        return await sl({
+          appVersion: h.app.getVersion(),
+          helperConnected: Jn(),
+        });
+      } catch {
+        return "";
+      }
+    }),
+    Yu(),
+    h.app.whenReady().then(async () => {
+      (u.info("main", "Application ready; creating primary UI components"),
+        Lu(),
+        Iu(O, h.app.getVersion()),
+        ps(h.app.getVersion()),
+        Bo());
+      let i = await Tu();
+      if (
+        (Ta(),
+        i && xu(Ze(), Ot()),
+        Oc(),
+        _c(() => {
+          let m = Ot();
+          return m
+            ? co({ webContents: m, isWindowHidden: !Ze()?.isVisible() })
+            : Promise.resolve({});
+        }),
+        vl(ff),
+        Ra(process.argv),
+        B("speakToWindowEnabled", Jt()),
+        require("./voice_bridge_native.js").initVoiceBridgeNative({
+          getMainWebContents: Ot,
+          getMainWindow: Ze,
+          getStcWindow: Qt,
+          triggerStc: kr,
+          showMainWindow: ct,
+          hideMainWindow: mi,
+          reloadMainWindow: Uo,
+          getNativeAddon: Ae,
+        }),
+        Jt())
+      )
+        try {
+          if (
+            (du(),
+            B("stcShortcut", Z("stcShortcut", "Alt+Shift+D")),
+            process.argv.includes("--start-dictation"))
+          ) {
+            let S = 0,
+              E = () => {
+                if (Jn()) {
+                  kr();
+                  return;
+                }
+                if (++S > 50) {
+                  u.warn(
+                    "stc",
+                    "Giving up --start-dictation: helper pipe never connected",
+                  );
+                  return;
+                }
+                setTimeout(E, 200);
+              };
+            E();
+          }
+        } catch (m) {
+          u.error("stc", "Error initializing Speak to Window", m);
+        }
+      let l = 10,
+        a = 15e3,
+        d = 5 * 6e4;
+      ((() => {
+        let m = Date.now() + d,
+          S =
+            !!h.powerMonitor &&
+            typeof h.powerMonitor.getSystemIdleTime == "function",
+          E,
+          k = () => {
+            let D = !S;
+            if (S)
+              try {
+                D = h.powerMonitor.getSystemIdleTime() >= l;
+              } catch {
+                D = !0;
+              }
+            if (D || Date.now() >= m) {
+              (O !== "dev" && ts(), na());
+              return;
+            }
+            E = setTimeout(k, a);
+          };
+        ((E = setTimeout(k, 3e4)),
+          h.app.on("before-quit", () => {
+            E && clearTimeout(E);
+          }));
+      })(),
+        O !== "dev" && zl(df));
+    }),
+    h.app.on("second-instance", (i, s) => {
+      u.info("main", "Second instance launched; surfacing main window");
+      let l = to(s);
+      if (l !== null) {
+        B("suppressQuitConfirmation", l);
+        return;
+      }
+      if (s.includes("--hide")) {
+        mi();
+        return;
+      }
+      if (Jt() && s.includes("--start-dictation")) {
+        kr();
+        return;
+      }
+      let a = Ze();
+      (a && (a.isMinimized() && a.restore(), ct()), Ra(s));
+    }),
+    h.app.on("browser-window-created", (i, s) => {
+      lf(s);
+    }),
+    Hl(() => {
+      Ia = !0;
+    }),
+    h.app.on("will-quit", (i) => {
+      if (Ia) {
+        (u.info(
+          "main",
+          "Application will quit for update relaunch; flushing streamz asynchronously",
+        ),
+          Vi(),
+          dt(),
+          Js().catch((l) => {
+            u.warn(
+              "main",
+              "Failed to flush Streamz logger on update relaunch",
+              l,
+            );
+          }));
+        return;
+      }
+      if (La) return;
+      (i.preventDefault(),
+        (La = !0),
+        u.info("main", "Application will quit; cleaning up helper IPC"),
+        Vi(),
+        ms());
+      let s = setTimeout(() => {
+        (dt(), h.app.quit());
+      }, 500);
+      Js()
+        .catch((l) => {
+          u.warn("main", "Failed to flush Streamz logger on quit", l);
+        })
+        .finally(() => {
+          (clearTimeout(s), dt(), h.app.quit());
+        });
+    }),
+    h.app.on("before-quit", () => {
+      u.info("main", "Application before-quit received");
+    }),
+    h.app.on("window-all-closed", () => {
+      h.app.quit();
+    }));
+}
+function Lh() {
+  if (
+    ((h.app.commandLine.hasSwitch("verbose") ||
+      h.app.commandLine.getSwitchValue("log-level") === "debug" ||
+      process.argv.includes("--verbose") ||
+      process.argv.includes("--log-level=debug")) &&
+      el(0),
+    h.app.commandLine.hasSwitch("enable-logging") ||
+      h.app.commandLine.hasSwitch("verbose") ||
+      process.argv.includes("--enable-logging") ||
+      process.argv.includes("--verbose"))
+  ) {
+    h.app.commandLine.appendSwitch("enable-logging");
+    let t = Kn();
+    (t &&
+      h.app.commandLine.appendSwitch("log-file", uf.join(t, "chromium.log")),
+      h.app.commandLine.appendSwitch("v", "1"));
+  }
+  xc();
+  let e = to(process.argv);
+  e !== null
+    ? (B("suppressQuitConfirmation", e), dt(), h.app.exit(0))
+    : h.app.requestSingleInstanceLock()
+      ? Rh()
+      : (u.warn(
+          "main",
+          "Primary single-instance lock acquisition failed; delegating to running instance",
+        ),
+        dt(),
+        h.app.quit());
+}
+h.app.setName(Ci);
+Za(O);
+var cf = Lc(h.app.isPackaged && O !== "dev", process.argv, process.execArgv);
+cf ? (u.error("security", Ic, `(switch: --${cf})`), dt(), h.app.exit(1)) : Lh();
+0 &&
+  (module.exports = {
+    handleCommandLineArgs,
+    handleHelperCommand,
+    handleStagedUpdateDetected,
+    isDevEnvironment,
+    isTrustedAppSender,
+    isTrustedGeminiSender,
+    isTrustedNavigationSender,
+    parseSuppressQuitConfirmationArg,
+    resetMainStateForTesting,
+  });

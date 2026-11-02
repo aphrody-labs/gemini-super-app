@@ -8,11 +8,13 @@ Ce fichier est synchronisé automatiquement par le plugin natif **`gemini-app-ru
 `agy` peut contrôler l'application Gemini Web & Windows comme son propre runtime via les outils MCP `gemini_web_*`.
 
 ## 1. État du Compte & Runtime
+
 - **Serveur Runtime Direct `Gemini.exe`** : `http://127.0.0.1:8789` (MCP : `http://127.0.0.1:8789/mcp`, REST : `http://127.0.0.1:8789/api/runtime/status`)
-- **Dernière synchronisation mémoire** : `2026-11-02T05:52:59.810Z`
+- **Dernière synchronisation mémoire** : `2026-11-02T18:05:15.826Z`
 - **Compte détecté** : `aphro@google.com` (authentifié Web : `false`)
 
 ## 2. Mémoire Web Importée (`gemini.google.com/saved-info`)
+
 - **[memory]** undefined
 - **[memory]** undefined
 - **[memory]** undefined
@@ -22,11 +24,13 @@ Ce fichier est synchronisé automatiquement par le plugin natif **`gemini-app-ru
 - **[preferences]** Toujours utiliser Bun (bun run, bun fmt, bun check, bun test, Bun.serve, bun:sqlite) et uv pour Python.
 
 ## 3. Gems Actifs (`gemini.google.com/gems/view`)
+
 - **Coding Partner** (`gem-coding-partner`): Expert en architecture logicielle, Rust, Bun, TypeScript, Python et débogage fullstack.
 - **Deep Research Analyst** (`gem-deep-researcher`): Synthétise des recherches multi-sources web et Google Workspace avec citations vérifiées.
 - **Gemini Live Voice & Mochi Companion** (`gem-voice-companion`): Assistant vocal temps réel connecté à Gemini.exe, Chrome /chrome-home et agy CLI.
 
 ## 4. Outils Web & Extensions Gemini Disponibles pour `agy`
+
 - **Deep Research** (`deep_research`): Agent de recherche autonome multi-étapes sur gemini.google.com qui planifie, navigue sur des dizaines de sources web + Workspace et rédige un rapport sourcé complet.
 - **Canvas** (`canvas`): Espace de travail côte-à-côte interactif sur gemini.google.com pour l'édition de documents longs et la prévisualisation/exécution de code HTML/React/JS/Python.
 - **Gems (Custom AI Experts)** (`gems`): Assistants Gemini personnalisés avec instructions système dédiées (Coding Partner, Brainstormer, Writing Editor, Career Guide, Learning Coach et Gems utilisateur).
@@ -46,4 +50,5 @@ Ce fichier est synchronisé automatiquement par le plugin natif **`gemini-app-ru
 - **Desktop Window Capture (Multimodal Vision)** (`native_window_capture`): Capture d'écran haute résolution des fenêtres Windows ouvertes ou de la vue Gemini Web pour analyse multimodale.
 
 ## 5. Conversations Gemini Web Récentes
+
 - Aucune conversation distante indexée (voir l'historique Super App :8787 et Voice Bridge :8765).
