@@ -46,8 +46,17 @@ export function extractHexColors(text: string): string[] {
 
 /** Parse markdown brand guidelines content for its color palette. */
 export function parseBrandColorsFromText(content: string): BrandPalette {
-  const palette: BrandPalette = { primary: [], secondary: [], neutral: [], semantic: [], all: [] };
-  const sections: Array<{ name: Exclude<keyof BrandPalette, "all">; regex: RegExp }> = [
+  const palette: BrandPalette = {
+    primary: [],
+    secondary: [],
+    neutral: [],
+    semantic: [],
+    all: [],
+  };
+  const sections: Array<{
+    name: Exclude<keyof BrandPalette, "all">;
+    regex: RegExp;
+  }> = [
     { name: "primary", regex: /### Primary[\s\S]*?(?=###|##|$)/i },
     { name: "secondary", regex: /### Secondary[\s\S]*?(?=###|##|$)/i },
     { name: "neutral", regex: /### Neutral[\s\S]*?(?=###|##|$)/i },
@@ -66,7 +75,9 @@ export function parseBrandColorsFromText(content: string): BrandPalette {
 }
 
 /** Parse brand guidelines file for color palette; null when the file is missing. */
-export async function parseBrandColors(guidelinesPath: string): Promise<BrandPalette | null> {
+export async function parseBrandColors(
+  guidelinesPath: string,
+): Promise<BrandPalette | null> {
   const file = Bun.file(resolvePath(guidelinesPath));
   if (!(await file.exists())) return null;
   return parseBrandColorsFromText(await file.text());
@@ -75,7 +86,11 @@ export async function parseBrandColors(guidelinesPath: string): Promise<BrandPal
 export function hexToRgb(hex: string): Rgb | null {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result
-    ? { r: parseInt(result[1]!, 16), g: parseInt(result[2]!, 16), b: parseInt(result[3]!, 16) }
+    ? {
+        r: parseInt(result[1]!, 16),
+        g: parseInt(result[2]!, 16),
+        b: parseInt(result[3]!, 16),
+      }
     : null;
 }
 
@@ -90,11 +105,16 @@ export function rgbToHex(r: number, g: number, b: number): string {
 }
 
 /** Euclidean distance in RGB space. */
-export function colorDistance(color1: string | Rgb, color2: string | Rgb): number {
+export function colorDistance(
+  color1: string | Rgb,
+  color2: string | Rgb,
+): number {
   const rgb1 = typeof color1 === "string" ? hexToRgb(color1) : color1;
   const rgb2 = typeof color2 === "string" ? hexToRgb(color2) : color2;
   if (!rgb1 || !rgb2) return Infinity;
-  return Math.sqrt((rgb1.r - rgb2.r) ** 2 + (rgb1.g - rgb2.g) ** 2 + (rgb1.b - rgb2.b) ** 2);
+  return Math.sqrt(
+    (rgb1.r - rgb2.r) ** 2 + (rgb1.g - rgb2.g) ** 2 + (rgb1.b - rgb2.b) ** 2,
+  );
 }
 
 export function findNearestBrandColor(
@@ -127,18 +147,26 @@ export function calculateCompliance(
   return Math.round((matchCount / extractedColors.length) * 100);
 }
 
-export function generateImageMagickCommand(imagePath: string, numColors = 10): string {
+export function generateImageMagickCommand(
+  imagePath: string,
+  numColors = 10,
+): string {
   return `magick "${imagePath}" -colors ${numColors} -depth 8 -format "%c" histogram:info:`;
 }
 
 /** Parse ImageMagick histogram output to extract colors, most common first. */
-export function parseImageMagickOutput(output: string): Array<{ hex: string; count: number }> {
+export function parseImageMagickOutput(
+  output: string,
+): Array<{ hex: string; count: number }> {
   const colors: Array<{ hex: string; count: number }> = [];
   for (const line of output.trim().split("\n")) {
     const hexMatch = line.match(/#([0-9A-Fa-f]{6})/);
     const countMatch = line.match(/^\s*(\d+):/);
     if (hexMatch) {
-      colors.push({ hex: "#" + hexMatch[1]!.toUpperCase(), count: countMatch ? parseInt(countMatch[1]!) : 0 });
+      colors.push({
+        hex: "#" + hexMatch[1]!.toUpperCase(),
+        count: countMatch ? parseInt(countMatch[1]!) : 0,
+      });
     }
   }
   colors.sort((a, b) => b.count - a.count);
@@ -171,9 +199,12 @@ async function main(): Promise<void> {
   const jsonOutput = args.includes("--json");
   const showPalette = args.includes("--palette");
   const brandFileIdx = args.indexOf("--brand-file");
-  const brandFileValue = brandFileIdx !== -1 ? (args[brandFileIdx + 1] ?? null) : null;
+  const brandFileValue =
+    brandFileIdx !== -1 ? (args[brandFileIdx + 1] ?? null) : null;
   const brandFile = brandFileValue ?? DEFAULT_GUIDELINES_PATH;
-  const imagePath = args.find((a) => !a.startsWith("--") && a !== brandFileValue);
+  const imagePath = args.find(
+    (a) => !a.startsWith("--") && a !== brandFileValue,
+  );
 
   const brandPalette = await parseBrandColors(brandFile);
   if (!brandPalette) {
@@ -191,7 +222,9 @@ async function main(): Promise<void> {
         console.log("To extract colors from an image:");
         console.log("  bun scripts/extract-colors.ts <image-path>");
         console.log("\nOr use ImageMagick directly:");
-        console.log('  magick image.png -colors 10 -depth 8 -format "%c" histogram:info:');
+        console.log(
+          '  magick image.png -colors 10 -depth 8 -format "%c" histogram:info:',
+        );
       }
     }
     return;
@@ -218,7 +251,8 @@ async function main(): Promise<void> {
     ],
     complianceCheck: {
       threshold: 50,
-      description: "Colors within distance 50 (RGB space) are considered brand-compliant",
+      description:
+        "Colors within distance 50 (RGB space) are considered brand-compliant",
       brandColors: brandPalette.all,
     },
   };

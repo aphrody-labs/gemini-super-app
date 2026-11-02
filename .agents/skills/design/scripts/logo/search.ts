@@ -20,7 +20,9 @@ export function formatOutput(result: SearchResult): string {
   (result.results ?? []).forEach((row, i) => {
     out.push(`### Result ${i + 1}`);
     for (const [key, value] of Object.entries(row)) {
-      out.push(`- **${key}:** ${value.length > 300 ? value.slice(0, 300) + "..." : value}`);
+      out.push(
+        `- **${key}:** ${value.length > 300 ? value.slice(0, 300) + "..." : value}`,
+      );
     }
     out.push("");
   });
@@ -28,11 +30,18 @@ export function formatOutput(result: SearchResult): string {
 }
 
 /** Comprehensive logo design brief across style, color and industry domains. */
-export async function generateDesignBrief(query: string, brandName?: string | null): Promise<string> {
+export async function generateDesignBrief(
+  query: string,
+  brandName?: string | null,
+): Promise<string> {
   const results = await searchAll(query, 2);
   const na = (v: string | undefined) => v ?? "N/A";
   const out = ["=".repeat(60)];
-  out.push(brandName ? `  LOGO DESIGN BRIEF: ${brandName.toUpperCase()}` : "  LOGO DESIGN BRIEF");
+  out.push(
+    brandName
+      ? `  LOGO DESIGN BRIEF: ${brandName.toUpperCase()}`
+      : "  LOGO DESIGN BRIEF",
+  );
   out.push("=".repeat(60), `  Query: ${query}`, "=".repeat(60), "");
 
   if (results.industry) {
@@ -53,7 +62,9 @@ export async function generateDesignBrief(query: string, brandName?: string | nu
     out.push("## STYLE RECOMMENDATIONS");
     for (const r of results.style) {
       out.push(`**${na(r["Style Name"])}** (${na(r.Category)})`);
-      out.push(`- Colors: ${na(r["Primary Colors"])} | ${na(r["Secondary Colors"])}`);
+      out.push(
+        `- Colors: ${na(r["Primary Colors"])} | ${na(r["Secondary Colors"])}`,
+      );
       out.push(`- Typography: ${na(r.Typography)}`);
       out.push(`- Effects: ${na(r.Effects)}`);
       out.push(`- Best For: ${na(r["Best For"])}`);
@@ -92,20 +103,29 @@ async function main(): Promise<void> {
   });
   const query = positionals[0];
   if (!query) {
-    console.error("usage: search.ts [-d {style,color,industry}] [-n MAX_RESULTS] [--json] [--design-brief] [-p BRAND_NAME] query");
+    console.error(
+      "usage: search.ts [-d {style,color,industry}] [-n MAX_RESULTS] [--json] [--design-brief] [-p BRAND_NAME] query",
+    );
     process.exit(2);
   }
   if (values.domain && !(values.domain in CSV_CONFIG)) {
-    console.error(`error: argument --domain/-d: invalid choice: '${values.domain}' (choose from ${Object.keys(CSV_CONFIG).join(", ")})`);
+    console.error(
+      `error: argument --domain/-d: invalid choice: '${values.domain}' (choose from ${Object.keys(CSV_CONFIG).join(", ")})`,
+    );
     process.exit(2);
   }
   if (values["design-brief"] || values.db) {
     console.log(await generateDesignBrief(query, values["brand-name"]));
     return;
   }
-  const maxResults = values["max-results"] !== undefined ? Number.parseInt(values["max-results"], 10) : MAX_RESULTS;
+  const maxResults =
+    values["max-results"] !== undefined
+      ? Number.parseInt(values["max-results"], 10)
+      : MAX_RESULTS;
   const result = await search(query, values.domain, maxResults);
-  console.log(values.json ? JSON.stringify(result, null, 2) : formatOutput(result));
+  console.log(
+    values.json ? JSON.stringify(result, null, 2) : formatOutput(result),
+  );
 }
 
 if (import.meta.main) await main();

@@ -25,7 +25,13 @@
 
 import { extname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { geminiInlineImage, IMAGE_EXTENSIONS, loadEnv, runtime, timestamp } from "../lib/providers.ts";
+import {
+  geminiInlineImage,
+  IMAGE_EXTENSIONS,
+  loadEnv,
+  runtime,
+  timestamp,
+} from "../lib/providers.ts";
 import { getCipBrief, search } from "./core.ts";
 
 await loadEnv();
@@ -36,7 +42,13 @@ export const models = () => ({
   pro: process.env.GEMINI_PRO_IMAGE_MODEL || "gemini-3-pro-image",
 });
 export const DEFAULT_MODEL = "flash";
-export const DEFAULT_DELIVERABLES = ["business card", "letterhead", "office signage", "vehicle", "polo shirt"];
+export const DEFAULT_DELIVERABLES = [
+  "business card",
+  "letterhead",
+  "office signage",
+  "vehicle",
+  "polo shirt",
+];
 
 export interface LogoImage {
   path: string;
@@ -45,15 +57,35 @@ export interface LogoImage {
 }
 
 function sniffMime(bytes: Uint8Array, path: string): string | null {
-  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "image/png";
+  if (
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47
+  )
+    return "image/png";
   if (bytes[0] === 0xff && bytes[1] === 0xd8) return "image/jpeg";
-  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) return "image/webp";
-  const byExt: Record<string, string> = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif" };
+  if (
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46
+  )
+    return "image/webp";
+  const byExt: Record<string, string> = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+  };
   return byExt[extname(path).toLowerCase()] ?? null;
 }
 
 /** Load the logo file for Gemini image editing (PNG, JPEG, WebP or GIF; transparency is kept). */
-export async function loadLogoImage(logoPath: string): Promise<LogoImage | null> {
+export async function loadLogoImage(
+  logoPath: string,
+): Promise<LogoImage | null> {
   const file = Bun.file(logoPath);
   if (!(await file.exists())) {
     console.log(`Error: Logo file not found: ${logoPath}`);
@@ -63,7 +95,9 @@ export async function loadLogoImage(logoPath: string): Promise<LogoImage | null>
     const data = await file.bytes();
     const mimeType = sniffMime(data, logoPath);
     if (!mimeType) {
-      console.log(`Error loading logo: unsupported image type ${extname(logoPath) || "(no extension)"}`);
+      console.log(
+        `Error loading logo: unsupported image type ${extname(logoPath) || "(no extension)"}`,
+      );
       return null;
     }
     return { path: logoPath, mimeType, data };
@@ -83,7 +117,8 @@ export interface PromptData {
   logo_placement?: string;
 }
 
-const first = async (query: string, domain: string) => (await search(query, domain, 1)).results?.[0] ?? {};
+const first = async (query: string, domain: string) =>
+  (await search(query, domain, 1)).results?.[0] ?? {};
 
 /** Build an optimized prompt for CIP mockup generation. */
 export async function buildCipPrompt(
@@ -95,21 +130,30 @@ export async function buildCipPrompt(
   useLogoImage = false,
 ): Promise<PromptData> {
   const deliverableData = await first(deliverable, "deliverable");
-  const styleData = style ? await first(style || "corporate minimal", "style") : {};
-  const industryData = industry ? await first(industry || "technology", "industry") : {};
+  const styleData = style
+    ? await first(style || "corporate minimal", "style")
+    : {};
+  const industryData = industry
+    ? await first(industry || "technology", "industry")
+    : {};
 
   let mockupContext = deliverableData["Mockup Context"] ?? "clean professional";
   if (mockup) {
     const mockupData = (await search(mockup, "mockup", 1)).results?.[0];
-    if (mockupData) mockupContext = mockupData["Scene Description"] ?? mockupContext;
+    if (mockupData)
+      mockupContext = mockupData["Scene Description"] ?? mockupContext;
   }
 
   const deliverableName = deliverableData.Deliverable ?? deliverable;
   const description = deliverableData.Description ?? "";
   const logoPlacement = deliverableData["Logo Placement"] ?? "center";
   const styleName = styleData["Style Name"] ?? style ?? "corporate";
-  const primaryColors = styleData["Primary Colors"] ?? industryData["Primary Colors"] ?? "#0F172A #FFFFFF";
-  const typography = styleData.Typography ?? industryData.Typography ?? "clean sans-serif";
+  const primaryColors =
+    styleData["Primary Colors"] ??
+    industryData["Primary Colors"] ??
+    "#0F172A #FFFFFF";
+  const typography =
+    styleData.Typography ?? industryData.Typography ?? "clean sans-serif";
   const materials = styleData.Materials ?? "premium quality";
   const finishes = styleData.Finishes ?? "professional";
   const mood = styleData.Mood ?? industryData.Mood ?? "professional";
@@ -173,7 +217,8 @@ export async function generateWithNanoBanana(
     return null;
   }
   const available = models();
-  const modelName = available[modelKey as keyof typeof available] ?? available[DEFAULT_MODEL];
+  const modelName =
+    available[modelKey as keyof typeof available] ?? available[DEFAULT_MODEL];
 
   console.log(`\n🎨 Generating CIP mockup...`);
   console.log(`   Mode: ${logoImage ? "image-editing" : "text-to-image"}`);
@@ -182,14 +227,26 @@ export async function generateWithNanoBanana(
   console.log(`   Style: ${promptData.style}`);
   console.log(`   Model: ${modelName}`);
   console.log(`   Context: ${promptData.mockup_context}`);
-  if (logoImage) console.log(`   Logo: Using provided image (${logoImage.mimeType}, ${logoImage.data.length} bytes)`);
+  if (logoImage)
+    console.log(
+      `   Logo: Using provided image (${logoImage.mimeType}, ${logoImage.data.length} bytes)`,
+    );
 
   try {
     const parts: unknown[] = [{ text: promptData.prompt }];
-    if (logoImage) parts.push({ inlineData: { mimeType: logoImage.mimeType, data: Buffer.from(logoImage.data).toString("base64") } });
+    if (logoImage)
+      parts.push({
+        inlineData: {
+          mimeType: logoImage.mimeType,
+          data: Buffer.from(logoImage.data).toString("base64"),
+        },
+      });
     const response = await runtime.geminiGenerateContent(modelName, apiKey, {
       contents: [{ role: "user", parts }],
-      generationConfig: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio } },
+      generationConfig: {
+        responseModalities: ["IMAGE"],
+        imageConfig: { aspectRatio },
+      },
     });
     const image = geminiInlineImage(response);
     if (!image) {
@@ -198,8 +255,13 @@ export async function generateWithNanoBanana(
     }
     const mime = image.mimeType.split(";")[0]!.trim().toLowerCase();
     const brandSlug = promptData.brand.toLowerCase().replaceAll(" ", "-");
-    const deliverableSlug = promptData.deliverable.toLowerCase().replaceAll(" ", "-");
-    const filepath = join(resolve(outputDir ?? process.cwd()), `${brandSlug}-${deliverableSlug}-${timestamp()}${IMAGE_EXTENSIONS[mime] ?? ".png"}`);
+    const deliverableSlug = promptData.deliverable
+      .toLowerCase()
+      .replaceAll(" ", "-");
+    const filepath = join(
+      resolve(outputDir ?? process.cwd()),
+      `${brandSlug}-${deliverableSlug}-${timestamp()}${IMAGE_EXTENSIONS[mime] ?? ".png"}`,
+    );
     await Bun.write(filepath, image.data);
     console.log(`\n✅ Generated: ${filepath}`);
     return filepath;
@@ -223,23 +285,51 @@ export async function generateCipSet(
   let logoImage: LogoImage | null = null;
   if (logoPath) {
     logoImage = await loadLogoImage(logoPath);
-    if (!logoImage) console.log("Warning: Could not load logo, falling back to text-to-image mode");
+    if (!logoImage)
+      console.log(
+        "Warning: Could not load logo, falling back to text-to-image mode",
+      );
   }
   const brief = await getCipBrief(brandName, industry, style);
-  const results: Array<{ deliverable: string; filepath: string; prompt: string }> = [];
-  for (const deliverable of deliverables?.length ? deliverables : DEFAULT_DELIVERABLES) {
-    const promptData = await buildCipPrompt(deliverable, brandName, brief.style["Style Name"], industry, null, logoImage !== null);
-    const filepath = await generateWithNanoBanana(promptData, outputDir, modelKey, aspectRatio, logoImage);
-    if (filepath) results.push({ deliverable, filepath, prompt: promptData.prompt });
+  const results: Array<{
+    deliverable: string;
+    filepath: string;
+    prompt: string;
+  }> = [];
+  for (const deliverable of deliverables?.length
+    ? deliverables
+    : DEFAULT_DELIVERABLES) {
+    const promptData = await buildCipPrompt(
+      deliverable,
+      brandName,
+      brief.style["Style Name"],
+      industry,
+      null,
+      logoImage !== null,
+    );
+    const filepath = await generateWithNanoBanana(
+      promptData,
+      outputDir,
+      modelKey,
+      aspectRatio,
+      logoImage,
+    );
+    if (filepath)
+      results.push({ deliverable, filepath, prompt: promptData.prompt });
   }
   return results;
 }
 
 /** Ask whether to continue without a logo: 'continue', 'generate' or 'exit'. */
-export function checkLogoRequired(brandName: string, skipPrompt = false): "continue" | "generate" | "exit" {
+export function checkLogoRequired(
+  brandName: string,
+  skipPrompt = false,
+): "continue" | "generate" | "exit" {
   if (skipPrompt) return "continue";
   console.log(`\n⚠️  No logo image provided for '${brandName}'`);
-  console.log("   Without a logo, AI will generate its own interpretation of the brand logo.");
+  console.log(
+    "   Without a logo, AI will generate its own interpretation of the brand logo.",
+  );
   console.log("");
   console.log("   Options:");
   console.log("   1. Continue without logo (AI-generated logo interpretation)");
@@ -274,11 +364,15 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     },
   });
   if (!values.brand) {
-    console.error("generate.ts: error: the following arguments are required: --brand/-b");
+    console.error(
+      "generate.ts: error: the following arguments are required: --brand/-b",
+    );
     return 2;
   }
   if (!["flash", "pro"].includes(String(values.model))) {
-    console.error(`generate.ts: error: argument --model: invalid choice: '${values.model}' (choose from flash, pro)`);
+    console.error(
+      `generate.ts: error: argument --model: invalid choice: '${values.model}' (choose from flash, pro)`,
+    );
     return 2;
   }
   const brand = values.brand;
@@ -299,8 +393,12 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       console.log("\n💡 To generate a logo, use the logo-design skill:");
       // Resolved from this file so the hint is correct from any cwd and install layout.
       const logoScript = join(import.meta.dir, "..", "logo", "generate.ts");
-      console.log(`   bun "${logoScript}" --brand "${brand}" --industry "${industry}"`);
-      console.log("\n   Then re-run this command with --logo <generated_logo.png>");
+      console.log(
+        `   bun "${logoScript}" --brand "${brand}" --industry "${industry}"`,
+      );
+      console.log(
+        "\n   Then re-run this command with --logo <generated_logo.png>",
+      );
       return 0;
     }
     if (action === "exit") {
@@ -311,29 +409,69 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
   const useLogo = logoImage !== null;
 
   if (values.set || values.deliverables) {
-    const deliverables = values.deliverables ? values.deliverables.split(",") : null;
+    const deliverables = values.deliverables
+      ? values.deliverables.split(",")
+      : null;
     if (values["prompt-only"]) {
       const results: PromptData[] = [];
       for (const d of deliverables ?? DEFAULT_DELIVERABLES) {
-        results.push(await buildCipPrompt(d, brand, values.style, industry, values.mockup, useLogo));
+        results.push(
+          await buildCipPrompt(
+            d,
+            brand,
+            values.style,
+            industry,
+            values.mockup,
+            useLogo,
+          ),
+        );
       }
       if (values.json) console.log(JSON.stringify(results, null, 2));
-      else for (const r of results) console.log(`\n${r.deliverable}:\n${r.prompt}\n`);
+      else
+        for (const r of results)
+          console.log(`\n${r.deliverable}:\n${r.prompt}\n`);
       return 0;
     }
-    const results = await generateCipSet(brand, industry, values.style, deliverables, values.output, model, values.logo, ratio);
+    const results = await generateCipSet(
+      brand,
+      industry,
+      values.style,
+      deliverables,
+      values.output,
+      model,
+      values.logo,
+      ratio,
+    );
     if (values.json) console.log(JSON.stringify(results, null, 2));
     else console.log(`\n✅ Generated ${results.length} CIP mockups`);
     return results.length ? 0 : 1;
   }
 
-  const promptData = await buildCipPrompt(values.deliverable || "business card", brand, values.style, industry, values.mockup, useLogo);
+  const promptData = await buildCipPrompt(
+    values.deliverable || "business card",
+    brand,
+    values.style,
+    industry,
+    values.mockup,
+    useLogo,
+  );
   if (values["prompt-only"]) {
-    console.log(values.json ? JSON.stringify(promptData, null, 2) : `\nPrompt:\n${promptData.prompt}`);
+    console.log(
+      values.json
+        ? JSON.stringify(promptData, null, 2)
+        : `\nPrompt:\n${promptData.prompt}`,
+    );
     return 0;
   }
-  const filepath = await generateWithNanoBanana(promptData, values.output, model, ratio, logoImage);
-  if (values.json) console.log(JSON.stringify({ filepath, ...promptData }, null, 2));
+  const filepath = await generateWithNanoBanana(
+    promptData,
+    values.output,
+    model,
+    ratio,
+    logoImage,
+  );
+  if (values.json)
+    console.log(JSON.stringify({ filepath, ...promptData }, null, 2));
   return filepath === null ? 1 : 0;
 }
 

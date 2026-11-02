@@ -3,6 +3,7 @@
 Dépôt officiel GitHub : **`https://github.com/aphrody-labs/gemini-super-app`**
 
 Ce monorepo unifié (**Rust Édition 2024 + Bun v1.4.5 + Tauri v3 Alpha `3.0.0-alpha.5` + Python `uv` + Flutter**) connecte en temps réel :
+
 1. **The One Big Gemini Super App (`apps/gemini_super_app/`)** — Serveur fullstack `Bun.serve()`, SQLite WAL (`bun:sqlite`), shell natif Tauri v3 Alpha (`crates/gemini-super-tauri`), compagnons interactifs **Gemini Pet & Mochi 🌱 Cross-Platform Deskling** (`crates/openpets-core`, `packages/openpets_gemini`, `/pet`) et interface unifiée avec **Orbe SVG officiel Gemini animé en permanence** (`AnimatedGeminiSvgOrb`), fédérant les **11 sous-modules `vendor/*`**, **17 crates Rust (`crates/*`)** et **10 packages Bun (`packages/*`)**.
 2. **Application Flutter (`apps/gemini_voice_app/`)** — Desktop Windows, Web & Mobile avec **SVG officiel Gemini animé en permanence** (`AnimatedGeminiSvgOrb`), spectre radial FFT 32 bandes et mode Mini-Orbe d'arrière-plan.
 3. **Antigravity CLI (`agy`)** — Commandes `/voice`, `/record`, raccourci `F5`, flux audio TCP `ANTIGRAVITY_MIC=127.0.0.1:24713` (`32 kB/s` PCM 16 kHz mono) et pont `agentapi` (`agy.exe agentapi`).
@@ -23,11 +24,13 @@ Ce monorepo unifié (**Rust Édition 2024 + Bun v1.4.5 + Tauri v3 Alpha `3.0.0-a
 ## RÈGLES GLOBALES OBLIGATOIRES — BUN (v1.4.4+ / v1.4.5)
 
 Sources officielles de référence :
+
 - **Release Bun v1.4.4+** : https://bun.com/blog/bun-v1.4.4
 - **Documentation officielle Bun** : https://github.com/oven-sh/bun/tree/main/docs
 - **Guides officiels Bun** : https://bun.com/guides
 
 ### 1. Utiliser Bun par défaut à la place de Node.js, npm, pnpm, yarn, Vite et Prettier
+
 - **Exécution JS/TS/JSX/TSX** : Utiliser `bun <file>` ou `bun run <file>` au lieu de `node <file>` ou `ts-node <file>`.
 - **Placement des flags Bun** : Toujours placer les flags de Bun immédiatement après `bun` (ex. `bun --watch run index.ts`), jamais après le nom du script.
 - **Formatage de code (`bun fmt`)** : Utiliser le formateur natif ultra-rapide **`bun fmt`** (`bun run fmt` / `bun run fmt:check`) au lieu de `prettier`.
@@ -38,6 +41,7 @@ Sources officielles de référence :
 - **Variables d'environnement** : Bun charge automatiquement `.env`. Ne jamais installer ni utiliser `dotenv`.
 
 ### 2. Utiliser les APIs Natives de Bun (`oven-sh/bun/docs` & `bun.com/guides`)
+
 - **HTTP, Routes Fullstack & WebSockets** : Utiliser `Bun.serve()` (`routes`, `websocket`, HTML imports) au lieu d'`express` ou `fastify`.
 - **SQL & SQLite** : Utiliser `Bun.SQL` (`import { sql, SQL } from "bun"`) et `bun:sqlite` (`import { Database } from "bun:sqlite"`, mode WAL) au lieu de `better-sqlite3`, `pg` ou `postgres.js`.
 - **Fichiers, JSONL, Glob & Shell** : Utiliser `Bun.file()`, `Bun.write()`, `Bun.JSONL.parse()`, `Bun.Glob`, `Bun.spawn()` et `Bun.$` au lieu de `node:fs`, `readline`, `glob` et `execa`.

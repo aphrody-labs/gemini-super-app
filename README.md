@@ -66,6 +66,7 @@ Monorepo polyglotte unifié (**Rust Edition 2024 + Bun v1.4.5 + Tauri v3 Alpha `
 ## 🧪 Tests Réels sur l'API Google Gemini (`gemini-3.8-live`, `gemini-4-argon`, `gemini-3.8-flash-tts`)
 
 Les 3 stacks (Rust, Bun v1.4.5, Python `uv`) exécutent des tests d'intégration réels contre les serveurs Google Gemini :
+
 - **Bun (`apps/gemini_super_app/src/super_app.test.ts`)** :
   - `POST /api/gemini/reason` $\rightarrow$ appel réel à `gemini-4-argon` (`ARGON_LIVE_OK`).
   - `POST /api/gemini/tts` $\rightarrow$ synthèse vocale réelle `gemini-3.8-flash-tts` avec la voix HD `Aoede` (`audio/wav`).

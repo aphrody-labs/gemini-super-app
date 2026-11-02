@@ -22,10 +22,10 @@ default = []
 # flowcat-core's SIP transport uses. tokio/tokio-util are `optional` and gated
 # so a default (stub-only) build still pulls nothing.
 webrtc-str0m = ["dep:str0m", "dep:audiopus", "dep:tokio", "dep:tokio-util"]
-ws           = ["dep:tokio-tungstenite", "dep:tokio", "dep:tokio-util"]
-daily        = ["dep:reqwest"]
-livekit      = []
-local        = ["dep:audiopus", "dep:tokio"]
+ws = ["dep:tokio-tungstenite", "dep:tokio", "dep:tokio-util"]
+daily = ["dep:reqwest"]
+livekit = []
+local = ["dep:audiopus", "dep:tokio"]
 
 [dependencies]
 flowcat-core = { path = "../flowcat-core", version = "0.1.1" }
@@ -49,7 +49,13 @@ reqwest = { version = "0.12", optional = true, default-features = false, feature
 # Async runtime for the concrete transports (UDP/WS I/O + tasks). Optional +
 # feature-gated so a stub-only default build stays dependency-free. Matches the
 # tokio surface flowcat-core uses.
-tokio = { version = "1", optional = true, features = ["net", "rt", "sync", "macros", "time"] }
+tokio = { version = "1", optional = true, features = [
+  "net",
+  "rt",
+  "sync",
+  "macros",
+  "time",
+] }
 tokio-util = { version = "0.7", optional = true, features = ["rt"] }
 
 [dev-dependencies]

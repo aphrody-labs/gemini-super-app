@@ -17,14 +17,14 @@ categories.workspace = true
 default = ["plivo"]
 twilio = []
 telnyx = []
-plivo  = []
+plivo = []
 exotel = []
 vonage = []
 genesys = []
 asterisk = []
 cloudonix = []
 vobiz = []
-dtmf-inband = []   # in-band Goertzel DTMF detection (RFC2833 is always available)
+dtmf-inband = [] # in-band Goertzel DTMF detection (RFC2833 is always available)
 
 [dependencies]
 flowcat-core = { path = "../flowcat-core", version = "0.1.1" }

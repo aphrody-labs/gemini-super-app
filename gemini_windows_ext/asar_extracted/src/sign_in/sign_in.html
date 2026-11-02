@@ -1,1 +1,265 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Welcome to Gemini</title><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;"/><link rel="stylesheet" href="../../assets/fonts/fonts.css"><link rel="stylesheet" href="../../assets/overlay_tokens.css"><style>*{box-sizing:border-box;user-select:none}html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:var(--font-family);background-color:var(--bg-backdrop);color:var(--text-primary)}.backdrop{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:var(--overlay-gutter-xl);animation:fadeIn var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-emphasized-decelerate)}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes scaleIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}.dialog-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--shape-corner-xl);box-shadow:var(--shadow-elevation-3);width:100%;max-width:360px;padding-block:32px 24px;padding-inline:28px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:24px;animation:scaleIn var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-emphasized-decelerate)}.dialog-header{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}.brand-icon{width:40px;height:40px;display:block;flex-shrink:0}.dialog-title{font-family:var(--font-family-display);font-size:22px;font-weight:400;line-height:28px;margin:0;color:var(--text-primary)}.user-profile-card{display:none;width:100%;padding:12px 16px;border:1px solid var(--setting-card-border);border-radius:var(--shape-corner-lg);background:var(--setting-card-bg);align-items:center;gap:12px;text-align:start}.user-profile-card.visible{display:flex}.avatar-container{width:40px;height:40px;border-radius:var(--shape-corner-full);background:var(--primary-blue);color:var(--on-primary);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}.user-avatar{width:100%;height:100%;object-fit:cover;display:none}.user-avatar.visible{display:block}.avatar-fallback{width:22px;height:22px;fill:currentColor}.user-avatar.visible+.avatar-fallback{display:none}.user-details{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.user-name{font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.user-email{font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.button-group{display:flex;flex-direction:column;gap:6px;width:100%}.btn{font-family:inherit;font-size:14px;font-weight:500;line-height:20px;width:100%;padding:12px 24px;border-radius:var(--shape-corner-full);border:1px solid transparent;cursor:pointer;transition:background-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),border-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard)}.btn:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}.btn-primary{background:var(--primary-blue);color:var(--on-primary)}.btn-primary:hover{background:var(--primary-blue-hover)}.btn-secondary{background:transparent;color:var(--text-primary)}.btn-secondary:hover{background:var(--btn-secondary-hover)}.btn-secondary:active{background:var(--active-bg)}.btn.hidden{display:none}</style></head><body><div class="backdrop" id="backdrop"><div class="dialog-card" id="dialog-card" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="dialog-header"><img class="brand-icon" src="../../assets/spark.svg" alt="" aria-hidden="true"/><h2 class="dialog-title" id="dialog-title">Welcome to Gemini</h2></div><div class="user-profile-card" id="user-profile-card"><div class="avatar-container"><img class="user-avatar" id="user-avatar" alt=""><svg class="avatar-fallback" id="avatar-fallback" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="user-details"><div class="user-name" id="user-name"></div><div class="user-email" id="user-email"></div></div></div><div class="button-group"><button type="button" class="btn btn-primary" id="btn-sign-in">Sign in</button> <button type="button" class="btn btn-secondary" id="btn-create-account">Create account</button> <button type="button" class="btn btn-secondary hidden" id="btn-log-out">Log out</button></div></div></div></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Welcome to Gemini</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;"
+    />
+    <link rel="stylesheet" href="../../assets/fonts/fonts.css" />
+    <link rel="stylesheet" href="../../assets/overlay_tokens.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+        user-select: none;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: var(--font-family);
+        background-color: var(--bg-backdrop);
+        color: var(--text-primary);
+      }
+      .backdrop {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--overlay-gutter-xl);
+        animation: fadeIn var(--md-sys-motion-duration-short)
+          var(--md-sys-motion-easing-emphasized-decelerate);
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .dialog-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--shape-corner-xl);
+        box-shadow: var(--shadow-elevation-3);
+        width: 100%;
+        max-width: 360px;
+        padding-block: 32px 24px;
+        padding-inline: 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 24px;
+        animation: scaleIn var(--md-sys-motion-duration-medium)
+          var(--md-sys-motion-easing-emphasized-decelerate);
+      }
+      .dialog-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+      }
+      .brand-icon {
+        width: 40px;
+        height: 40px;
+        display: block;
+        flex-shrink: 0;
+      }
+      .dialog-title {
+        font-family: var(--font-family-display);
+        font-size: 22px;
+        font-weight: 400;
+        line-height: 28px;
+        margin: 0;
+        color: var(--text-primary);
+      }
+      .user-profile-card {
+        display: none;
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--setting-card-border);
+        border-radius: var(--shape-corner-lg);
+        background: var(--setting-card-bg);
+        align-items: center;
+        gap: 12px;
+        text-align: start;
+      }
+      .user-profile-card.visible {
+        display: flex;
+      }
+      .avatar-container {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--shape-corner-full);
+        background: var(--primary-blue);
+        color: var(--on-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .user-avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: none;
+      }
+      .user-avatar.visible {
+        display: block;
+      }
+      .avatar-fallback {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+      }
+      .user-avatar.visible + .avatar-fallback {
+        display: none;
+      }
+      .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+        flex: 1;
+      }
+      .user-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .user-email {
+        font-size: 12px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+      }
+      .btn {
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        width: 100%;
+        padding: 12px 24px;
+        border-radius: var(--shape-corner-full);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition:
+          background-color var(--md-sys-motion-duration-short)
+            var(--md-sys-motion-easing-standard),
+          border-color var(--md-sys-motion-duration-short)
+            var(--md-sys-motion-easing-standard);
+      }
+      .btn:focus-visible {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: 2px;
+      }
+      .btn-primary {
+        background: var(--primary-blue);
+        color: var(--on-primary);
+      }
+      .btn-primary:hover {
+        background: var(--primary-blue-hover);
+      }
+      .btn-secondary {
+        background: transparent;
+        color: var(--text-primary);
+      }
+      .btn-secondary:hover {
+        background: var(--btn-secondary-hover);
+      }
+      .btn-secondary:active {
+        background: var(--active-bg);
+      }
+      .btn.hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="backdrop" id="backdrop">
+      <div
+        class="dialog-card"
+        id="dialog-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+      >
+        <div class="dialog-header">
+          <img
+            class="brand-icon"
+            src="../../assets/spark.svg"
+            alt=""
+            aria-hidden="true"
+          />
+          <h2 class="dialog-title" id="dialog-title">Welcome to Gemini</h2>
+        </div>
+        <div class="user-profile-card" id="user-profile-card">
+          <div class="avatar-container">
+            <img class="user-avatar" id="user-avatar" alt="" /><svg
+              class="avatar-fallback"
+              id="avatar-fallback"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+              />
+            </svg>
+          </div>
+          <div class="user-details">
+            <div class="user-name" id="user-name"></div>
+            <div class="user-email" id="user-email"></div>
+          </div>
+        </div>
+        <div class="button-group">
+          <button type="button" class="btn btn-primary" id="btn-sign-in">
+            Sign in
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="btn-create-account"
+          >
+            Create account
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary hidden"
+            id="btn-log-out"
+          >
+            Log out
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,10 +1,12 @@
 # Règle Permanente — Projet GCP `aphrody`, Suite Google AI 2026, UI/UX Pro Max & Exécution Proactive
 
 ## 1. Préférence d'Exécution Proactive (Accord Utilisateur Enregistré)
+
 - L'utilisateur a accordé son autorisation explicite pour exécuter de bout en bout les tâches d'ingénierie, de build, de test, de formatage (`bun fmt`, `ruff`), de synchronisation d'identifiants `aphrody` (`bun run setup:aphrody`) et d'utilisation des APIs Google Cloud / Google AI du projet `aphrody` sans interrompre le flux pour des confirmations intermédiaires non destructrices.
 - Les garde-fous de sécurité critiques (interdiction de suppression irréversible de données sans confirmation et respect strict des contrôles d'accès/sandbox) restent toujours actifs.
 
 ## 2. Architecture Google Cloud `aphrody` (`468000409790`)
+
 - **Projet par défaut** : `aphrody` (`projectNumber: 468000409790`, région `us-central1`).
 - **Service Accounts (via Impersonation ADC/IAM)** :
   - Principal : `aphrody-bot@aphrody.iam.gserviceaccount.com`
@@ -18,6 +20,7 @@
 - **Data Agent Kit (DAK)** : Configuré sur `aphrody` (`us-central1`) avec les 11 services (`BigQuery`, `Knowledge Catalog`, `AlloyDB`, `Cloud SQL`, `Spanner`, `Bigtable`, `Firestore`, `Cloud Storage`, `Apache Spark`, `Apache Airflow`, `Dataflow`).
 
 ## 3. Suite Google AI 2026 (`@gemini-live/google-ai-suite` & `bun run aphrody`)
+
 - **Search & Deep Research** : `gemini-3.8-flash` (`google_search`, `url_context`, `google_maps`) & `deep-research-preview-04-2026` / `deep-research-max-preview-04-2026`.
 - **Voice & STS (Speech-to-Speech)** : `gemini-3.8-live`, `gemini-3.8-live-extended-thinking`, `gemini-3.5-live-translate-preview`.
 - **TTS, Voice Design & Replication** : `gemini-3.8-flash-tts`, `gemini-3.8-flash-lite-tts` (`speech_metadata.style`, voix `Aoede`, `Kore`, `Puck`) + `edge-tts`.
@@ -28,4 +31,5 @@
 - **Flow Video** : `gemini-omni-1.1-flash` (`<FIRST_FRAME>`, `<LAST_FRAME>`, extensions 40s, `360p`–`4k`).
 
 ## 4. UI/UX Pro Max (`uipro`)
+
 - CLI global installé via `bun add -g ui-ux-pro-max-cli` (`uipro` v2.15.0) et initialisé avec `uipro init --ai antigravity` dans `.agents/skills/` (`ui-ux-pro-max`, `design-system`, `ui-styling`, `design`, `brand`, `banner-design`, `slides`).

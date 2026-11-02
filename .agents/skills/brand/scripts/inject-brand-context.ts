@@ -58,11 +58,22 @@ export function extractHexColors(text: string): string[] {
 }
 
 export function extractColorsFromTable(content: string): BrandColors {
-  const colors: BrandColors = { primary: [], secondary: [], neutral: [], semantic: [] };
-  const primaryMatch = content.match(/### Primary Colors[\s\S]*?\|[\s\S]*?(?=###|$)/i);
-  const secondaryMatch = content.match(/### Secondary Colors[\s\S]*?\|[\s\S]*?(?=###|$)/i);
+  const colors: BrandColors = {
+    primary: [],
+    secondary: [],
+    neutral: [],
+    semantic: [],
+  };
+  const primaryMatch = content.match(
+    /### Primary Colors[\s\S]*?\|[\s\S]*?(?=###|$)/i,
+  );
+  const secondaryMatch = content.match(
+    /### Secondary Colors[\s\S]*?\|[\s\S]*?(?=###|$)/i,
+  );
   const neutralMatch = content.match(/### Neutral[\s\S]*?\|[\s\S]*?(?=###|$)/i);
-  const semanticMatch = content.match(/### Semantic[\s\S]*?\|[\s\S]*?(?=###|$)/i);
+  const semanticMatch = content.match(
+    /### Semantic[\s\S]*?\|[\s\S]*?(?=###|$)/i,
+  );
   if (primaryMatch) colors.primary = extractHexColors(primaryMatch[0]);
   if (secondaryMatch) colors.secondary = extractHexColors(secondaryMatch[0]);
   if (neutralMatch) colors.neutral = extractHexColors(neutralMatch[0]);
@@ -93,7 +104,9 @@ export function extractTypography(content: string): Typography {
 export function extractVoice(content: string): Voice {
   const voice: Voice = { traits: [], prohibited: [], personality: "" };
 
-  const personalityMatch = content.match(/### Brand Personality[\s\S]*?\|[\s\S]*?(?=###|##|$)/i);
+  const personalityMatch = content.match(
+    /### Brand Personality[\s\S]*?\|[\s\S]*?(?=###|##|$)/i,
+  );
   if (personalityMatch) {
     const traits = personalityMatch[0].match(/\*\*([^*]+)\*\*\s*\|\s*([^|]+)/g);
     if (traits) {
@@ -116,11 +129,15 @@ export function extractVoice(content: string): Voice {
     }
   }
 
-  const forbiddenMatch = content.match(/### Forbidden Phrases[\s\S]*?(?=###|##|$)/i);
+  const forbiddenMatch = content.match(
+    /### Forbidden Phrases[\s\S]*?(?=###|##|$)/i,
+  );
   if (forbiddenMatch && voice.prohibited.length === 0) {
     const items = forbiddenMatch[0].match(/-\s*["']?([^"'\n(]+)/g);
     if (items) {
-      voice.prohibited = items.map((item) => item.replace(/^-\s*["']?/, "").trim()).filter(Boolean);
+      voice.prohibited = items
+        .map((item) => item.replace(/^-\s*["']?/, "").trim())
+        .filter(Boolean);
     }
   }
 
@@ -128,28 +145,51 @@ export function extractVoice(content: string): Voice {
   return voice;
 }
 
-export function extractCoreAttributes(content: string): Array<{ name: string; description: string }> {
+export function extractCoreAttributes(
+  content: string,
+): Array<{ name: string; description: string }> {
   const attributes: Array<{ name: string; description: string }> = [];
-  const attributesMatch = content.match(/### Core Attributes[\s\S]*?\|[\s\S]*?(?=###|##|$)/i);
+  const attributesMatch = content.match(
+    /### Core Attributes[\s\S]*?\|[\s\S]*?(?=###|##|$)/i,
+  );
   if (attributesMatch) {
-    const rows = attributesMatch[0].match(/\|\s*\*\*([^*]+)\*\*\s*\|\s*([^|]+)\|/g);
+    const rows = attributesMatch[0].match(
+      /\|\s*\*\*([^*]+)\*\*\s*\|\s*([^|]+)\|/g,
+    );
     for (const row of rows ?? []) {
       const match = row.match(/\*\*([^*]+)\*\*\s*\|\s*([^|]+)/);
-      if (match) attributes.push({ name: match[1]!.trim(), description: match[2]!.trim() });
+      if (match)
+        attributes.push({
+          name: match[1]!.trim(),
+          description: match[2]!.trim(),
+        });
     }
   }
   return attributes;
 }
 
 export function extractImageStyle(content: string): ImageStyle {
-  const imageStyle: ImageStyle = { basePrompt: "", keywords: [], mood: [], donts: [], examplePrompts: [] };
+  const imageStyle: ImageStyle = {
+    basePrompt: "",
+    keywords: [],
+    mood: [],
+    donts: [],
+    examplePrompts: [],
+  };
 
-  const basePromptMatch = content.match(/### Base Prompt Template[\s\S]*?```\n?([\s\S]*?)```/i);
-  if (basePromptMatch) imageStyle.basePrompt = basePromptMatch[1]!.trim().replace(/\n/g, " ");
+  const basePromptMatch = content.match(
+    /### Base Prompt Template[\s\S]*?```\n?([\s\S]*?)```/i,
+  );
+  if (basePromptMatch)
+    imageStyle.basePrompt = basePromptMatch[1]!.trim().replace(/\n/g, " ");
 
-  const keywordsMatch = content.match(/### Style Keywords[\s\S]*?\|[\s\S]*?(?=###|##|$)/i);
+  const keywordsMatch = content.match(
+    /### Style Keywords[\s\S]*?\|[\s\S]*?(?=###|##|$)/i,
+  );
   if (keywordsMatch) {
-    const keywordRows = keywordsMatch[0].match(/\|\s*\*\*[^*]+\*\*\s*\|\s*([^|]+)\|/g);
+    const keywordRows = keywordsMatch[0].match(
+      /\|\s*\*\*[^*]+\*\*\s*\|\s*([^|]+)\|/g,
+    );
     for (const row of keywordRows ?? []) {
       const match = row.match(/\|\s*\*\*[^*]+\*\*\s*\|\s*([^|]+)\|/);
       if (match) {
@@ -163,13 +203,20 @@ export function extractImageStyle(content: string): ImageStyle {
     }
   }
 
-  const moodMatch = content.match(/### Visual Mood Descriptors[\s\S]*?(?=###|##|$)/i);
+  const moodMatch = content.match(
+    /### Visual Mood Descriptors[\s\S]*?(?=###|##|$)/i,
+  );
   if (moodMatch) {
     const moodItems = moodMatch[0].match(/-\s*([^\n]+)/g);
-    if (moodItems) imageStyle.mood = moodItems.map((item) => item.replace(/^-\s*/, "").trim());
+    if (moodItems)
+      imageStyle.mood = moodItems.map((item) =>
+        item.replace(/^-\s*/, "").trim(),
+      );
   }
 
-  const dontsMatch = content.match(/### Visual Don'ts[\s\S]*?\|[\s\S]*?(?=###|##|$)/i);
+  const dontsMatch = content.match(
+    /### Visual Don'ts[\s\S]*?\|[\s\S]*?(?=###|##|$)/i,
+  );
   if (dontsMatch) {
     const dontRows = dontsMatch[0].match(/\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|/g);
     for (const row of dontRows ?? []) {
@@ -182,11 +229,16 @@ export function extractImageStyle(content: string): ImageStyle {
 
   const exampleMatch = content.match(/### Example Prompts[\s\S]*?(?=##|$)/i);
   if (exampleMatch) {
-    const prompts = exampleMatch[0].match(/\*\*([^*]+)\*\*:\s*```\n?([\s\S]*?)```/g);
+    const prompts = exampleMatch[0].match(
+      /\*\*([^*]+)\*\*:\s*```\n?([\s\S]*?)```/g,
+    );
     for (const p of prompts ?? []) {
       const match = p.match(/\*\*([^*]+)\*\*:\s*```\n?([\s\S]*?)```/);
       if (match) {
-        imageStyle.examplePrompts.push({ type: match[1]!.trim(), prompt: match[2]!.trim().replace(/\n/g, " ") });
+        imageStyle.examplePrompts.push({
+          type: match[1]!.trim(),
+          prompt: match[2]!.trim().replace(/\n/g, " "),
+        });
       }
     }
   }
@@ -243,13 +295,18 @@ Maintain consistent voice, colors, and messaging.
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const jsonOutput = args.includes("--json");
-  const guidelinesPath = args.find((a) => !a.startsWith("--")) || DEFAULT_GUIDELINES_PATH;
-  const resolvedPath = isAbsolute(guidelinesPath) ? guidelinesPath : join(process.cwd(), guidelinesPath);
+  const guidelinesPath =
+    args.find((a) => !a.startsWith("--")) || DEFAULT_GUIDELINES_PATH;
+  const resolvedPath = isAbsolute(guidelinesPath)
+    ? guidelinesPath
+    : join(process.cwd(), guidelinesPath);
 
   const file = Bun.file(resolvedPath);
   if (!(await file.exists())) {
     console.error(`Error: Brand guidelines not found at ${resolvedPath}`);
-    console.error(`Create brand guidelines at ${DEFAULT_GUIDELINES_PATH} or specify a path.`);
+    console.error(
+      `Create brand guidelines at ${DEFAULT_GUIDELINES_PATH} or specify a path.`,
+    );
     process.exit(1);
   }
 
@@ -259,7 +316,11 @@ async function main(): Promise<void> {
     extractedAt: new Date().toISOString(),
   };
 
-  console.log(jsonOutput ? JSON.stringify(brandContext, null, 2) : generatePromptAddition(brandContext));
+  console.log(
+    jsonOutput
+      ? JSON.stringify(brandContext, null, 2)
+      : generatePromptAddition(brandContext),
+  );
 }
 
 if (import.meta.main) await main();

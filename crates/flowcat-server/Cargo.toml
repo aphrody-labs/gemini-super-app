@@ -18,13 +18,13 @@ default = []
 # connector features (which unify into the shared factory). It pulls only the
 # runtime deps the framework itself needs.
 server-helper = [
-    "dep:axum",
-    "dep:tokio",
-    "dep:futures-util",
-    "dep:tracing-subscriber",
-    "dep:flowcat-agent",
-    "dep:flowcat-telephony",
-    "dep:rustls",
+  "dep:axum",
+  "dep:tokio",
+  "dep:futures-util",
+  "dep:tracing-subscriber",
+  "dep:flowcat-agent",
+  "dep:flowcat-telephony",
+  "dep:rustls",
 ]
 # `server-helper` + the browser WebRTC playground surface: the page, the SDP-offer
 # endpoint (`webrtc::offer` / the reusable `webrtc::handle_offer` signaling helper)
@@ -32,9 +32,9 @@ server-helper = [
 # bundle. This is what an embedder enables to reuse `handle_offer` with its own
 # `flowcat-services/*` selection (issue #30).
 webrtc-helper = [
-    "server-helper",
-    "dep:flowcat-transports",
-    "flowcat-transports/webrtc-str0m",
+  "server-helper",
+  "dep:flowcat-transports",
+  "flowcat-transports/webrtc-str0m",
 ]
 
 # --- Standalone binary (framework + every connector bundle) ----------------------
@@ -43,11 +43,11 @@ webrtc-helper = [
 # (no-feature) build is just the library: the config schema + StaticSession + the
 # run-orchestration helpers.
 server = [
-    "server-helper",
-    "flowcat-services/stt-all",
-    "flowcat-services/tts-all",
-    "flowcat-services/llm-all",
-    "flowcat-services/realtime-all",
+  "server-helper",
+  "flowcat-services/stt-all",
+  "flowcat-services/tts-all",
+  "flowcat-services/llm-all",
+  "flowcat-services/realtime-all",
 ]
 # The full browser WebRTC playground binary: the `webrtc-helper` surface plus the
 # complete `server` connector set. (`webrtc-helper` + `server`.)

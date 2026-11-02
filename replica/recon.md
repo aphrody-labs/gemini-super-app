@@ -6,13 +6,13 @@ Reverse-engineered architectural blueprint, screen inventory, component specific
 
 ## 1. Screen Inventory
 
-| Screen ID | Name | Route / State | Description |
-| :--- | :--- | :--- | :--- |
-| **S01** | **New Conversation (Zero State)** | `/app` | Central personalized greeting (`"Bonjour, aphro"`), model switcher dropdown, dynamic prompt suggestion chips (4x grid), and floating bottom input capsule. |
-| **S02** | **Active Conversation Thread** | `/app/<conversation_id>` | Scrollable linear chat history, alternating user query bubble and AI markdown response block with live typing/streaming tokens. |
-| **S03** | **Collapsible Sidebar (Navigation)** | Global Overlay / Drawer | Left-side navigation bar (collapsed: 68px icon rail; expanded: 280px drawer) containing "New chat" button, pinned conversations, chronologically grouped history (`Today`, `Yesterday`, `Previous 7 days`), Settings, and Help. |
-| **S04** | **Floating Input Dock (Omni Capsule)** | Global Footer Component | Pill-shaped text area (`min-height: 56px`, `max-height: 200px`), file upload button (+ menu: files, photos, audio), microphone / voice button, and circular submit button. |
-| **S05** | **Live Voice & Multimodal Overlay** | Modal / Fullscreen Dock | Radial audio visualizer or dynamic glowing orb with 32-band FFT reactive animations, live transcript subtitle bar, and barge-in / mute controls. |
+| Screen ID | Name                                   | Route / State            | Description                                                                                                                                                                                                                     |
+| :-------- | :------------------------------------- | :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **S01**   | **New Conversation (Zero State)**      | `/app`                   | Central personalized greeting (`"Bonjour, aphro"`), model switcher dropdown, dynamic prompt suggestion chips (4x grid), and floating bottom input capsule.                                                                      |
+| **S02**   | **Active Conversation Thread**         | `/app/<conversation_id>` | Scrollable linear chat history, alternating user query bubble and AI markdown response block with live typing/streaming tokens.                                                                                                 |
+| **S03**   | **Collapsible Sidebar (Navigation)**   | Global Overlay / Drawer  | Left-side navigation bar (collapsed: 68px icon rail; expanded: 280px drawer) containing "New chat" button, pinned conversations, chronologically grouped history (`Today`, `Yesterday`, `Previous 7 days`), Settings, and Help. |
+| **S04**   | **Floating Input Dock (Omni Capsule)** | Global Footer Component  | Pill-shaped text area (`min-height: 56px`, `max-height: 200px`), file upload button (+ menu: files, photos, audio), microphone / voice button, and circular submit button.                                                      |
+| **S05**   | **Live Voice & Multimodal Overlay**    | Modal / Fullscreen Dock  | Radial audio visualizer or dynamic glowing orb with 32-band FFT reactive animations, live transcript subtitle bar, and barge-in / mute controls.                                                                                |
 
 ---
 

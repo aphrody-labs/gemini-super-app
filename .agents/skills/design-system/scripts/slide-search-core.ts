@@ -3,7 +3,13 @@
  */
 
 import { join } from "node:path";
-import { createDomainSearch, loadCsv, type DomainConfig, type Row, type SearchResult } from "./lib/search-core.ts";
+import {
+  createDomainSearch,
+  loadCsv,
+  type DomainConfig,
+  type Row,
+  type SearchResult,
+} from "./lib/search-core.ts";
 
 export const DATA_DIR = join(import.meta.dir, "..", "data");
 export const MAX_RESULTS = 3;
@@ -11,8 +17,24 @@ export const MAX_RESULTS = 3;
 export const CSV_CONFIG: Record<string, DomainConfig> = {
   strategy: {
     file: "slide-strategies.csv",
-    search_cols: ["strategy_name", "keywords", "goal", "audience", "narrative_arc"],
-    output_cols: ["strategy_name", "keywords", "slide_count", "structure", "goal", "audience", "tone", "narrative_arc", "sources"],
+    search_cols: [
+      "strategy_name",
+      "keywords",
+      "goal",
+      "audience",
+      "narrative_arc",
+    ],
+    output_cols: [
+      "strategy_name",
+      "keywords",
+      "slide_count",
+      "structure",
+      "goal",
+      "audience",
+      "tone",
+      "narrative_arc",
+      "sources",
+    ],
   },
   layout: {
     file: "slide-layouts.csv",
@@ -31,12 +53,33 @@ export const CSV_CONFIG: Record<string, DomainConfig> = {
   },
   copy: {
     file: "slide-copy.csv",
-    search_cols: ["formula_name", "keywords", "use_case", "emotion_trigger", "slide_type"],
-    output_cols: ["formula_name", "keywords", "components", "use_case", "example_template", "emotion_trigger", "slide_type", "source"],
+    search_cols: [
+      "formula_name",
+      "keywords",
+      "use_case",
+      "emotion_trigger",
+      "slide_type",
+    ],
+    output_cols: [
+      "formula_name",
+      "keywords",
+      "components",
+      "use_case",
+      "example_template",
+      "emotion_trigger",
+      "slide_type",
+      "source",
+    ],
   },
   chart: {
     file: "slide-charts.csv",
-    search_cols: ["chart_type", "keywords", "best_for", "when_to_use", "slide_context"],
+    search_cols: [
+      "chart_type",
+      "keywords",
+      "best_for",
+      "when_to_use",
+      "slide_context",
+    ],
     output_cols: [
       "chart_type",
       "keywords",
@@ -56,20 +99,69 @@ export const AVAILABLE_DOMAINS = Object.keys(CSV_CONFIG);
 
 const DOMAIN_KEYWORDS: Record<string, string[]> = {
   strategy: [
-    "pitch", "deck", "investor", "yc", "seed", "series", "demo", "sales", "webinar",
-    "conference", "board", "qbr", "all-hands", "duarte", "kawasaki", "structure",
+    "pitch",
+    "deck",
+    "investor",
+    "yc",
+    "seed",
+    "series",
+    "demo",
+    "sales",
+    "webinar",
+    "conference",
+    "board",
+    "qbr",
+    "all-hands",
+    "duarte",
+    "kawasaki",
+    "structure",
   ],
   layout: [
-    "slide", "layout", "grid", "column", "title", "hero", "section", "cta",
-    "screenshot", "quote", "timeline", "comparison", "pricing", "team",
+    "slide",
+    "layout",
+    "grid",
+    "column",
+    "title",
+    "hero",
+    "section",
+    "cta",
+    "screenshot",
+    "quote",
+    "timeline",
+    "comparison",
+    "pricing",
+    "team",
   ],
   copy: [
-    "headline", "copy", "formula", "aida", "pas", "hook", "cta", "benefit",
-    "objection", "proof", "testimonial", "urgency", "scarcity",
+    "headline",
+    "copy",
+    "formula",
+    "aida",
+    "pas",
+    "hook",
+    "cta",
+    "benefit",
+    "objection",
+    "proof",
+    "testimonial",
+    "urgency",
+    "scarcity",
   ],
   chart: [
-    "chart", "graph", "bar", "line", "pie", "funnel", "metrics", "data",
-    "visualization", "kpi", "trend", "comparison", "heatmap", "gauge",
+    "chart",
+    "graph",
+    "bar",
+    "line",
+    "pie",
+    "funnel",
+    "metrics",
+    "data",
+    "visualization",
+    "kpi",
+    "trend",
+    "comparison",
+    "heatmap",
+    "gauge",
   ],
 };
 
@@ -81,7 +173,10 @@ export const { detectDomain, search } = createDomainSearch({
 });
 
 /** Search across all domains, keeping only domains with results. */
-export async function searchAll(query: string, maxResults = 2): Promise<Record<string, SearchResult>> {
+export async function searchAll(
+  query: string,
+  maxResults = 2,
+): Promise<Record<string, SearchResult>> {
   const all: Record<string, SearchResult> = {};
   for (const domain of AVAILABLE_DOMAINS) {
     const result = await search(query, domain, maxResults);
@@ -112,7 +207,10 @@ async function loadDecisionCsv(csvType: string): Promise<Record<string, Row>> {
   return out;
 }
 
-export async function getLayoutForGoal(goal: string, previousEmotion?: string | null): Promise<Record<string, unknown>> {
+export async function getLayoutForGoal(
+  goal: string,
+  previousEmotion?: string | null,
+): Promise<Record<string, unknown>> {
   const layouts = await loadDecisionCsv("layout-logic");
   const row = layouts[goal] ?? layouts["features"];
   const result: Record<string, unknown> = row ? { ...row } : {};
@@ -142,7 +240,11 @@ const TYPOGRAPHY_TYPE_MAP: Record<string, string> = {
   timeline: "timeline",
 };
 
-export async function getTypographyForSlide(slideType: string, hasMetrics = false, hasQuote = false): Promise<Row> {
+export async function getTypographyForSlide(
+  slideType: string,
+  hasMetrics = false,
+  hasQuote = false,
+): Promise<Row> {
   const typography = await loadDecisionCsv("typography");
   if (hasMetrics) return typography["metric-callout"] ?? {};
   if (hasQuote) return typography["quote-block"] ?? {};
@@ -163,7 +265,11 @@ export async function getBackgroundConfig(slideType: string): Promise<Row> {
  * Premium decks use 2-3 full-bleed slides strategically: never consecutive,
  * spread across the deck, reserved for high-emotion beats.
  */
-export function shouldUseFullBleed(slideIndex: number, totalSlides: number, emotion: string): boolean {
+export function shouldUseFullBleed(
+  slideIndex: number,
+  totalSlides: number,
+  emotion: string,
+): boolean {
   if (!["hope", "urgency", "fear", "curiosity"].includes(emotion)) return false;
   if (totalSlides < 3) return false;
   const third = Math.floor(totalSlides / 3);
@@ -171,11 +277,18 @@ export function shouldUseFullBleed(slideIndex: number, totalSlides: number, emot
 }
 
 /** Pattern break for emotional contrast (Duarte Sparkline technique). */
-export function calculatePatternBreak(slideIndex: number, totalSlides: number, previousEmotion?: string | null): boolean {
+export function calculatePatternBreak(
+  slideIndex: number,
+  totalSlides: number,
+  previousEmotion?: string | null,
+): boolean {
   if (totalSlides < 5) return false;
   const third = Math.floor(totalSlides / 3);
   if (slideIndex === third || slideIndex === third * 2) return true;
-  return previousEmotion != null && ["frustration", "hope", "fear"].includes(previousEmotion);
+  return (
+    previousEmotion != null &&
+    ["frustration", "hope", "fear"].includes(previousEmotion)
+  );
 }
 
 const ANIMATION_MAP: Record<string, string> = {
@@ -243,8 +356,16 @@ export async function searchWithContext(
     };
   }
 
-  context.should_break_pattern = calculatePatternBreak(slidePosition, totalSlides, previousEmotion);
-  context.should_use_full_bleed = shouldUseFullBleed(slidePosition, totalSlides, emotion);
+  context.should_break_pattern = calculatePatternBreak(
+    slidePosition,
+    totalSlides,
+    previousEmotion,
+  );
+  context.should_use_full_bleed = shouldUseFullBleed(
+    slidePosition,
+    totalSlides,
+    emotion,
+  );
 
   if (context.use_background_image) {
     const bg = await getBackgroundConfig(goal);

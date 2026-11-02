@@ -1,1 +1,67 @@
-var c=Object.defineProperty;var f=Object.getOwnPropertyDescriptor;var b=Object.getOwnPropertyNames;var g=Object.prototype.hasOwnProperty;var p=(n,t)=>{for(var s in t)c(n,s,{get:t[s],enumerable:!0})},a=(n,t,s,o)=>{if(t&&typeof t=="object"||typeof t=="function")for(let i of b(t))!g.call(n,i)&&i!==s&&c(n,i,{get:()=>t[i],enumerable:!(o=f(t,i))||o.enumerable});return n};var L=n=>a(c({},"__esModule",{value:!0}),n);var x={};p(x,{initPermissionDialogPreload:()=>u});module.exports=L(x);var l=require("electron");function u(){if(typeof document>"u")return;let n=document.getElementById("permission-title"),t=document.getElementById("permission-desc"),s=document.getElementById("permission-subnote-text"),o=document.getElementById("btn-allow"),i=document.getElementById("btn-block"),r=document.getElementById("link-settings");function d(e){e&&(e.title&&n&&(n.textContent=e.title),e.desc&&t&&(t.textContent=e.desc),e.subnotePrefix&&s&&(s.textContent=e.subnotePrefix),e.settingsLabel&&r&&(r.textContent=e.settingsLabel),e.allowLabel&&o&&(o.textContent=e.allowLabel),e.blockLabel&&i&&(i.textContent=e.blockLabel))}l.ipcRenderer.on("permission:request-data",(e,m)=>{d(m)}),l.ipcRenderer.invoke("permission:get-current-request").then(e=>{d(e)}).catch(()=>{}),o&&o.addEventListener("click",()=>{l.ipcRenderer.send("permission:respond",{allowed:!0})}),i&&i.addEventListener("click",()=>{l.ipcRenderer.send("permission:respond",{allowed:!1})}),r&&r.addEventListener("click",e=>{e.preventDefault(),l.ipcRenderer.send("permission:open-settings")})}typeof window<"u"&&window.addEventListener("DOMContentLoaded",()=>{u()});0&&(module.exports={initPermissionDialogPreload});
+var c = Object.defineProperty;
+var f = Object.getOwnPropertyDescriptor;
+var b = Object.getOwnPropertyNames;
+var g = Object.prototype.hasOwnProperty;
+var p = (n, t) => {
+    for (var s in t) c(n, s, { get: t[s], enumerable: !0 });
+  },
+  a = (n, t, s, o) => {
+    if ((t && typeof t == "object") || typeof t == "function")
+      for (let i of b(t))
+        !g.call(n, i) &&
+          i !== s &&
+          c(n, i, {
+            get: () => t[i],
+            enumerable: !(o = f(t, i)) || o.enumerable,
+          });
+    return n;
+  };
+var L = (n) => a(c({}, "__esModule", { value: !0 }), n);
+var x = {};
+p(x, { initPermissionDialogPreload: () => u });
+module.exports = L(x);
+var l = require("electron");
+function u() {
+  if (typeof document > "u") return;
+  let n = document.getElementById("permission-title"),
+    t = document.getElementById("permission-desc"),
+    s = document.getElementById("permission-subnote-text"),
+    o = document.getElementById("btn-allow"),
+    i = document.getElementById("btn-block"),
+    r = document.getElementById("link-settings");
+  function d(e) {
+    e &&
+      (e.title && n && (n.textContent = e.title),
+      e.desc && t && (t.textContent = e.desc),
+      e.subnotePrefix && s && (s.textContent = e.subnotePrefix),
+      e.settingsLabel && r && (r.textContent = e.settingsLabel),
+      e.allowLabel && o && (o.textContent = e.allowLabel),
+      e.blockLabel && i && (i.textContent = e.blockLabel));
+  }
+  (l.ipcRenderer.on("permission:request-data", (e, m) => {
+    d(m);
+  }),
+    l.ipcRenderer
+      .invoke("permission:get-current-request")
+      .then((e) => {
+        d(e);
+      })
+      .catch(() => {}),
+    o &&
+      o.addEventListener("click", () => {
+        l.ipcRenderer.send("permission:respond", { allowed: !0 });
+      }),
+    i &&
+      i.addEventListener("click", () => {
+        l.ipcRenderer.send("permission:respond", { allowed: !1 });
+      }),
+    r &&
+      r.addEventListener("click", (e) => {
+        (e.preventDefault(), l.ipcRenderer.send("permission:open-settings"));
+      }));
+}
+typeof window < "u" &&
+  window.addEventListener("DOMContentLoaded", () => {
+    u();
+  });
+0 && (module.exports = { initPermissionDialogPreload });

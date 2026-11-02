@@ -22,8 +22,18 @@ async-trait = "0.1"
 # Subcommand parsing for the two demos.
 clap = { version = "4", features = ["derive"] }
 # Async runtime: the pipeline + WS transports are tokio-native.
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync", "time"] }
+tokio = { version = "1", features = [
+  "rt-multi-thread",
+  "macros",
+  "net",
+  "sync",
+  "time",
+] }
 # Stream/Sink combinators for driving the loopback WS client/server sockets.
 futures = "0.3"
 # WS server side for the self-contained loopback (mirror flowcat-transports' deps).
-tokio-tungstenite = { version = "0.30", default-features = false, features = ["connect", "handshake", "rustls-tls-webpki-roots"] }
+tokio-tungstenite = { version = "0.30", default-features = false, features = [
+  "connect",
+  "handshake",
+  "rustls-tls-webpki-roots",
+] }

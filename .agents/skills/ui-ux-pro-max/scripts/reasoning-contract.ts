@@ -38,8 +38,16 @@ export const CONDITION_SIGNALS: Readonly<Record<string, readonly string[]>> = {
   if_video_ready: ["video ready", "product video", "demo video"],
 };
 
-export const ALLOWED_CONDITIONS: ReadonlySet<string> = new Set(["must_have", ...Object.keys(CONDITION_SIGNALS)]);
-export const ACTION_PREFIXES: ReadonlySet<string> = new Set(["constraint", "style", "pattern", "mode"]);
+export const ALLOWED_CONDITIONS: ReadonlySet<string> = new Set([
+  "must_have",
+  ...Object.keys(CONDITION_SIGNALS),
+]);
+export const ACTION_PREFIXES: ReadonlySet<string> = new Set([
+  "constraint",
+  "style",
+  "pattern",
+  "mode",
+]);
 const TOKEN_ACTION_PREFIXES = new Set(["constraint", "style"]);
 const TOKEN_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const WORD = "[\\p{L}\\p{N}_]";
@@ -109,7 +117,9 @@ class StrictJsonParser {
       this.index += 4;
       return null;
     }
-    const match = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/.exec(this.text.slice(this.index));
+    const match = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/.exec(
+      this.text.slice(this.index),
+    );
     if (match) {
       this.index += match[0].length;
       return Number(match[0]);
@@ -127,7 +137,8 @@ class StrictJsonParser {
     }
     for (;;) {
       this.ws();
-      if (this.text[this.index] !== '"') this.fail("Expecting property name enclosed in double quotes");
+      if (this.text[this.index] !== '"')
+        this.fail("Expecting property name enclosed in double quotes");
       const key = this.string();
       this.ws();
       if (this.text[this.index] !== ":") this.fail("Expecting ':' delimiter");
@@ -191,7 +202,16 @@ class StrictJsonParser {
       }
       if (ch === "\\") {
         const escape = this.text[this.index + 1];
-        const simple: Record<string, string> = { '"': '"', "\\": "\\", "/": "/", b: "\b", f: "\f", n: "\n", r: "\r", t: "\t" };
+        const simple: Record<string, string> = {
+          '"': '"',
+          "\\": "\\",
+          "/": "/",
+          b: "\b",
+          f: "\f",
+          n: "\n",
+          r: "\r",
+          t: "\t",
+        };
         if (escape !== undefined && escape in simple) {
           out += simple[escape];
           this.index += 2;
@@ -199,7 +219,8 @@ class StrictJsonParser {
         }
         if (escape === "u") {
           const hex = this.text.slice(this.index + 2, this.index + 6);
-          if (!/^[0-9a-fA-F]{4}$/.test(hex)) this.fail("Invalid \\uXXXX escape");
+          if (!/^[0-9a-fA-F]{4}$/.test(hex))
+            this.fail("Invalid \\uXXXX escape");
           out += String.fromCharCode(parseInt(hex, 16));
           this.index += 6;
           continue;
@@ -220,7 +241,9 @@ class DuplicateKeyError extends Error {
 }
 
 /** Parse the canonical condition -> action-array representation. */
-export function parseDecisionRules(raw: string | null | undefined): DecisionRules {
+export function parseDecisionRules(
+  raw: string | null | undefined,
+): DecisionRules {
   let rules: unknown;
   try {
     rules = new StrictJsonParser(raw || "{}").parse();
@@ -228,15 +251,18 @@ export function parseDecisionRules(raw: string | null | undefined): DecisionRule
     if (error instanceof DuplicateKeyError) throw new Error(error.message);
     throw new Error(`invalid decision-rule JSON: ${(error as Error).message}`);
   }
-  if (!(rules instanceof Map)) throw new Error("decision rules must be a JSON object");
+  if (!(rules instanceof Map))
+    throw new Error("decision rules must be a JSON object");
   const parsed: DecisionRules = new Map();
   for (const [condition, actions] of rules) {
-    if (!ALLOWED_CONDITIONS.has(condition)) throw new Error(`unknown decision-rule condition: ${condition}`);
+    if (!ALLOWED_CONDITIONS.has(condition))
+      throw new Error(`unknown decision-rule condition: ${condition}`);
     if (!Array.isArray(actions) || actions.length === 0) {
       throw new Error(`${condition} must map to a non-empty action array`);
     }
     for (const action of actions) validateAction(action);
-    if (new Set(actions).size !== actions.length) throw new Error(`${condition} contains duplicate actions`);
+    if (new Set(actions).size !== actions.length)
+      throw new Error(`${condition} contains duplicate actions`);
     parsed.set(condition, actions as string[]);
   }
   return parsed;
@@ -249,29 +275,46 @@ function validateAction(action: unknown): asserts action is string {
   const separator = action.indexOf(":");
   const prefix = action.slice(0, separator);
   const value = action.slice(separator + 1);
-  if (!ACTION_PREFIXES.has(prefix)) throw new Error(`unknown decision-rule action: ${action}`);
+  if (!ACTION_PREFIXES.has(prefix))
+    throw new Error(`unknown decision-rule action: ${action}`);
   if (TOKEN_ACTION_PREFIXES.has(prefix) && !TOKEN_RE.test(value)) {
     throw new Error(`invalid ${prefix} action value: ${value}`);
   }
-  if (prefix === "pattern" && !value.trim()) throw new Error("pattern action must name a pattern");
-  if (prefix === "mode" && value !== "dark" && value !== "light") throw new Error("mode action must be dark or light");
+  if (prefix === "pattern" && !value.trim())
+    throw new Error("pattern action must name a pattern");
+  if (prefix === "mode" && value !== "dark" && value !== "light")
+    throw new Error("mode action must be dark or light");
 }
 
 /** Return deterministic mutations and an audit trail; never execute data. */
-export function applyDecisionRules(rules: DecisionRules, query: string | null | undefined): AppliedRules {
+export function applyDecisionRules(
+  rules: DecisionRules,
+  query: string | null | undefined,
+): AppliedRules {
   const normalized = String(query ?? "").toLowerCase();
-  const result: AppliedRules = { activated: [], style_ids: [], constraints: [], pattern: null, mode: null };
+  const result: AppliedRules = {
+    activated: [],
+    style_ids: [],
+    constraints: [],
+    pattern: null,
+    mode: null,
+  };
   for (const [condition, actions] of rules) {
     const active =
-      condition === "must_have" || (CONDITION_PATTERNS.get(condition) ?? []).some((pattern) => pattern.test(normalized));
+      condition === "must_have" ||
+      (CONDITION_PATTERNS.get(condition) ?? []).some((pattern) =>
+        pattern.test(normalized),
+      );
     if (!active) continue;
     result.activated.push({ condition, actions: [...actions] });
     for (const action of actions) {
       const separator = action.indexOf(":");
       const prefix = action.slice(0, separator);
       const value = action.slice(separator + 1);
-      if (prefix === "style" && !result.style_ids.includes(value)) result.style_ids.push(value);
-      else if (prefix === "constraint" && !result.constraints.includes(value)) result.constraints.push(value);
+      if (prefix === "style" && !result.style_ids.includes(value))
+        result.style_ids.push(value);
+      else if (prefix === "constraint" && !result.constraints.includes(value))
+        result.constraints.push(value);
       else if (prefix === "pattern") result.pattern = value;
       else if (prefix === "mode") result.mode = value;
     }
@@ -280,6 +323,8 @@ export function applyDecisionRules(rules: DecisionRules, query: string | null | 
 }
 
 /** JSON-friendly view of parsed rules (Maps serialize as {}). */
-export function decisionRulesToObject(rules: DecisionRules): Record<string, string[]> {
+export function decisionRulesToObject(
+  rules: DecisionRules,
+): Record<string, string[]> {
   return Object.fromEntries(rules);
 }

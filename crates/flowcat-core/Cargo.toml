@@ -16,8 +16,8 @@ categories.workspace = true
 # `reqwest`/`tonic`/`str0m`/`whisper-rs` live in the sibling crates.
 [features]
 default = ["sip", "recorder"]
-sip = []              # native SIP UA — already implicit; made explicit
-recorder = []         # call recorder-as-processor
+sip = [] # native SIP UA — already implicit; made explicit
+recorder = [] # call recorder-as-processor
 vad-ort = ["dep:ort", "dep:ndarray"] # Silero VAD + Smart-Turn ONNX impls (heavy → opt-in)
 # Noise suppression via a pure-Rust RNNoise port (`nnnoiseless`, no C/system
 # dep). Opt-in so the default core build stays light; the IdentityFilter
@@ -44,7 +44,11 @@ base64 = { version = "0.23", default-features = false, features = ["std"] }
 # WS client for the Gemini Live socket. `rustls-tls-webpki-roots` is a
 # self-contained TLS backend (bundled webpki roots, no system OpenSSL) that
 # resolves cleanly for wss:// — verified to compile.
-tokio-tungstenite = { version = "0.30", default-features = false, features = ["connect", "handshake", "rustls-tls-webpki-roots"] }
+tokio-tungstenite = { version = "0.30", default-features = false, features = [
+  "connect",
+  "handshake",
+  "rustls-tls-webpki-roots",
+] }
 # Sample-rate conversion (8k<->16k carrier<->Gemini-in, 24k->8k Gemini-out).
 rubato = "4"
 # Buffer views for rubato 4.x's `process_into_buffer` (audioadapter), same 4.x

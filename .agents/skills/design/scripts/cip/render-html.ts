@@ -33,7 +33,8 @@ export const DELIVERABLE_INFO: Record<string, DeliverableInfo> = {
   letterhead: {
     title: "Letterhead",
     concept: "Official correspondence identity",
-    purpose: "Establishes credibility and professionalism in written communications",
+    purpose:
+      "Establishes credibility and professionalism in written communications",
     specs: "A4/Letter size, digital and print versions",
   },
   "document template": {
@@ -45,7 +46,8 @@ export const DELIVERABLE_INFO: Record<string, DeliverableInfo> = {
   "reception signage": {
     title: "Reception Signage",
     concept: "Brand presence in physical office environment",
-    purpose: "Creates strong first impression for visitors and reinforces brand identity",
+    purpose:
+      "Creates strong first impression for visitors and reinforces brand identity",
     specs: "3D dimensional letters, backlit LED options, premium materials",
   },
   "office signage": {
@@ -98,18 +100,38 @@ export const DELIVERABLE_INFO: Record<string, DeliverableInfo> = {
   },
 };
 
-const IMAGE_MIME: Record<string, string> = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp" };
+const IMAGE_MIME: Record<string, string> = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+};
 
 const escapeHtml = (value: unknown) =>
-  String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
 
 /** Python str.title(). */
-const titleCase = (text: string) => text.toLowerCase().replace(/(^|[^\p{L}])(\p{L})/gu, (_, sep: string, ch: string) => sep + ch.toUpperCase());
+const titleCase = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(
+      /(^|[^\p{L}])(\p{L})/gu,
+      (_, sep: string, ch: string) => sep + ch.toUpperCase(),
+    );
 
 export function getDeliverableInfo(filename: string): DeliverableInfo {
   const lower = filename.toLowerCase();
   for (const [key, info] of Object.entries(DELIVERABLE_INFO)) {
-    if (lower.includes(key.replaceAll(" ", "-")) || lower.includes(key.replaceAll(" ", "_"))) return info;
+    if (
+      lower.includes(key.replaceAll(" ", "-")) ||
+      lower.includes(key.replaceAll(" ", "_"))
+    )
+      return info;
   }
   return {
     title: titleCase(filename.replaceAll("-", " ").replaceAll("_", " ")),
@@ -298,7 +320,12 @@ export async function generateHtml(options: {
     return null;
   }
 
-  const images = [...new Bun.Glob("*.{png,jpg,jpeg,webp}").scanSync({ cwd: imagesDir, onlyFiles: true })].sort();
+  const images = [
+    ...new Bun.Glob("*.{png,jpg,jpeg,webp}").scanSync({
+      cwd: imagesDir,
+      onlyFiles: true,
+    }),
+  ].sort();
   if (images.length === 0) {
     console.log(`Error: No PNG, JPEG or WebP images found in ${imagesDir}`);
     return null;
@@ -309,7 +336,8 @@ export async function generateHtml(options: {
   const industryInfo = brief.industry;
   const brand = escapeHtml(brandName);
 
-  const parts: string[] = [`<!DOCTYPE html>
+  const parts: string[] = [
+    `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -347,7 +375,8 @@ export async function generateHtml(options: {
             Comprehensive identity system designed to maintain consistency
             across all brand touchpoints and communications.
         </p>
-`];
+`,
+  ];
 
   for (const name of images) {
     const imagePath = join(imagesDir, name);
@@ -357,7 +386,9 @@ export async function generateHtml(options: {
       const bytes = await Bun.file(imagePath).bytes();
       src = `data:${IMAGE_MIME[extname(name).toLowerCase()] ?? "image/png"};base64,${Buffer.from(bytes).toString("base64")}`;
     } catch (error) {
-      console.log(`Warning: Could not load image ${imagePath}: ${(error as Error).message}`);
+      console.log(
+        `Warning: Could not load image ${imagePath}: ${(error as Error).message}`,
+      );
       src = imagePath;
     }
     parts.push(`
@@ -375,7 +406,11 @@ export async function generateHtml(options: {
 `);
   }
 
-  const generatedOn = new Date().toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" });
+  const generatedOn = new Date().toLocaleDateString("en-US", {
+    month: "long",
+    day: "2-digit",
+    year: "numeric",
+  });
   parts.push(`
     </section>
 
@@ -388,7 +423,15 @@ export async function generateHtml(options: {
 </html>
 `);
 
-  const outputPath = options.outputPath ? resolve(options.outputPath) : join(imagesDir, `${brandName.toLowerCase().replaceAll(" ", "-").replace(/[^a-z0-9._-]+/g, "")}-cip-presentation.html`);
+  const outputPath = options.outputPath
+    ? resolve(options.outputPath)
+    : join(
+        imagesDir,
+        `${brandName
+          .toLowerCase()
+          .replaceAll(" ", "-")
+          .replace(/[^a-z0-9._-]+/g, "")}-cip-presentation.html`,
+      );
   await Bun.write(outputPath, parts.join(""));
   console.log(`✅ HTML presentation generated: ${outputPath}`);
   return outputPath;
@@ -406,7 +449,9 @@ async function main(): Promise<number> {
     },
   });
   if (!values.brand || !values.images) {
-    console.error("render-html.ts: error: the following arguments are required: --brand/-b, --images");
+    console.error(
+      "render-html.ts: error: the following arguments are required: --brand/-b, --images",
+    );
     return 2;
   }
   const written = await generateHtml({

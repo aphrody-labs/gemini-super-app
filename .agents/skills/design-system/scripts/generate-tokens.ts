@@ -49,7 +49,10 @@ export function flattenTokens(
     const currentPath = [...prefix, key];
     if (value && typeof value === "object") {
       if (value.$value !== undefined) {
-        result[toCssVarName(currentPath)] = resolveReference(value.$value, tokens);
+        result[toCssVarName(currentPath)] = resolveReference(
+          value.$value,
+          tokens,
+        );
       } else {
         flattenTokens(value, tokens, currentPath, result);
       }
@@ -64,7 +67,9 @@ const declarations = (vars: Record<string, unknown>): string =>
     .join("\n");
 
 export function generateCSS(tokens: TokenTree): string {
-  const primitive = flattenTokens(tokens.primitive || {}, tokens, ["primitive"]);
+  const primitive = flattenTokens(tokens.primitive || {}, tokens, [
+    "primitive",
+  ]);
   const semantic = flattenTokens(tokens.semantic || {}, tokens, []);
   const component = flattenTokens(tokens.component || {}, tokens, []);
   const darkSemantic = flattenTokens(tokens.dark?.semantic || {}, tokens, []);
@@ -100,7 +105,9 @@ ${declarations(darkSemantic)}
 }
 
 function semanticColorVars(tokens: TokenTree): string[] {
-  return Object.keys(flattenTokens(tokens.semantic || {}, tokens, [])).filter((key) => key.includes("color"));
+  return Object.keys(flattenTokens(tokens.semantic || {}, tokens, [])).filter(
+    (key) => key.includes("color"),
+  );
 }
 
 /**
@@ -109,7 +116,9 @@ function semanticColorVars(tokens: TokenTree): string[] {
  * light/dark switching of the generated tokens.
  */
 export function generateTailwind(tokens: TokenTree): string {
-  const lines = semanticColorVars(tokens).map((key) => `  --color-${key.replace(/^--color-/, "")}: var(${key});`);
+  const lines = semanticColorVars(tokens).map(
+    (key) => `  --color-${key.replace(/^--color-/, "")}: var(${key});`,
+  );
   return `/* Tailwind v4 theme - Auto-generated */
 /* Import after design-tokens.css in your Tailwind entry stylesheet:
    @import "tailwindcss" source("..");

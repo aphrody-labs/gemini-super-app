@@ -126,7 +126,11 @@ function ensureVoiceHubBackendRunning() {
             "C:\\Users\\aphro\\google\\scripts\\gemini_24_7_supervisor.ts";
           const conhost = "C:\\WINDOWS\\System32\\conhost.exe";
 
-          if (fs.existsSync(conhost) && fs.existsSync(bunExe) && fs.existsSync(supervisorScript)) {
+          if (
+            fs.existsSync(conhost) &&
+            fs.existsSync(bunExe) &&
+            fs.existsSync(supervisorScript)
+          ) {
             try {
               const child = cp.spawn(
                 conhost,
@@ -143,7 +147,8 @@ function ensureVoiceHubBackendRunning() {
             } catch {}
           }
 
-          const pywExe = "C:\\Users\\aphro\\google\\.venv\\Scripts\\pythonw.exe";
+          const pywExe =
+            "C:\\Users\\aphro\\google\\.venv\\Scripts\\pythonw.exe";
           const serverScript =
             "C:\\Users\\aphro\\google\\backend\\voice_bridge_server.py";
           if (fs.existsSync(pywExe) && fs.existsSync(serverScript)) {

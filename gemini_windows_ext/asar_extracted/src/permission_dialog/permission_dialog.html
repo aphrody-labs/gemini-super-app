@@ -1,1 +1,181 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Microphone Permission</title><link rel="stylesheet" href="../../assets/fonts/fonts.css"><link rel="stylesheet" href="../../assets/overlay_tokens.css"><style>*{box-sizing:border-box;margin:0;padding:0;user-select:none}html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-family);background:transparent}body{display:flex;justify-content:center;align-items:flex-start;padding:var(--overlay-gutter-xl)}.dialog-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;box-shadow:var(--shadow-elevation-3);width:440px;padding-block:18px;padding-inline:20px;display:flex;flex-direction:column;gap:12px;animation:m3SlideDown 0.18s cubic-bezier(0.05,0.7,0.1,1.0)}@keyframes m3SlideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}.header{display:flex;align-items:center;gap:12px}.icon-container{width:38px;height:38px;border-radius:10px;background:var(--icon-bg);display:flex;align-items:center;justify-content:center;color:var(--primary-blue);flex-shrink:0}.icon-container svg{width:22px;height:22px;fill:currentColor}.title-area{display:flex;flex-direction:column;gap:2px;overflow:hidden}.title{font-size:15px;font-weight:600;color:var(--text-color);line-height:1.3}.desc{font-size:12.5px;color:var(--subtext-color);line-height:1.45;padding-inline-start:2px}.subnote{font-size:11.5px;color:var(--hint-color);line-height:1.35;padding-inline-start:2px;margin-block-start:-2px}.settings-link{color:var(--primary-blue);text-decoration:underline;cursor:pointer;font-weight:500;background:none;border:none;font-family:inherit;font-size:inherit;padding:0;display:inline}.settings-link:hover{opacity:0.85}.actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-block-start:4px;padding-block-start:4px}button{border:none;border-radius:8px;padding-block:7px;padding-inline:18px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:background 0.15s ease,color 0.15s ease;outline:none}.btn-block{background:transparent;color:var(--btn-secondary-color)}.btn-block:hover{background:var(--btn-secondary-hover)}.btn-allow{background:var(--primary-blue);color:var(--on-primary);font-weight:600}.btn-allow:hover{opacity:0.92}</style></head><body><div class="dialog-card" id="card"><div class="header"><div class="icon-container" id="icon-box"><svg viewBox="0 0 24 24" id="icon-svg"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div><div class="title-area"><div class="title" id="permission-title"></div></div></div><div class="desc" id="permission-desc"></div><div class="subnote" id="permission-subnote"><span id="permission-subnote-text"></span><button class="settings-link" id="link-settings"></button>.</div><div class="actions"><button class="btn-block" id="btn-block"></button> <button class="btn-allow" id="btn-allow"></button></div></div></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Microphone Permission</title>
+    <link rel="stylesheet" href="../../assets/fonts/fonts.css" />
+    <link rel="stylesheet" href="../../assets/overlay_tokens.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: var(--font-family);
+        background: transparent;
+      }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: var(--overlay-gutter-xl);
+      }
+      .dialog-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        box-shadow: var(--shadow-elevation-3);
+        width: 440px;
+        padding-block: 18px;
+        padding-inline: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        animation: m3SlideDown 0.18s cubic-bezier(0.05, 0.7, 0.1, 1);
+      }
+      @keyframes m3SlideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .icon-container {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: var(--icon-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-blue);
+        flex-shrink: 0;
+      }
+      .icon-container svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+      }
+      .title-area {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        overflow: hidden;
+      }
+      .title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-color);
+        line-height: 1.3;
+      }
+      .desc {
+        font-size: 12.5px;
+        color: var(--subtext-color);
+        line-height: 1.45;
+        padding-inline-start: 2px;
+      }
+      .subnote {
+        font-size: 11.5px;
+        color: var(--hint-color);
+        line-height: 1.35;
+        padding-inline-start: 2px;
+        margin-block-start: -2px;
+      }
+      .settings-link {
+        color: var(--primary-blue);
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 500;
+        background: none;
+        border: none;
+        font-family: inherit;
+        font-size: inherit;
+        padding: 0;
+        display: inline;
+      }
+      .settings-link:hover {
+        opacity: 0.85;
+      }
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        margin-block-start: 4px;
+        padding-block-start: 4px;
+      }
+      button {
+        border: none;
+        border-radius: 8px;
+        padding-block: 7px;
+        padding-inline: 18px;
+        font-size: 13px;
+        font-weight: 500;
+        font-family: inherit;
+        cursor: pointer;
+        transition:
+          background 0.15s ease,
+          color 0.15s ease;
+        outline: none;
+      }
+      .btn-block {
+        background: transparent;
+        color: var(--btn-secondary-color);
+      }
+      .btn-block:hover {
+        background: var(--btn-secondary-hover);
+      }
+      .btn-allow {
+        background: var(--primary-blue);
+        color: var(--on-primary);
+        font-weight: 600;
+      }
+      .btn-allow:hover {
+        opacity: 0.92;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dialog-card" id="card">
+      <div class="header">
+        <div class="icon-container" id="icon-box">
+          <svg viewBox="0 0 24 24" id="icon-svg">
+            <path
+              d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"
+            />
+            <path
+              d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"
+            />
+          </svg>
+        </div>
+        <div class="title-area">
+          <div class="title" id="permission-title"></div>
+        </div>
+      </div>
+      <div class="desc" id="permission-desc"></div>
+      <div class="subnote" id="permission-subnote">
+        <span id="permission-subnote-text"></span
+        ><button class="settings-link" id="link-settings"></button>.
+      </div>
+      <div class="actions">
+        <button class="btn-block" id="btn-block"></button>
+        <button class="btn-allow" id="btn-allow"></button>
+      </div>
+    </div>
+  </body>
+</html>

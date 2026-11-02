@@ -13,10 +13,13 @@
 import { dirname, join } from "node:path";
 
 /** Walk up until dirname stops changing (Windows roots are 'C:\'). */
-export async function findProjectRoot(startDir: string): Promise<string | null> {
+export async function findProjectRoot(
+  startDir: string,
+): Promise<string | null> {
   let dir = startDir;
   for (;;) {
-    if (await Bun.file(join(dir, "assets", "design-tokens.css")).exists()) return dir;
+    if (await Bun.file(join(dir, "assets", "design-tokens.css")).exists())
+      return dir;
     const parent = dirname(dir);
     if (parent === dir) return null;
     dir = parent;
@@ -47,8 +50,13 @@ export const MINIMAL_TOKENS = [
 export function extractTokens(css: string, minimal = false): string {
   const rootBlocks = css.match(/:root\s*\{([^}]+)\}/g);
   if (!rootBlocks) return "";
-  let allVars = rootBlocks.flatMap((block) => block.match(/--[\w-]+:\s*[^;]+;/g) ?? []);
-  if (minimal) allVars = allVars.filter((v) => MINIMAL_TOKENS.some((token) => v.includes(token)));
+  let allVars = rootBlocks.flatMap(
+    (block) => block.match(/--[\w-]+:\s*[^;]+;/g) ?? [],
+  );
+  if (minimal)
+    allVars = allVars.filter((v) =>
+      MINIMAL_TOKENS.some((token) => v.includes(token)),
+    );
   allVars = [...new Set(allVars)];
   return `:root {\n  ${allVars.join("\n  ")}\n}`;
 }
@@ -63,7 +71,9 @@ async function main(): Promise<void> {
   const minimal = args.includes("--minimal");
   const wrapStyle = args.includes("--style");
   try {
-    const css = await Bun.file(join(projectRoot, "assets", "design-tokens.css")).text();
+    const css = await Bun.file(
+      join(projectRoot, "assets", "design-tokens.css"),
+    ).text();
     const tokens = extractTokens(css, minimal);
     console.log(
       wrapStyle

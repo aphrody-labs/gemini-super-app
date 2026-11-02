@@ -6,17 +6,17 @@ Ce document décrit l'architecture complète et le plan d'exécution pour consol
 
 ## 1. Inventaire des 9 Sous-Modules Git (`vendor/`)
 
-| Sous-Module | URL d'Origine | Rôle Audio / Voix / Écosystème Gemini | Destination Consolidée |
-| :--- | :--- | :--- | :--- |
-| `vendor/voicebox` | `https://github.com/aphrody-dev/voicebox` | Studio de clonage vocal multi-pistes, capture `cpal`, lecture multi-périphériques `symphonia`/`hound`, SSE speak monitor, Qwen3-TTS / Kokoro / Gemini TTS | `crates/voicebox-audio`, `packages/voicebox_sdk`, `apps/gemini_super_app` |
-| `vendor/locally-uncensored` | `https://github.com/aphrody-dev/locally-uncensored` | Boucle vocale locale (`voice_loop`), superviseur Whisper STT, synthèse vocale Piper ONNX, génération musicale ACE-Step 1.5 | `crates/lu-voice-engine`, `backend/super_app_hub.py`, `apps/gemini_super_app` |
-| `vendor/jan` | `https://github.com/aphrody-dev/jan` | Agent Development Kit (ADK TypeScript & Python), détection matérielle/GPU, plugins RAG/Vector-DB et orchestration d'agents vocaux | `crates/jan-agent-audio`, `packages/jan_adk`, `apps/gemini_super_app` |
-| `vendor/ytmdesktop` | `https://github.com/ytmdesktop/ytmdesktop` | Client compagnon YouTube Music Desktop, télémétrie de lecture en temps réel, contrôle média WebSocket et intégration Google Music | `packages/ytm_client`, `apps/gemini_super_app` |
-| `vendor/awesome-rust` | `https://github.com/rust-unofficial/awesome-rust#audio-and-music` | Catalogue de référence Rust `#audio-and-music` et `#google-gemini` avec parseur et vérificateur de crates audio | `crates/awesome-rust-audio`, `apps/gemini_super_app` |
-| `vendor/flowcat` | `https://github.com/aphrody-labs/flowcat` | Runtime temps réel S2S (`GeminiLiveClient`), WebRTC (`str0m` + Opus), SIP/RTP/SDP, VAD, Google STT/TTS gRPC, graphe d'agent `AgentBrain` | `crates/flowcat-core`, `crates/flowcat-services`, `crates/flowcat-transports`, `crates/flowcat-telephony`, `crates/flowcat-agent`, `crates/flowcat-server`, `crates/flowcat-cli` |
-| `vendor/polaris` | `https://github.com/aphrody-labs/polaris` | Indexation et streaming musical haute fidélité (FLAC, MP3, Opus, MP4, Vorbis, WAV) propulsé par `symphonia` | `crates/polaris-audio`, `apps/gemini_super_app` |
-| `vendor/audiocraft` | `https://github.com/aphrody-dev/audiocraft` | Génération musicale et sonore profonde (MusicGen, AudioGen, EnCodec, JASCO) orchestrée via `uv` et couplée à Gemini Lyria / Live | `packages/audiocraft_bridge`, `backend/super_app_hub.py`, `apps/gemini_super_app` |
-| `vendor/bun-video` | `https://github.com/aphrody-labs/bun-video/tree/main` | Moteur natif Rust + Bun de décodage/encodage audio-vidéo (RGBA, FFV1, PCM, HLS/DASH, Mediabunny) sans dépendances Node.js | `crates/bun-video-native`, `packages/bun_media`, `packages/mediabunny`, `apps/gemini_super_app` |
+| Sous-Module                 | URL d'Origine                                                     | Rôle Audio / Voix / Écosystème Gemini                                                                                                                     | Destination Consolidée                                                                                                                                                           |
+| :-------------------------- | :---------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vendor/voicebox`           | `https://github.com/aphrody-dev/voicebox`                         | Studio de clonage vocal multi-pistes, capture `cpal`, lecture multi-périphériques `symphonia`/`hound`, SSE speak monitor, Qwen3-TTS / Kokoro / Gemini TTS | `crates/voicebox-audio`, `packages/voicebox_sdk`, `apps/gemini_super_app`                                                                                                        |
+| `vendor/locally-uncensored` | `https://github.com/aphrody-dev/locally-uncensored`               | Boucle vocale locale (`voice_loop`), superviseur Whisper STT, synthèse vocale Piper ONNX, génération musicale ACE-Step 1.5                                | `crates/lu-voice-engine`, `backend/super_app_hub.py`, `apps/gemini_super_app`                                                                                                    |
+| `vendor/jan`                | `https://github.com/aphrody-dev/jan`                              | Agent Development Kit (ADK TypeScript & Python), détection matérielle/GPU, plugins RAG/Vector-DB et orchestration d'agents vocaux                         | `crates/jan-agent-audio`, `packages/jan_adk`, `apps/gemini_super_app`                                                                                                            |
+| `vendor/ytmdesktop`         | `https://github.com/ytmdesktop/ytmdesktop`                        | Client compagnon YouTube Music Desktop, télémétrie de lecture en temps réel, contrôle média WebSocket et intégration Google Music                         | `packages/ytm_client`, `apps/gemini_super_app`                                                                                                                                   |
+| `vendor/awesome-rust`       | `https://github.com/rust-unofficial/awesome-rust#audio-and-music` | Catalogue de référence Rust `#audio-and-music` et `#google-gemini` avec parseur et vérificateur de crates audio                                           | `crates/awesome-rust-audio`, `apps/gemini_super_app`                                                                                                                             |
+| `vendor/flowcat`            | `https://github.com/aphrody-labs/flowcat`                         | Runtime temps réel S2S (`GeminiLiveClient`), WebRTC (`str0m` + Opus), SIP/RTP/SDP, VAD, Google STT/TTS gRPC, graphe d'agent `AgentBrain`                  | `crates/flowcat-core`, `crates/flowcat-services`, `crates/flowcat-transports`, `crates/flowcat-telephony`, `crates/flowcat-agent`, `crates/flowcat-server`, `crates/flowcat-cli` |
+| `vendor/polaris`            | `https://github.com/aphrody-labs/polaris`                         | Indexation et streaming musical haute fidélité (FLAC, MP3, Opus, MP4, Vorbis, WAV) propulsé par `symphonia`                                               | `crates/polaris-audio`, `apps/gemini_super_app`                                                                                                                                  |
+| `vendor/audiocraft`         | `https://github.com/aphrody-dev/audiocraft`                       | Génération musicale et sonore profonde (MusicGen, AudioGen, EnCodec, JASCO) orchestrée via `uv` et couplée à Gemini Lyria / Live                          | `packages/audiocraft_bridge`, `backend/super_app_hub.py`, `apps/gemini_super_app`                                                                                                |
+| `vendor/bun-video`          | `https://github.com/aphrody-labs/bun-video/tree/main`             | Moteur natif Rust + Bun de décodage/encodage audio-vidéo (RGBA, FFV1, PCM, HLS/DASH, Mediabunny) sans dépendances Node.js                                 | `crates/bun-video-native`, `packages/bun_media`, `packages/mediabunny`, `apps/gemini_super_app`                                                                                  |
 
 ---
 
@@ -83,35 +83,39 @@ Toutes les applications finales sont regroupées dans `apps/` :
 ## 5. Matrices de Migration Technologique (Novembre 2026)
 
 ### A. Tauri v2 $\rightarrow$ Tauri v3 Alpha
-| Composant | Ancienne Version (Tauri v2) | Version Consolidée (Novembre 2026 — Tauri v3 Alpha) |
-| :--- | :--- | :--- |
-| Crate `tauri` | `2.8.x` / `2.9.x` | `3.0.0-alpha.5` |
-| Crate `tauri-build` | `2.4.x` / `2.5.x` | `3.0.0-alpha.4` |
-| Crate `tauri-plugin` | `2.4.x` / `2.5.x` | `3.0.0-alpha.4` |
-| Crates `tauri-plugin-shell`, `fs`, `process`, `http`, `log`, `os`, `store`, `opener`, `updater`, `deep-link`, `single-instance`, `global-shortcut` | `2.x` | `3.0.0-alpha.3` |
-| Crate `tauri-plugin-dialog` | `2.x` | `3.0.0-alpha.4` |
-| NPM `@tauri-apps/api` | `^2.8.0` | `^3.0.0-alpha.3` |
-| NPM `@tauri-apps/cli` | `^2.8.0` | `^3.0.0-alpha.5` |
-| NPM `@tauri-apps/plugin-dialog` | `^2.4.0` | `^3.0.0-alpha.4` |
-| NPM `@tauri-apps/plugin-*` (`shell`, `fs`, `http`, `log`, `os`, `process`, `store`, `opener`, `updater`, `deep-link`) | `^2.x` | `^3.0.0-alpha.3` |
+
+| Composant                                                                                                                                          | Ancienne Version (Tauri v2) | Version Consolidée (Novembre 2026 — Tauri v3 Alpha) |
+| :------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------- | :-------------------------------------------------- |
+| Crate `tauri`                                                                                                                                      | `2.8.x` / `2.9.x`           | `3.0.0-alpha.5`                                     |
+| Crate `tauri-build`                                                                                                                                | `2.4.x` / `2.5.x`           | `3.0.0-alpha.4`                                     |
+| Crate `tauri-plugin`                                                                                                                               | `2.4.x` / `2.5.x`           | `3.0.0-alpha.4`                                     |
+| Crates `tauri-plugin-shell`, `fs`, `process`, `http`, `log`, `os`, `store`, `opener`, `updater`, `deep-link`, `single-instance`, `global-shortcut` | `2.x`                       | `3.0.0-alpha.3`                                     |
+| Crate `tauri-plugin-dialog`                                                                                                                        | `2.x`                       | `3.0.0-alpha.4`                                     |
+| NPM `@tauri-apps/api`                                                                                                                              | `^2.8.0`                    | `^3.0.0-alpha.3`                                    |
+| NPM `@tauri-apps/cli`                                                                                                                              | `^2.8.0`                    | `^3.0.0-alpha.5`                                    |
+| NPM `@tauri-apps/plugin-dialog`                                                                                                                    | `^2.4.0`                    | `^3.0.0-alpha.4`                                    |
+| NPM `@tauri-apps/plugin-*` (`shell`, `fs`, `http`, `log`, `os`, `process`, `store`, `opener`, `updater`, `deep-link`)                              | `^2.x`                      | `^3.0.0-alpha.3`                                    |
 
 ### B. Node-API / Node.js $\rightarrow$ APIs Natives Bun v1.4.5
-| Usage Historique (Node.js / npm) | Remplacement Natif Bun v1.4.5 |
-| :--- | :--- |
+
+| Usage Historique (Node.js / npm)                                  | Remplacement Natif Bun v1.4.5                                                              |
+| :---------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
 | `node:fs` / `fs/promises` (`readFile`, `writeFile`, `existsSync`) | `Bun.file(path).text()`, `.json()`, `.bytes()`, `.exists()`, `await Bun.write(dest, data)` |
-| `node:child_process` (`spawn`, `execFile`) / `execa` | `Bun.spawn()` / `Bun.spawnSync()` / `Bun.$` (`import { $ } from "bun"`) |
-| `express` / `fastify` / `ws` | `Bun.serve({ routes, fetch, websocket })` |
-| `better-sqlite3` / `sqlite3` | `import { Database } from "bun:sqlite"` (mode WAL) |
-| `node-av` (bindings C++ FFmpeg Node-API) | `crates/bun-video-native` + `Bun.spawn(["ffmpeg", ...])` + `Bun.file()` |
-| `glob` / `fast-glob` / `rimraf` | `new Bun.Glob(pattern)` / `Bun.$` |
-| `dotenv` | Chargement automatique `.env` intégré à Bun |
-| `tsc --noEmit`, `prettier`, `eslint`, `vitest`/`jest` | `bun check`, `bun fmt`, `bun lint`, `bun test` |
+| `node:child_process` (`spawn`, `execFile`) / `execa`              | `Bun.spawn()` / `Bun.spawnSync()` / `Bun.$` (`import { $ } from "bun"`)                    |
+| `express` / `fastify` / `ws`                                      | `Bun.serve({ routes, fetch, websocket })`                                                  |
+| `better-sqlite3` / `sqlite3`                                      | `import { Database } from "bun:sqlite"` (mode WAL)                                         |
+| `node-av` (bindings C++ FFmpeg Node-API)                          | `crates/bun-video-native` + `Bun.spawn(["ffmpeg", ...])` + `Bun.file()`                    |
+| `glob` / `fast-glob` / `rimraf`                                   | `new Bun.Glob(pattern)` / `Bun.$`                                                          |
+| `dotenv`                                                          | Chargement automatique `.env` intégré à Bun                                                |
+| `tsc --noEmit`, `prettier`, `eslint`, `vitest`/`jest`             | `bun check`, `bun fmt`, `bun lint`, `bun test`                                             |
 
 ### C. Python `pip` / `venv` / `conda` $\rightarrow$ `uv` (v0.13.6+)
+
 - **Manifeste unique** : `pyproject.toml` à la racine géré par `uv` (`uv sync`, `uv run`, `uv lock`).
 - **Exécution unifiée** : Toutes les commandes Python (serveur `voice_bridge_server.py`, moteur `audiocraft`, boucle vocale `locally-uncensored`, backend `voicebox`, tests `pytest` et lint `ruff`) passent exclusivement par `uv run` / `uv tool run`.
 
 ### D. Versions des Dépendances Novembre 2026
+
 - **Rust (`Cargo.toml`)** : `edition = "2024"`, `tokio = "1.54.1"`, `serde = "1.0.229"`, `serde_json = "1.0.154"`, `anyhow = "1.0.104"`, `thiserror = "2.0.21"`, `axum = "0.8.9"`, `tokio-tungstenite = "0.30.0"`, `cpal = "0.18.2"`, `symphonia = "0.6.1"`, `hound = "3.5.1"`, `tracing = "0.1.44"`, `tracing-subscriber = "0.3.23"`, `clap = "4.6.7"`, `base64 = "0.23.1"`.
 - **Bun / TypeScript (`package.json`)** : `bun@1.4.5`, `@google/genai@^2.32.0`, `google-auth-library@^11.3.2`, `typescript@^7.0.2`, `@types/node@^26.6.6`, `@types/chrome@^0.3.7`, `react@^19.3.1`, `react-dom@^19.3.1`, `tailwindcss@^4.3.3`, `zod@^4.6.7`, `zustand@^5.0.16`, `lucide-react@^1.66.0`, `wavesurfer.js@^8.0.4`, `hono@^4.13.16`.
 - **Python (`pyproject.toml` via `uv`)** : `google-genai>=2.34.0`, `google-api-python-client>=2.201.0`, `google-auth>=2.62.0`, `aiohttp>=3.14.5`, `faster-whisper>=1.2.1`, `edge-tts>=7.3.1`, `numpy>=2.5.4`, `sounddevice>=0.5.6`, `websockets>=17.4`, `pydantic>=2.14.2`, `av>=19.0.2`, `onnxruntime>=1.31.1`, `huggingface-hub>=2.4.0`, `tokenizers>=0.23.3`, `pytest>=9.2.0`, `pytest-asyncio>=1.4.1`, `ruff>=0.9.0`.
@@ -121,6 +125,7 @@ Toutes les applications finales sont regroupées dans `apps/` :
 ## 6. Script d'Exécution Automatisé (`scripts/consolidate_monorepo.ts`)
 
 Le script `bun run scripts/consolidate_monorepo.ts` exécute de manière idempotente :
+
 1. La vérification des 9 sous-modules dans `vendor/`.
 2. La synchronisation et l'adaptation des crates Rust dans `crates/*` (incluant `flowcat-*` et `bun-video-native`) et la mise à jour des dépendances workspace Novembre 2026 + Tauri v3 Alpha.
 3. La génération et la vérification des packages Bun dans `packages/*` sans aucun appel Node-API déprécié.

@@ -17,7 +17,12 @@
 
 import { parseArgs } from "node:util";
 import type { Row } from "./lib/search-core.ts";
-import { AVAILABLE_DOMAINS, search, searchAll, searchWithContext } from "./slide-search-core.ts";
+import {
+  AVAILABLE_DOMAINS,
+  search,
+  searchAll,
+  searchWithContext,
+} from "./slide-search-core.ts";
 
 const FIELDS: Record<string, Array<[string, string]>> = {
   strategy: [
@@ -69,7 +74,8 @@ export function formatResult(result: Row, domain: string): string {
   const title = TITLE_FIELD[domain];
   if (!title) return "";
   const lines = [`**${result[title] ?? "N/A"}**`];
-  for (const [label, key] of FIELDS[domain] ?? []) lines.push(`  ${label}: ${result[key] ?? "N/A"}`);
+  for (const [label, key] of FIELDS[domain] ?? [])
+    lines.push(`  ${label}: ${result[key] ?? "N/A"}`);
   return lines.join("\n");
 }
 
@@ -77,7 +83,9 @@ export function formatContext(context: Record<string, any>): string {
   const out: string[] = [];
   out.push(`\n=== CONTEXTUAL RECOMMENDATIONS ===`);
   out.push(`Inferred Goal: ${context.inferred_goal ?? "N/A"}`);
-  out.push(`Position: Slide ${context.slide_position} of ${context.total_slides}`);
+  out.push(
+    `Position: Slide ${context.slide_position} of ${context.total_slides}`,
+  );
 
   if (context.recommended_layout) {
     out.push(`\n📐 Layout: ${context.recommended_layout}`);
@@ -98,8 +106,10 @@ export function formatContext(context: Record<string, any>): string {
     out.push(`   Text: ${color.text_color ?? "N/A"}`);
     out.push(`   Accent: ${color.accent_usage ?? "N/A"}`);
   }
-  if (context.should_break_pattern) out.push(`\n⚡ Pattern Break: YES (use contrasting layout)`);
-  if (context.should_use_full_bleed) out.push(`\n🖼️ Full Bleed: Recommended for emotional impact`);
+  if (context.should_break_pattern)
+    out.push(`\n⚡ Pattern Break: YES (use contrasting layout)`);
+  if (context.should_use_full_bleed)
+    out.push(`\n🖼️ Full Bleed: Recommended for emotional impact`);
   if (context.use_background_image && context.background) {
     const bg = context.background;
     out.push(`\n📸 Background Image:`);
@@ -139,11 +149,15 @@ async function main(): Promise<void> {
 
   const query = positionals[0];
   if (!query) {
-    console.error("usage: search-slides.ts [-h] [-d {strategy,layout,copy,chart}] [-n MAX_RESULTS] [--all] [--json] [--context] query");
+    console.error(
+      "usage: search-slides.ts [-h] [-d {strategy,layout,copy,chart}] [-n MAX_RESULTS] [--all] [--json] [--context] query",
+    );
     process.exit(2);
   }
   if (values.domain && !AVAILABLE_DOMAINS.includes(values.domain)) {
-    console.error(`error: argument -d/--domain: invalid choice: '${values.domain}' (choose from ${AVAILABLE_DOMAINS.join(", ")})`);
+    console.error(
+      `error: argument -d/--domain: invalid choice: '${values.domain}' (choose from ${AVAILABLE_DOMAINS.join(", ")})`,
+    );
     process.exit(2);
   }
   const maxResults = intOption(values["max-results"], 3, "-n/--max-results");

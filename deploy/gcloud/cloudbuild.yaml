@@ -1,26 +1,26 @@
 steps:
   # 1. Build and verify Rust DSP crates
-  - name: 'rust:latest'
-    entrypoint: 'cargo'
-    args: ['test', '--workspace']
+  - name: "rust:latest"
+    entrypoint: "cargo"
+    args: ["test", "--workspace"]
 
   # 2. Lint and format Python codebase with Ruff
-  - name: 'ghcr.io/astral-sh/uv:latest'
-    entrypoint: 'uv'
-    args: ['tool', 'run', 'ruff', 'check', 'backend', 'tests']
+  - name: "ghcr.io/astral-sh/uv:latest"
+    entrypoint: "uv"
+    args: ["tool", "run", "ruff", "check", "backend", "tests"]
 
   # 3. Test Bun workspace packages
-  - name: 'oven/bun:1.4.5'
-    entrypoint: 'bun'
-    args: ['test']
+  - name: "oven/bun:1.4.5"
+    entrypoint: "bun"
+    args: ["test"]
 
   # 4. Deploy Cloud Run service
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
-    entrypoint: 'gcloud'
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+    entrypoint: "gcloud"
     args:
-      - 'run'
-      - 'services'
-      - 'replace'
-      - 'deploy/gcloud/service.yaml'
-      - '--project=aphrody'
-      - '--region=europe-west1'
+      - "run"
+      - "services"
+      - "replace"
+      - "deploy/gcloud/service.yaml"
+      - "--project=aphrody"
+      - "--region=europe-west1"

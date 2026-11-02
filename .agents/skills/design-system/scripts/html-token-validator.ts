@@ -61,37 +61,55 @@ export class ValidationResult {
   }
 }
 
-export async function loadCssVariables(tokensCssPath: string): Promise<Map<string, string>> {
+export async function loadCssVariables(
+  tokensCssPath: string,
+): Promise<Map<string, string>> {
   const variables = new Map<string, string>();
   const file = Bun.file(tokensCssPath);
   if (await file.exists()) {
-    for (const match of (await file.text()).matchAll(/(--[\w-]+):\s*([^;]+);/g)) {
+    for (const match of (await file.text()).matchAll(
+      /(--[\w-]+):\s*([^;]+);/g,
+    )) {
       variables.set(match[1]!, match[2]!.trim());
     }
   }
   return variables;
 }
 
-function isInsideBlock(content: string, pos: number, openTag: string, closeTag: string): boolean {
+function isInsideBlock(
+  content: string,
+  pos: number,
+  openTag: string,
+  closeTag: string,
+): boolean {
   const pre = content.slice(0, pos);
   return pre.lastIndexOf(openTag) > pre.lastIndexOf(closeTag);
 }
 
 function getContext(content: string, pos: number, chars = 100): string {
-  return content.slice(Math.max(0, pos - chars), Math.min(content.length, pos + chars));
+  return content.slice(
+    Math.max(0, pos - chars),
+    Math.min(content.length, pos + chars),
+  );
 }
 
-const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegExp = (text: string) =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
  * Validate HTML content for design token compliance:
  * design-tokens.css import, no hardcoded colors/fonts in CSS (except
  * <script> blocks for Chart.js), and enough var(--token) usage.
  */
-export function validateHtml(content: string, filePath: string, verbose = false): ValidationResult {
+export function validateHtml(
+  content: string,
+  filePath: string,
+  verbose = false,
+): ValidationResult {
   const result = new ValidationResult(filePath);
 
-  if (!content.includes("design-tokens.css")) result.addError("Missing design-tokens.css import");
+  if (!content.includes("design-tokens.css"))
+    result.addError("Missing design-tokens.css import");
 
   for (const [pattern, description] of FORBIDDEN_PATTERNS) {
     for (const match of content.matchAll(pattern)) {
@@ -103,35 +121,61 @@ export function validateHtml(content: string, filePath: string, verbose = false)
         if (verbose) result.addWarning(`Allowed in <script>: ${matchText}`);
         continue;
       }
-      if (ALLOWED_EXCEPTIONS.some((exc) => context.toLowerCase().includes(exc))) {
+      if (
+        ALLOWED_EXCEPTIONS.some((exc) => context.toLowerCase().includes(exc))
+      ) {
         if (verbose) result.addWarning(`Allowed external: ${matchText}`);
         continue;
       }
-      if (description === "rgba color" && ALLOWED_RGBA_PATTERNS.some((p) => p.test(matchText))) {
+      if (
+        description === "rgba color" &&
+        ALLOWED_RGBA_PATTERNS.some((p) => p.test(matchText))
+      ) {
         if (verbose) result.addWarning(`Allowed brand rgba: ${matchText}`);
         continue;
       }
       if (context.includes("var(") && context.includes(matchText)) {
-        if (new RegExp(`var\\([^)]*${escapeRegExp(matchText)}[^)]*\\)`).test(context)) continue;
+        if (
+          new RegExp(`var\\([^)]*${escapeRegExp(matchText)}[^)]*\\)`).test(
+            context,
+          )
+        )
+          continue;
       }
 
       if (isInsideBlock(content, matchPos, "<style", "</style>")) {
         result.addError(`Hardcoded ${description} in <style>: ${matchText}`);
       } else if (context.includes('style="')) {
-        result.addError(`Hardcoded ${description} in inline style: ${matchText}`);
+        result.addError(
+          `Hardcoded ${description} in inline style: ${matchText}`,
+        );
       }
     }
   }
 
-  const tokenPatterns = [/var\(--color-/g, /var\(--primitive-/g, /var\(--typography-/g, /var\(--card-/g, /var\(--button-/g];
-  const tokenCount = tokenPatterns.reduce((sum, p) => sum + (content.match(p)?.length ?? 0), 0);
+  const tokenPatterns = [
+    /var\(--color-/g,
+    /var\(--primitive-/g,
+    /var\(--typography-/g,
+    /var\(--card-/g,
+    /var\(--button-/g,
+  ];
+  const tokenCount = tokenPatterns.reduce(
+    (sum, p) => sum + (content.match(p)?.length ?? 0),
+    0,
+  );
   if (tokenCount < 5) {
-    result.addWarning(`Low token usage (${tokenCount} var() references). Consider using more design tokens.`);
+    result.addWarning(
+      `Low token usage (${tokenCount} var() references). Consider using more design tokens.`,
+    );
   }
   return result;
 }
 
-export async function validateFile(filePath: string, verbose = false): Promise<ValidationResult> {
+export async function validateFile(
+  filePath: string,
+  verbose = false,
+): Promise<ValidationResult> {
   const file = Bun.file(filePath);
   if (!(await file.exists())) {
     const result = new ValidationResult(filePath);
@@ -141,21 +185,32 @@ export async function validateFile(filePath: string, verbose = false): Promise<V
   return validateHtml(await file.text(), filePath, verbose);
 }
 
-export async function validateDirectory(dirPath: string, verbose = false): Promise<ValidationResult[]> {
+export async function validateDirectory(
+  dirPath: string,
+  verbose = false,
+): Promise<ValidationResult[]> {
   let files: string[];
   try {
-    files = [...new Bun.Glob("*.html").scanSync({ cwd: dirPath, onlyFiles: true })].sort();
+    files = [
+      ...new Bun.Glob("*.html").scanSync({ cwd: dirPath, onlyFiles: true }),
+    ].sort();
   } catch {
     return [];
   }
-  return Promise.all(files.map((name) => validateFile(join(dirPath, name), verbose)));
+  return Promise.all(
+    files.map((name) => validateFile(join(dirPath, name), verbose)),
+  );
 }
 
 function printResult(result: ValidationResult, verbose = false): void {
   console.log(`  ${result.passed ? "✓" : "✗"} ${basename(result.filePath)}`);
-  for (const error of result.errors.slice(0, 5)) console.log(`      ├─ ${error}`);
-  if (result.errors.length > 5) console.log(`      └─ ... and ${result.errors.length - 5} more errors`);
-  if (verbose) for (const warning of result.warnings.slice(0, 3)) console.log(`      [warn] ${warning}`);
+  for (const error of result.errors.slice(0, 5))
+    console.log(`      ├─ ${error}`);
+  if (result.errors.length > 5)
+    console.log(`      └─ ... and ${result.errors.length - 5} more errors`);
+  if (verbose)
+    for (const warning of result.warnings.slice(0, 3))
+      console.log(`      [warn] ${warning}`);
 }
 
 function printSummary(allResults: Record<string, ValidationResult[]>): boolean {
@@ -174,7 +229,9 @@ function printSummary(allResults: Record<string, ValidationResult[]>): boolean {
     totalFiles += results.length;
     totalPassed += passed;
     totalErrors += results.reduce((sum, r) => sum + r.errors.length, 0);
-    console.log(`\n${failed === 0 ? "✓" : "✗"} ${assetType.toUpperCase()}: ${passed}/${results.length} passed`);
+    console.log(
+      `\n${failed === 0 ? "✓" : "✗"} ${assetType.toUpperCase()}: ${passed}/${results.length} passed`,
+    );
     for (const result of results) if (!result.passed) printResult(result);
   }
 
@@ -182,7 +239,9 @@ function printSummary(allResults: Record<string, ValidationResult[]>): boolean {
   if (totalErrors === 0) {
     console.log(`✓ ALL PASSED: ${totalPassed}/${totalFiles} files valid`);
   } else {
-    console.log(`✗ FAILED: ${totalFiles - totalPassed}/${totalFiles} files have issues (${totalErrors} total errors)`);
+    console.log(
+      `✗ FAILED: ${totalFiles - totalPassed}/${totalFiles} files have issues (${totalErrors} total errors)`,
+    );
   }
   console.log("-".repeat(60));
   return totalErrors === 0;
@@ -202,7 +261,9 @@ async function main(): Promise<void> {
 
   const type = String(values.type);
   if (!["slides", "infographics", "all"].includes(type)) {
-    console.error(`error: argument -t/--type: invalid choice: '${type}' (choose from slides, infographics, all)`);
+    console.error(
+      `error: argument -t/--type: invalid choice: '${type}' (choose from slides, infographics, all)`,
+    );
     process.exit(2);
   }
 
@@ -214,21 +275,30 @@ async function main(): Promise<void> {
   };
 
   if (values.colors) {
-    const variables = [...(await loadCssVariables(tokensCssPath))].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+    const variables = [...(await loadCssVariables(tokensCssPath))].sort(
+      ([a], [b]) => (a < b ? -1 : a > b ? 1 : 0),
+    );
     console.log("\nDesign Tokens (from design-tokens.css):");
     console.log("-".repeat(40));
-    for (const [name, value] of variables.slice(0, 30)) console.log(`  ${name}: ${value}`);
-    if (variables.length > 30) console.log(`  ... and ${variables.length - 30} more`);
+    for (const [name, value] of variables.slice(0, 30))
+      console.log(`  ${name}: ${value}`);
+    if (variables.length > 30)
+      console.log(`  ... and ${variables.length - 30} more`);
     return;
   }
 
   const verbose = Boolean(values.verbose);
   const allResults: Record<string, ValidationResult[]> = {};
   if (positionals.length > 0) {
-    allResults.specified = await Promise.all(positionals.map((p) => validateFile(p, verbose)));
+    allResults.specified = await Promise.all(
+      positionals.map((p) => validateFile(p, verbose)),
+    );
   } else {
     for (const assetType of type === "all" ? Object.keys(assetDirs) : [type]) {
-      allResults[assetType] = await validateDirectory(assetDirs[assetType]!, verbose);
+      allResults[assetType] = await validateDirectory(
+        assetDirs[assetType]!,
+        verbose,
+      );
     }
   }
 

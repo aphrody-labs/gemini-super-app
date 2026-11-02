@@ -1,6 +1,7 @@
 # RÈGLES GLOBALES OBLIGATOIRES — BUN (v1.4.4+ / v1.4.5)
 
 Sources officielles de référence :
+
 - **Release Bun v1.4.4+** : https://bun.com/blog/bun-v1.4.4
 - **Documentation officielle Bun** : https://github.com/oven-sh/bun/tree/main/docs
 - **Guides officiels Bun** : https://bun.com/guides
@@ -39,6 +40,6 @@ Sources officielles de référence :
 - **Fichiers, Globbing & Shell (`Bun.file`, `Bun.write`, `Bun.Glob`, `Bun.$`)** :
   - Préférer `Bun.file(path)` et `await Bun.write(dest, input)` (zero-copy `sendfile`) à `node:fs` (`readFile` / `writeFile`).
   - Utiliser `new Bun.Glob(pattern)` (avec support `extglob` et `brace ranges` en v1.4.4+) au lieu du paquet `glob` ou `fast-glob`.
-  - Utiliser `import { $ } from "bun"` (`await $\`cmd\``) au lieu de `execa` ou `child_process.exec`.
+  - Utiliser `import { $ } from "bun"` (`await $\`cmd\``) au lieu de `execa`ou`child_process.exec`.
 - **Tests unitaires (`bun:test`)** :
   - Importer depuis `"bun:test"` : `import { test, expect, describe, beforeEach, mock, spyOn } from "bun:test"`.

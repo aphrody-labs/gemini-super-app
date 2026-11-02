@@ -5,6 +5,7 @@ Detailed specifications for all primary and compound components. Every component
 ---
 
 ### 1. PromptDockCapsule (Floating Omni Input Dock)
+
 ```text
 PromptDockCapsule
   variants  docked-bottom, expanded-multimodal
@@ -20,6 +21,7 @@ PromptDockCapsule
 ---
 
 ### 2. Button
+
 ```text
 Button
   variants  primary, secondary, tonal, ghost, danger, icon-circle
@@ -36,6 +38,7 @@ Button
 ---
 
 ### 3. ModelSelector (Model Picker Dropdown)
+
 ```text
 ModelSelector
   variants  minimal-pill, drawer-header
@@ -50,6 +53,7 @@ ModelSelector
 ---
 
 ### 4. SuggestionChip (Prompt Starter)
+
 ```text
 SuggestionChip
   variants  standard-card, compact-pill
@@ -64,6 +68,7 @@ SuggestionChip
 ---
 
 ### 5. ChatBubble (User Message)
+
 ```text
 ChatBubble
   variants  user-pill
@@ -78,6 +83,7 @@ ChatBubble
 ---
 
 ### 6. AssistantMessageBlock (AI Markdown Response)
+
 ```text
 AssistantMessageBlock
   variants  streaming, complete, error
@@ -92,6 +98,7 @@ AssistantMessageBlock
 ---
 
 ### 7. SidebarNavigation (History & Drawer)
+
 ```text
 SidebarNavigation
   variants  rail-collapsed (68px), drawer-expanded (280px)
@@ -107,6 +114,7 @@ SidebarNavigation
 ---
 
 ### 8. VoiceOrb (Reactive Live Visualizer)
+
 ```text
 VoiceOrb
   variants  mini-orb (24px header), full-duplex (220px modal)
@@ -120,6 +128,7 @@ VoiceOrb
 ---
 
 ### 9. CitationAccordion (Web Grounding Sources)
+
 ```text
 CitationAccordion
   variants  collapsed-pill, expanded-drawer

@@ -12,19 +12,19 @@
   window.__AGY_GEMINI_VOICE_EXTENSION_LOADED__ = true;
 
   const SURFACE_NAME = window.geminiVoiceExtensionBridge
-    ? 'gemini_windows'
-    : 'gemini_web';
+    ? "gemini_windows"
+    : "gemini_web";
 
   // State
-  let liveState = 'IDLE'; // IDLE | LISTENING | THINKING | SPEAKING | INTERRUPTED
+  let liveState = "IDLE"; // IDLE | LISTENING | THINKING | SPEAKING | INTERRUPTED
   let isLiveActive = false;
   let isRecordingPtt = false;
-  let voiceMode = 'voice_to_voice'; // 'voice_to_voice' | 'dictation' | 'stc_window'
+  let voiceMode = "voice_to_voice"; // 'voice_to_voice' | 'dictation' | 'stc_window'
   let autoSubmitPrompt = false;
   let currentRms = 0.06;
   let angle = 0;
-  let lastTranscript = '';
-  let lastReply = '';
+  let lastTranscript = "";
+  let lastReply = "";
 
   // Audio capture & playback state
   let micStream = null;
@@ -47,33 +47,33 @@
       if (window.geminiVoiceExtensionBridge?.voiceAction) {
         return await window.geminiVoiceExtensionBridge.voiceAction(fullPayload);
       }
-      if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+      if (typeof chrome !== "undefined" && chrome.runtime?.sendMessage) {
         const res = await chrome.runtime.sendMessage({
-          type: 'VOICE_ACTION',
+          type: "VOICE_ACTION",
           payload: fullPayload,
         });
         return res?.data || res;
       }
-      const resp = await fetch('http://127.0.0.1:8765/api/voice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const resp = await fetch("http://127.0.0.1:8765/api/voice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(fullPayload),
       });
       return await resp.json();
     } catch (err) {
-      console.debug('[GeminiVoice] sendVoiceAction fallback error:', err);
+      console.debug("[GeminiVoice] sendVoiceAction fallback error:", err);
       return null;
     }
   }
 
   function arrayBufferToBase64(buffer) {
     const bytes = new Uint8Array(buffer);
-    let binary = '';
+    let binary = "";
     const chunkSize = 0x8000;
     for (let i = 0; i < bytes.length; i += chunkSize) {
       binary += String.fromCharCode.apply(
         null,
-        bytes.subarray(i, i + chunkSize)
+        bytes.subarray(i, i + chunkSize),
       );
     }
     return btoa(binary);
@@ -110,10 +110,10 @@
   }
 
   // Play synthesized TTS / Live audio response (WAV or MP3 base64)
-  async function playSynthesizedAudio(base64Audio, mimeType = 'audio/mpeg') {
+  async function playSynthesizedAudio(base64Audio, mimeType = "audio/mpeg") {
     if (!base64Audio) return;
     stopPlaybackForBargeIn();
-    liveState = 'SPEAKING';
+    liveState = "SPEAKING";
     updateUiState();
 
     try {
@@ -125,15 +125,15 @@
       }
 
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!playbackAudioCtx || playbackAudioCtx.state === 'closed') {
+      if (!playbackAudioCtx || playbackAudioCtx.state === "closed") {
         playbackAudioCtx = new AudioCtx();
       }
-      if (playbackAudioCtx.state === 'suspended') {
+      if (playbackAudioCtx.state === "suspended") {
         await playbackAudioCtx.resume();
       }
 
       const audioBuffer = await playbackAudioCtx.decodeAudioData(
-        bytes.buffer.slice(0)
+        bytes.buffer.slice(0),
       );
       const source = playbackAudioCtx.createBufferSource();
       const analyser = playbackAudioCtx.createAnalyser();
@@ -149,7 +149,10 @@
         analyser.getByteFrequencyData(dataArr);
         let sum = 0;
         for (let i = 0; i < dataArr.length; i++) sum += dataArr[i];
-        currentRms = Math.max(0.08, Math.min(0.95, sum / (dataArr.length * 180)));
+        currentRms = Math.max(
+          0.08,
+          Math.min(0.95, sum / (dataArr.length * 180)),
+        );
         requestAnimationFrame(monitorPlayback);
       };
       requestAnimationFrame(monitorPlayback);
@@ -157,7 +160,7 @@
       source.onended = () => {
         if (activeAudioSource === source) {
           activeAudioSource = null;
-          liveState = isLiveActive ? 'LISTENING' : 'IDLE';
+          liveState = isLiveActive ? "LISTENING" : "IDLE";
           currentRms = 0.06;
           updateUiState();
         }
@@ -171,15 +174,15 @@
         audio.onended = () => {
           if (activeHtmlAudio === audio) {
             activeHtmlAudio = null;
-            liveState = isLiveActive ? 'LISTENING' : 'IDLE';
+            liveState = isLiveActive ? "LISTENING" : "IDLE";
             currentRms = 0.06;
             updateUiState();
           }
         };
         await audio.play();
       } catch (e2) {
-        console.debug('[GeminiVoice] Audio playback notice:', e2);
-        liveState = isLiveActive ? 'LISTENING' : 'IDLE';
+        console.debug("[GeminiVoice] Audio playback notice:", e2);
+        liveState = isLiveActive ? "LISTENING" : "IDLE";
         updateUiState();
       }
     }
@@ -187,8 +190,8 @@
 
   // Start 16kHz PCM16 Microphone Capture for real Voice-to-Voice & STT
   async function startMicrophoneCapture() {
-    if (micStream && micAudioCtx && micAudioCtx.state !== 'closed') {
-      if (micAudioCtx.state === 'suspended') await micAudioCtx.resume();
+    if (micStream && micAudioCtx && micAudioCtx.state !== "closed") {
+      if (micAudioCtx.state === "suspended") await micAudioCtx.resume();
       return true;
     }
     try {
@@ -205,7 +208,7 @@
 
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       micAudioCtx = new AudioCtx({ sampleRate: 16000 });
-      if (micAudioCtx.state === 'suspended') await micAudioCtx.resume();
+      if (micAudioCtx.state === "suspended") await micAudioCtx.resume();
 
       const source = micAudioCtx.createMediaStreamSource(micStream);
       micAnalyser = micAudioCtx.createAnalyser();
@@ -233,7 +236,7 @@
           pcm16[i] = s < 0 ? s * 32768 : s * 32767;
         }
         const rms = Math.sqrt(sumSq / input.length);
-        if (liveState !== 'SPEAKING') {
+        if (liveState !== "SPEAKING") {
           currentRms = Math.max(0.05, Math.min(0.95, rms * 4.5));
         }
 
@@ -243,12 +246,12 @@
         }
 
         // Barge-in check: user speaks while Gemini is speaking
-        if (liveState === 'SPEAKING' && rms > 0.065) {
+        if (liveState === "SPEAKING" && rms > 0.065) {
           bargeInFrames++;
           if (bargeInFrames >= 2) {
             stopPlaybackForBargeIn();
-            sendVoiceAction({ action: 'interrupt' });
-            liveState = 'LISTENING';
+            sendVoiceAction({ action: "interrupt" });
+            liveState = "LISTENING";
             pcmChunks = [pcm16];
             speechDetectedInTurn = true;
             silenceStartMs = 0;
@@ -264,13 +267,17 @@
         if (isRecordingPtt) {
           pcmChunks.push(pcm16);
           speechDetectedInTurn = true;
-        } else if (isLiveActive && liveState !== 'THINKING' && liveState !== 'SPEAKING') {
+        } else if (
+          isLiveActive &&
+          liveState !== "THINKING" &&
+          liveState !== "SPEAKING"
+        ) {
           if (rms > 0.024) {
             pcmChunks.push(pcm16);
             speechDetectedInTurn = true;
             silenceStartMs = 0;
-            if (liveState !== 'LISTENING') {
-              liveState = 'LISTENING';
+            if (liveState !== "LISTENING") {
+              liveState = "LISTENING";
               updateUiState();
             }
           } else if (speechDetectedInTurn) {
@@ -293,7 +300,7 @@
       micScriptNode.connect(micAudioCtx.destination);
       return true;
     } catch (err) {
-      console.warn('[GeminiVoice] Microphone capture notice:', err);
+      console.warn("[GeminiVoice] Microphone capture notice:", err);
       return false;
     }
   }
@@ -308,7 +315,7 @@
         micStream.getTracks().forEach((t) => t.stop());
         micStream = null;
       }
-      if (micAudioCtx && micAudioCtx.state !== 'closed') {
+      if (micAudioCtx && micAudioCtx.state !== "closed") {
         micAudioCtx.close().catch(() => {});
         micAudioCtx = null;
       }
@@ -321,20 +328,20 @@
     // Avoid sending tiny clicks (< 0.25s)
     if (mergedBuffer.byteLength < 8000) return;
 
-    liveState = 'THINKING';
+    liveState = "THINKING";
     updateUiState();
 
     const pcm16Base64 = arrayBufferToBase64(mergedBuffer);
-    const autoReply = voiceMode === 'voice_to_voice';
+    const autoReply = voiceMode === "voice_to_voice";
 
     const res = await sendVoiceAction({
-      action: autoReply ? 'voice_to_voice' : 'stt_pcm16',
+      action: autoReply ? "voice_to_voice" : "stt_pcm16",
       pcm16_base64: pcm16Base64,
       auto_reply: autoReply,
     });
 
-    if (!res || res.status === 'empty' || !res.transcript) {
-      liveState = isLiveActive ? 'LISTENING' : 'IDLE';
+    if (!res || res.status === "empty" || !res.transcript) {
+      liveState = isLiveActive ? "LISTENING" : "IDLE";
       updateUiState();
       return;
     }
@@ -342,7 +349,10 @@
     lastTranscript = res.transcript;
     injectTranscriptIntoPage(res.transcript, autoSubmitPrompt);
 
-    if (voiceMode === 'stc_window' && window.geminiVoiceExtensionBridge?.injectUnicodeText) {
+    if (
+      voiceMode === "stc_window" &&
+      window.geminiVoiceExtensionBridge?.injectUnicodeText
+    ) {
       await window.geminiVoiceExtensionBridge.injectUnicodeText(res.transcript);
     }
 
@@ -352,9 +362,12 @@
     updateUiState();
 
     if (autoReply && res.audio_base64) {
-      await playSynthesizedAudio(res.audio_base64, res.mime_type || 'audio/mpeg');
+      await playSynthesizedAudio(
+        res.audio_base64,
+        res.mime_type || "audio/mpeg",
+      );
     } else {
-      liveState = isLiveActive ? 'LISTENING' : 'IDLE';
+      liveState = isLiveActive ? "LISTENING" : "IDLE";
       updateUiState();
     }
   }
@@ -368,7 +381,7 @@
         'div.ql-editor[contenteditable="true"]',
         'div[contenteditable="true"][ role="textbox" ]',
         'div[contenteditable="true"]',
-        'textarea',
+        "textarea",
         'input[type="text"]',
       ];
       let targetEl = null;
@@ -382,20 +395,20 @@
       if (!targetEl) return;
 
       targetEl.focus();
-      if (targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'INPUT') {
+      if (targetEl.tagName === "TEXTAREA" || targetEl.tagName === "INPUT") {
         targetEl.value = text;
-        targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+        targetEl.dispatchEvent(new Event("input", { bubbles: true }));
       } else {
         targetEl.textContent = text;
         targetEl.dispatchEvent(
-          new InputEvent('input', { bubbles: true, data: text })
+          new InputEvent("input", { bubbles: true, data: text }),
         );
       }
 
       if (submitAfter) {
         setTimeout(() => {
           const sendSelectors = [
-            'button.send-button',
+            "button.send-button",
             'button[aria-label*="Send message"]',
             'button[aria-label*="Envoyer"]',
             'button[aria-label*="Send"]',
@@ -415,32 +428,32 @@
 
   // Build Floating Voice-to-Voice Studio Pill UI
   function createFloatingVoiceRoot() {
-    if (document.getElementById('agy-gemini-live-floating-root')) return;
+    if (document.getElementById("agy-gemini-live-floating-root")) return;
 
-    const root = document.createElement('div');
-    root.id = 'agy-gemini-live-floating-root';
+    const root = document.createElement("div");
+    root.id = "agy-gemini-live-floating-root";
     root.style.cssText = [
-      'position: fixed',
-      'bottom: 22px',
-      'right: 22px',
-      'z-index: 2147483646',
-      'display: flex',
-      'flex-direction: column',
-      'gap: 8px',
-      'padding: 12px 16px',
-      'border-radius: 22px',
-      'background: rgba(13, 15, 24, 0.94)',
-      'border: 1px solid rgba(155, 114, 203, 0.5)',
-      'box-shadow: 0 10px 36px rgba(66, 133, 244, 0.35)',
-      'backdrop-filter: blur(20px)',
-      'color: #E8EAED',
+      "position: fixed",
+      "bottom: 22px",
+      "right: 22px",
+      "z-index: 2147483646",
+      "display: flex",
+      "flex-direction: column",
+      "gap: 8px",
+      "padding: 12px 16px",
+      "border-radius: 22px",
+      "background: rgba(13, 15, 24, 0.94)",
+      "border: 1px solid rgba(155, 114, 203, 0.5)",
+      "box-shadow: 0 10px 36px rgba(66, 133, 244, 0.35)",
+      "backdrop-filter: blur(20px)",
+      "color: #E8EAED",
       'font-family: "Google Sans", Roboto, system-ui, sans-serif',
-      'font-size: 12.5px',
-      'user-select: none',
-      'min-width: 310px',
-      'max-width: 380px',
-      'transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-    ].join(';');
+      "font-size: 12.5px",
+      "user-select: none",
+      "min-width: 310px",
+      "max-width: 380px",
+      "transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
+    ].join(";");
 
     root.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -486,151 +499,158 @@
     document.body.appendChild(root);
 
     // Event bindings
-    const orbHit = document.getElementById('agy-gem-orb-hit');
-    const liveBtn = document.getElementById('agy-gem-live-btn');
-    const pttBtn = document.getElementById('agy-gem-ptt-btn');
-    const modeToggle = document.getElementById('agy-gem-mode-toggle');
-    const stcBtn = document.getElementById('agy-gem-stc-btn');
-    const testBtn = document.getElementById('agy-gem-test-btn') || document.getElementById('agy-gem-Test-btn');
+    const orbHit = document.getElementById("agy-gem-orb-hit");
+    const liveBtn = document.getElementById("agy-gem-live-btn");
+    const pttBtn = document.getElementById("agy-gem-ptt-btn");
+    const modeToggle = document.getElementById("agy-gem-mode-toggle");
+    const stcBtn = document.getElementById("agy-gem-stc-btn");
+    const testBtn =
+      document.getElementById("agy-gem-test-btn") ||
+      document.getElementById("agy-gem-Test-btn");
 
     const toggleLiveVoice = async () => {
       isLiveActive = !isLiveActive;
       if (isLiveActive) {
         await startMicrophoneCapture();
-        liveState = 'LISTENING';
+        liveState = "LISTENING";
       } else {
         stopPlaybackForBargeIn();
         if (!isRecordingPtt) stopMicrophoneCapture();
-        liveState = 'IDLE';
+        liveState = "IDLE";
       }
-      await sendVoiceAction({ action: 'toggle_live', enabled: isLiveActive });
+      await sendVoiceAction({ action: "toggle_live", enabled: isLiveActive });
       updateUiState();
     };
 
-    orbHit?.addEventListener('click', toggleLiveVoice);
-    liveBtn?.addEventListener('click', (e) => {
+    orbHit?.addEventListener("click", toggleLiveVoice);
+    liveBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
       toggleLiveVoice();
     });
 
-    pttBtn?.addEventListener('click', async (e) => {
+    pttBtn?.addEventListener("click", async (e) => {
       e.stopPropagation();
       isRecordingPtt = !isRecordingPtt;
       if (isRecordingPtt) {
         stopPlaybackForBargeIn();
         pcmChunks = [];
         await startMicrophoneCapture();
-        liveState = 'LISTENING';
-        await sendVoiceAction({ action: 'ptt_start' });
+        liveState = "LISTENING";
+        await sendVoiceAction({ action: "ptt_start" });
       } else {
         const captured = pcmChunks.slice();
         pcmChunks = [];
-        await sendVoiceAction({ action: 'ptt_stop' });
+        await sendVoiceAction({ action: "ptt_stop" });
         if (captured.length > 0) {
           await submitCapturedPcmUtterance(captured);
         } else {
-          liveState = isLiveActive ? 'LISTENING' : 'IDLE';
+          liveState = isLiveActive ? "LISTENING" : "IDLE";
         }
       }
       updateUiState();
     });
 
-    modeToggle?.addEventListener('click', () => {
-      if (voiceMode === 'voice_to_voice') {
-        voiceMode = 'dictation';
+    modeToggle?.addEventListener("click", () => {
+      if (voiceMode === "voice_to_voice") {
+        voiceMode = "dictation";
         autoSubmitPrompt = true;
-      } else if (voiceMode === 'dictation') {
-        voiceMode = 'stc_window';
+      } else if (voiceMode === "dictation") {
+        voiceMode = "stc_window";
         autoSubmitPrompt = false;
       } else {
-        voiceMode = 'voice_to_voice';
+        voiceMode = "voice_to_voice";
         autoSubmitPrompt = false;
       }
       updateUiState();
     });
 
-    stcBtn?.addEventListener('click', async () => {
+    stcBtn?.addEventListener("click", async () => {
       if (window.geminiVoiceExtensionBridge?.triggerStcPill) {
         await window.geminiVoiceExtensionBridge.triggerStcPill();
       } else {
         await sendVoiceAction({
-          action: 'pilot_gemini_windows',
-          command: 'stc_trigger',
+          action: "pilot_gemini_windows",
+          command: "stc_trigger",
         });
       }
     });
 
-    testBtn?.addEventListener('click', async () => {
-      liveState = 'THINKING';
+    testBtn?.addEventListener("click", async () => {
+      liveState = "THINKING";
       updateUiState();
       const res = await sendVoiceAction({
-        action: 'voice_to_voice',
-        text: 'Salut Gemini, confirme que le mode Voice-to-Voice fonctionne !',
+        action: "voice_to_voice",
+        text: "Salut Gemini, confirme que le mode Voice-to-Voice fonctionne !",
         auto_reply: true,
       });
       if (res) {
-        lastTranscript = res.transcript || 'Salut Gemini !';
-        lastReply = res.reply_text || res.model_turn?.text || '';
+        lastTranscript = res.transcript || "Salut Gemini !";
+        lastReply = res.reply_text || res.model_turn?.text || "";
         updateUiState();
         if (res.audio_base64) {
-          await playSynthesizedAudio(res.audio_base64, res.mime_type || 'audio/mpeg');
+          await playSynthesizedAudio(
+            res.audio_base64,
+            res.mime_type || "audio/mpeg",
+          );
         }
       }
     });
   }
 
   function updateUiState() {
-    const statusTitle = document.getElementById('agy-gem-status-title');
-    const statusSub = document.getElementById('agy-gem-status-sub');
-    const liveBtn = document.getElementById('agy-gem-live-btn');
-    const pttBtn = document.getElementById('agy-gem-ptt-btn');
-    const modeToggle = document.getElementById('agy-gem-mode-toggle');
-    const transcriptBox = document.getElementById('agy-gem-transcript-box');
-    const userLine = document.getElementById('agy-gem-user-line');
-    const modelLine = document.getElementById('agy-gem-model-line');
+    const statusTitle = document.getElementById("agy-gem-status-title");
+    const statusSub = document.getElementById("agy-gem-status-sub");
+    const liveBtn = document.getElementById("agy-gem-live-btn");
+    const pttBtn = document.getElementById("agy-gem-ptt-btn");
+    const modeToggle = document.getElementById("agy-gem-mode-toggle");
+    const transcriptBox = document.getElementById("agy-gem-transcript-box");
+    const userLine = document.getElementById("agy-gem-user-line");
+    const modelLine = document.getElementById("agy-gem-model-line");
 
     if (statusTitle) {
       statusTitle.textContent = isLiveActive
         ? `Gemini Live • ${liveState}`
         : isRecordingPtt
-        ? '● Enregistrement vocal...'
-        : 'Gemini Live /voice';
+          ? "● Enregistrement vocal..."
+          : "Gemini Live /voice";
     }
     if (statusSub) {
       statusSub.textContent =
-        liveState === 'SPEAKING'
-          ? 'Gemini parle (parlez pour interrompre)'
-          : liveState === 'LISTENING'
-          ? 'Micro 16kHz actif • Parlez librement'
-          : liveState === 'THINKING'
-          ? 'Whisper STT + Gemini 3.8 Live...'
-          : 'Voice-to-Voice • Aoede HD';
+        liveState === "SPEAKING"
+          ? "Gemini parle (parlez pour interrompre)"
+          : liveState === "LISTENING"
+            ? "Micro 16kHz actif • Parlez librement"
+            : liveState === "THINKING"
+              ? "Whisper STT + Gemini 3.8 Live..."
+              : "Voice-to-Voice • Aoede HD";
     }
     if (liveBtn) {
       liveBtn.style.background = isLiveActive
-        ? 'rgba(129, 201, 149, 0.25)'
-        : 'rgba(66, 133, 244, 0.18)';
-      liveBtn.style.color = isLiveActive ? '#81C995' : '#8AB4F8';
-      liveBtn.textContent = isLiveActive ? '● /voice ON' : '/voice';
+        ? "rgba(129, 201, 149, 0.25)"
+        : "rgba(66, 133, 244, 0.18)";
+      liveBtn.style.color = isLiveActive ? "#81C995" : "#8AB4F8";
+      liveBtn.textContent = isLiveActive ? "● /voice ON" : "/voice";
     }
     if (pttBtn) {
-      pttBtn.textContent = isRecordingPtt ? '■ Stop' : '● Record';
+      pttBtn.textContent = isRecordingPtt ? "■ Stop" : "● Record";
     }
     if (modeToggle) {
       const labels = {
-        voice_to_voice: '⇄ Mode: Voice-to-Voice',
-        dictation: '⇄ Mode: Dictée + Envoi',
-        stc_window: '⇄ Mode: Speak-to-Window',
+        voice_to_voice: "⇄ Mode: Voice-to-Voice",
+        dictation: "⇄ Mode: Dictée + Envoi",
+        stc_window: "⇄ Mode: Speak-to-Window",
       };
       modeToggle.textContent = labels[voiceMode] || labels.voice_to_voice;
     }
     if (transcriptBox && (lastTranscript || lastReply)) {
-      transcriptBox.style.display = 'flex';
+      transcriptBox.style.display = "flex";
       if (userLine) {
-        userLine.textContent = lastTranscript ? `Vous : « ${lastTranscript} »` : '';
+        userLine.textContent = lastTranscript
+          ? `Vous : « ${lastTranscript} »`
+          : "";
       }
       if (modelLine) {
-        modelLine.textContent = lastReply ? `Gemini : ${lastReply}` : '';
+        modelLine.textContent = lastReply ? `Gemini : ${lastReply}` : "";
       }
     }
   }
@@ -638,19 +658,19 @@
   // Continuous 60fps Official Gemini SVG animation
   function animateSvg() {
     const speed =
-      liveState === 'SPEAKING'
+      liveState === "SPEAKING"
         ? 3.4
-        : liveState === 'LISTENING'
-        ? 2.2
-        : liveState === 'THINKING'
-        ? 4.0
-        : 0.85;
+        : liveState === "LISTENING"
+          ? 2.2
+          : liveState === "THINKING"
+            ? 4.0
+            : 0.85;
     angle = (angle + speed) % 360;
     const scale =
       1.0 +
       Math.min(0.45, currentRms * 1.35) +
       0.05 * Math.sin((angle * Math.PI) / 45);
-    const svgEl = document.getElementById('agy-gemini-official-svg');
+    const svgEl = document.getElementById("agy-gemini-official-svg");
     if (svgEl) {
       svgEl.style.transform = `rotate(${angle.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
     }
@@ -658,53 +678,53 @@
   }
 
   // Keyboard shortcuts: F5 toggles Record, Alt+V toggles /voice Live
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'F5' && !e.ctrlKey && !e.metaKey) {
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "F5" && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      document.getElementById('agy-gem-ptt-btn')?.click();
-    } else if (e.altKey && (e.key === 'v' || e.key === 'V')) {
+      document.getElementById("agy-gem-ptt-btn")?.click();
+    } else if (e.altKey && (e.key === "v" || e.key === "V")) {
       e.preventDefault();
-      document.getElementById('agy-gem-live-btn')?.click();
+      document.getElementById("agy-gem-live-btn")?.click();
     }
   });
 
   // Subscribe to real-time Hub events via Electron IPC or WebSocket
   function subscribeToHubEvents() {
     const handleEvent = (msg) => {
-      if (!msg || typeof msg !== 'object') return;
-      if (msg.type === 'telemetry') {
-        if (!isRecordingPtt && liveState !== 'SPEAKING') {
+      if (!msg || typeof msg !== "object") return;
+      if (msg.type === "telemetry") {
+        if (!isRecordingPtt && liveState !== "SPEAKING") {
           liveState = msg.state || liveState;
           currentRms = Math.max(
             currentRms * 0.7,
             msg.input_rms || 0,
             msg.output_rms || 0,
-            0.06
+            0.06,
           );
         }
-      } else if (msg.type === 'voice_mode_toggled') {
+      } else if (msg.type === "voice_mode_toggled") {
         isLiveActive = Boolean(msg.is_live_active);
-        liveState = msg.state || (isLiveActive ? 'LISTENING' : 'IDLE');
+        liveState = msg.state || (isLiveActive ? "LISTENING" : "IDLE");
         if (isLiveActive) startMicrophoneCapture();
         updateUiState();
-      } else if (msg.type === 'transcript' && msg.turn?.text) {
+      } else if (msg.type === "transcript" && msg.turn?.text) {
         lastTranscript = msg.turn.text;
         injectTranscriptIntoPage(msg.turn.text, autoSubmitPrompt);
         updateUiState();
-      } else if (msg.type === 'model_response' && msg.turn?.text) {
+      } else if (msg.type === "model_response" && msg.turn?.text) {
         lastReply = msg.turn.text;
         updateUiState();
       } else if (
-        msg.type === 'audio_output' &&
+        msg.type === "audio_output" &&
         msg.audio_base64 &&
         msg.surface !== SURFACE_NAME
       ) {
-        playSynthesizedAudio(msg.audio_base64, msg.mime_type || 'audio/mpeg');
-      } else if (msg.type === 'pilot_gemini_windows') {
-        if (msg.command === 'send_prompt' && msg.prompt) {
+        playSynthesizedAudio(msg.audio_base64, msg.mime_type || "audio/mpeg");
+      } else if (msg.type === "pilot_gemini_windows") {
+        if (msg.command === "send_prompt" && msg.prompt) {
           injectTranscriptIntoPage(msg.prompt, true);
-        } else if (msg.command === 'toggle_live') {
-          document.getElementById('agy-gem-live-btn')?.click();
+        } else if (msg.command === "toggle_live") {
+          document.getElementById("agy-gem-live-btn")?.click();
         }
       }
     };
@@ -716,13 +736,15 @@
 
     // Fallback WebSocket connection when outside Electron CSP
     try {
-      const ws = new WebSocket('ws://127.0.0.1:8765/ws/voice');
-      ws.addEventListener('message', (event) => {
+      const ws = new WebSocket("ws://127.0.0.1:8765/ws/voice");
+      ws.addEventListener("message", (event) => {
         try {
           handleEvent(JSON.parse(event.data));
         } catch {}
       });
-      ws.addEventListener('close', () => setTimeout(subscribeToHubEvents, 3500));
+      ws.addEventListener("close", () =>
+        setTimeout(subscribeToHubEvents, 3500),
+      );
     } catch {}
   }
 
@@ -732,8 +754,8 @@
     subscribeToHubEvents();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
   }

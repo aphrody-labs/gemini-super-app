@@ -16,7 +16,12 @@ import { parseArgs } from "node:util";
 import { findProjectRoot, pyQuote } from "./lib/project-root.ts";
 import { loadCsv, type Row } from "./lib/search-core.ts";
 
-const BACKGROUNDS_CSV = join(import.meta.dir, "..", "data", "slide-backgrounds.csv");
+const BACKGROUNDS_CSV = join(
+  import.meta.dir,
+  "..",
+  "data",
+  "slide-backgrounds.csv",
+);
 
 type TokenTree = Record<string, any>;
 
@@ -35,27 +40,38 @@ const DEFAULT_COLORS: BrandColors = {
 };
 
 /** Resolve a reference like {primitive.color.ocean-blue.500} to its value. */
-export function resolveTokenReference(ref: unknown, tokens: TokenTree): unknown {
-  if (typeof ref !== "string" || !ref.startsWith("{") || !ref.endsWith("}")) return ref;
+export function resolveTokenReference(
+  ref: unknown,
+  tokens: TokenTree,
+): unknown {
+  if (typeof ref !== "string" || !ref.startsWith("{") || !ref.endsWith("}"))
+    return ref;
   let current: any = tokens;
   for (const key of ref.slice(1, -1).split(".")) {
-    if (current && typeof current === "object" && !Array.isArray(current)) current = current[key];
+    if (current && typeof current === "object" && !Array.isArray(current))
+      current = current[key];
     else return null;
   }
-  if (current && typeof current === "object" && "$value" in current) return current.$value;
+  if (current && typeof current === "object" && "$value" in current)
+    return current.$value;
   return current;
 }
 
 /** Brand colors from assets/design-tokens.json (semantic references resolved), with defaults. */
-export async function loadBrandColors(tokensPath?: string): Promise<BrandColors> {
-  const path = tokensPath ?? join(await findProjectRoot(), "assets", "design-tokens.json");
+export async function loadBrandColors(
+  tokensPath?: string,
+): Promise<BrandColors> {
+  const path =
+    tokensPath ?? join(await findProjectRoot(), "assets", "design-tokens.json");
   try {
     const tokens = (await Bun.file(path).json()) as TokenTree;
     const colors: TokenTree = tokens.primitive?.color ?? {};
     const semantic: TokenTree = tokens.semantic?.color ?? {};
 
     if (Object.keys(semantic).length > 0) {
-      const resolveRole = (role: string) => resolveTokenReference(semantic[role]?.$value, tokens) as string | undefined;
+      const resolveRole = (role: string) =>
+        resolveTokenReference(semantic[role]?.$value, tokens) as
+          string | undefined;
       const primary = resolveRole("primary");
       const secondary = resolveRole("secondary");
       if (primary && secondary) {
@@ -80,9 +96,15 @@ export async function loadBrandColors(tokensPath?: string): Promise<BrandColors>
     };
 
     return {
-      primary: firstShade(["ocean-blue", "coral", "blue", "primary"]) || DEFAULT_COLORS.primary,
-      secondary: firstShade(["golden-amber", "purple", "amber", "secondary"]) || DEFAULT_COLORS.secondary,
-      accent: firstShade(["emerald", "mint", "green", "accent"]) || DEFAULT_COLORS.accent,
+      primary:
+        firstShade(["ocean-blue", "coral", "blue", "primary"]) ||
+        DEFAULT_COLORS.primary,
+      secondary:
+        firstShade(["golden-amber", "purple", "amber", "secondary"]) ||
+        DEFAULT_COLORS.secondary,
+      accent:
+        firstShade(["emerald", "mint", "green", "accent"]) ||
+        DEFAULT_COLORS.accent,
       background: colors.dark?.["800"]?.$value ?? "#0D0D0D",
     };
   } catch {
@@ -96,7 +118,8 @@ export async function loadBackgroundsConfig(): Promise<Record<string, Row>> {
     console.log(`Warning: ${BACKGROUNDS_CSV} not found`);
     return config;
   }
-  for (const row of await loadCsv(BACKGROUNDS_CSV)) config[row.slide_type!] = row;
+  for (const row of await loadCsv(BACKGROUNDS_CSV))
+    config[row.slide_type!] = row;
   return config;
 }
 
@@ -136,14 +159,17 @@ export function getPexelsSearchUrl(keywords: string): string {
   return `https://www.pexels.com/search/${pyQuote(keywords)}/`;
 }
 
-export async function getBackgroundImage(slideType: string): Promise<Record<string, any>> {
+export async function getBackgroundImage(
+  slideType: string,
+): Promise<Record<string, any>> {
   const brandColors = await loadBrandColors();
   const config = await loadBackgroundsConfig();
   const slideConfig = config[slideType];
   let overlayStyle = "gradient-dark";
   let keywords = slideType;
   if (slideConfig) {
-    keywords = slideConfig.search_keywords ?? slideConfig.image_category ?? slideType;
+    keywords =
+      slideConfig.search_keywords ?? slideConfig.image_category ?? slideType;
     overlayStyle = slideConfig.overlay_style ?? "gradient-dark";
   }
 
@@ -167,7 +193,10 @@ export async function getBackgroundImage(slideType: string): Promise<Record<stri
   };
 }
 
-export function generateCssForBackground(result: Record<string, any>, slideClass = ".slide-with-bg"): string {
+export function generateCssForBackground(
+  result: Record<string, any>,
+  slideClass = ".slide-with-bg",
+): string {
   if (!result.url) {
     return `/* No image scraped. Search manually: ${result.search_url ?? ""} */
 /* Overlay ready: ${result.overlay ?? "gradient-dark"} */
@@ -230,12 +259,14 @@ async function main(): Promise<void> {
   }
   if (values.colors) {
     console.log("\nBrand Colors (from design-tokens.json):");
-    for (const [name, value] of Object.entries(await loadBrandColors())) console.log(`  ${name}: ${value}`);
+    for (const [name, value] of Object.entries(await loadBrandColors()))
+      console.log(`  ${name}: ${value}`);
     return;
   }
   if (values.list) {
     console.log("\nAvailable slide types (curated images):");
-    for (const [slideType, urls] of Object.entries(CURATED_IMAGES)) console.log(`  ${slideType}: ${urls.length} images`);
+    for (const [slideType, urls] of Object.entries(CURATED_IMAGES))
+      console.log(`  ${slideType}: ${urls.length} images`);
     return;
   }
   const slideType = positionals[0];
@@ -251,10 +282,14 @@ async function main(): Promise<void> {
     console.log(generateCssForBackground(result));
   } else if (values.all) {
     console.log(`\nAll images for '${slideType}':`);
-    (result.all_urls ?? []).forEach((url: string, i: number) => console.log(`  ${i + 1}. ${url}`));
+    (result.all_urls ?? []).forEach((url: string, i: number) =>
+      console.log(`  ${i + 1}. ${url}`),
+    );
   } else {
     console.log(`\nImage URL: ${result.url}`);
-    console.log(`Alternatives: ${(result.all_urls ?? []).length} available (use --all)`);
+    console.log(
+      `Alternatives: ${(result.all_urls ?? []).length} available (use --all)`,
+    );
     console.log(`Overlay: ${result.overlay}`);
   }
 }

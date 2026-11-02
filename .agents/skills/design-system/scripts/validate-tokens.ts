@@ -63,11 +63,29 @@ export interface Violation {
   context: string;
 }
 
-const EXTENSIONS = [".css", ".scss", ".tsx", ".jsx", ".ts", ".js", ".vue", ".svelte"];
-const SKIP_PATTERNS = [/\.min\.(css|js)$/, /tailwind\.config/, /globals\.css/, /tokens\.(css|json)/];
+const EXTENSIONS = [
+  ".css",
+  ".scss",
+  ".tsx",
+  ".jsx",
+  ".ts",
+  ".js",
+  ".vue",
+  ".svelte",
+];
+const SKIP_PATTERNS = [
+  /\.min\.(css|js)$/,
+  /tailwind\.config/,
+  /globals\.css/,
+  /tokens\.(css|json)/,
+];
 const DEFAULT_IGNORE = ["node_modules", ".git", "dist", "build", ".next"];
 
-export async function getFiles(dir: string, ignore: string[], files: string[] = []): Promise<string[]> {
+export async function getFiles(
+  dir: string,
+  ignore: string[],
+  files: string[] = [],
+): Promise<string[]> {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
@@ -88,9 +106,15 @@ export function scanContent(filePath: string, content: string): Violation[] {
   content.split("\n").forEach((line, index) => {
     const trimmed = line.trim();
     if (trimmed.startsWith("//") || trimmed.startsWith("/*")) return;
-    for (const [name, pattern] of Object.entries(patterns) as Array<[PatternName, (typeof patterns)[PatternName]]>) {
+    for (const [name, pattern] of Object.entries(patterns) as Array<
+      [PatternName, (typeof patterns)[PatternName]]
+    >) {
       for (const match of line.match(pattern.regex) ?? []) {
-        if (name === "hexColor" && ["#000", "#FFF", "#000000", "#FFFFFF"].includes(match.toUpperCase())) continue;
+        if (
+          name === "hexColor" &&
+          ["#000", "#FFF", "#000000", "#FFFFFF"].includes(match.toUpperCase())
+        )
+          continue;
         violations.push({
           file: filePath,
           line: index + 1,
@@ -112,7 +136,8 @@ export function formatReport(violations: Violation[]): string {
 
   let report = `⚠️  Found ${violations.length} potential token violations:\n\n`;
   const byFile = new Map<string, Violation[]>();
-  for (const v of violations) byFile.set(v.file, [...(byFile.get(v.file) ?? []), v]);
+  for (const v of violations)
+    byFile.set(v.file, [...(byFile.get(v.file) ?? []), v]);
   for (const [file, fileViolations] of byFile) {
     report += `📁 ${file}\n`;
     for (const v of fileViolations) {
@@ -126,7 +151,8 @@ export function formatReport(violations: Violation[]): string {
   const byType = new Map<PatternName, number>();
   for (const v of violations) byType.set(v.type, (byType.get(v.type) ?? 0) + 1);
   report += `\n📊 Summary:\n`;
-  for (const [type, count] of byType) report += `   ${patterns[type].message}: ${count}\n`;
+  for (const [type, count] of byType)
+    report += `   ${patterns[type].message}: ${count}\n`;
   return report;
 }
 
@@ -162,7 +188,10 @@ async function main(): Promise<void> {
   }
 
   console.log(`Scanning ${dirPath} for token violations...\n`);
-  const ignore = [...DEFAULT_IGNORE, ...((values.ignore as string[] | undefined) ?? [])];
+  const ignore = [
+    ...DEFAULT_IGNORE,
+    ...((values.ignore as string[] | undefined) ?? []),
+  ];
   const allViolations: Violation[] = [];
   for (const file of await getFiles(dirPath, ignore)) {
     if (shouldSkip(file)) continue;

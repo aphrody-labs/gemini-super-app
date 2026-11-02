@@ -100,7 +100,8 @@ export class BM25 {
     this.termFreqs = this.corpus.map((doc) => {
       const tf = new Map<string, number>();
       for (const word of doc) tf.set(word, (tf.get(word) ?? 0) + 1);
-      for (const word of tf.keys()) this.docFreqs.set(word, (this.docFreqs.get(word) ?? 0) + 1);
+      for (const word of tf.keys())
+        this.docFreqs.set(word, (this.docFreqs.get(word) ?? 0) + 1);
       return tf;
     });
     for (const [word, freq] of this.docFreqs) {
@@ -118,7 +119,9 @@ export class BM25 {
         const idf = this.idf.get(token);
         if (idf === undefined) continue;
         const freq = tf.get(token) ?? 0;
-        score += (idf * (freq * (this.k1 + 1))) / (freq + this.k1 * (1 - this.b + (this.b * docLen) / this.avgdl));
+        score +=
+          (idf * (freq * (this.k1 + 1))) /
+          (freq + this.k1 * (1 - this.b + (this.b * docLen) / this.avgdl));
       }
       return [idx, score];
     });
@@ -143,7 +146,9 @@ export async function searchCsv(
   if (!(await Bun.file(filepath).exists())) return [];
   const data = await loadCsv(filepath);
   const bm25 = new BM25();
-  bm25.fit(data.map((row) => searchCols.map((col) => row[col] ?? "").join(" ")));
+  bm25.fit(
+    data.map((row) => searchCols.map((col) => row[col] ?? "").join(" ")),
+  );
   const results: Row[] = [];
   for (const [idx, score] of bm25.score(query).slice(0, maxResults)) {
     if (score <= 0) continue;
@@ -191,14 +196,32 @@ export function createDomainSearch(options: {
   fallbackDomain: string;
 }) {
   const { dataDir, config, domainKeywords, fallbackDomain } = options;
-  const detectDomain = (query: string) => detectDomainByKeywords(query, domainKeywords, fallbackDomain);
-  const search = async (query: string, domain?: string | null, maxResults = 3): Promise<SearchResult> => {
+  const detectDomain = (query: string) =>
+    detectDomainByKeywords(query, domainKeywords, fallbackDomain);
+  const search = async (
+    query: string,
+    domain?: string | null,
+    maxResults = 3,
+  ): Promise<SearchResult> => {
     const resolved = domain ?? detectDomain(query);
     const cfg = config[resolved] ?? config[fallbackDomain]!;
     const filepath = `${dataDir}/${cfg.file}`;
-    if (!(await Bun.file(filepath).exists())) return { error: `File not found: ${filepath}`, domain: resolved };
-    const results = await searchCsv(filepath, cfg.search_cols, cfg.output_cols, query, maxResults);
-    return { domain: resolved, query, file: cfg.file, count: results.length, results };
+    if (!(await Bun.file(filepath).exists()))
+      return { error: `File not found: ${filepath}`, domain: resolved };
+    const results = await searchCsv(
+      filepath,
+      cfg.search_cols,
+      cfg.output_cols,
+      query,
+      maxResults,
+    );
+    return {
+      domain: resolved,
+      query,
+      file: cfg.file,
+      count: results.length,
+      results,
+    };
   };
   return { detectDomain, search };
 }

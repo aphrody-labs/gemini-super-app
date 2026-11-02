@@ -12,7 +12,7 @@ utilities, and there is no `tailwind.config.js`.
 /* app/globals.css (Next.js) or src/index.css (Vite / Bun) */
 @import "tailwindcss" source("..");
 @import "tw-animate-css";
-@source "../../packages/ui/src";          /* workspace UI packages outside the app */
+@source "../../packages/ui/src"; /* workspace UI packages outside the app */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -152,9 +152,15 @@ background-color: color-mix(in oklab, var(--color-primary) 50%, transparent);
   }
 
   /* Sizes */
-  .btn-sm { @apply h-8 px-3 text-xs; }
-  .btn-md { @apply h-10 px-4 text-sm; }
-  .btn-lg { @apply h-12 px-6 text-base; }
+  .btn-sm {
+    @apply h-8 px-3 text-xs;
+  }
+  .btn-md {
+    @apply h-10 px-4 text-sm;
+  }
+  .btn-lg {
+    @apply h-12 px-6 text-base;
+  }
 }
 ```
 
@@ -179,17 +185,27 @@ mode drops box shadows but keeps outlines.
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
   @keyframes accordion-down {
-    from { height: 0; }
-    to { height: var(--radix-accordion-content-height); }
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
   }
   @keyframes accordion-up {
-    from { height: var(--radix-accordion-content-height); }
-    to { height: 0; }
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
+  *,
+  ::before,
+  ::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
@@ -203,12 +219,12 @@ Duration utilities (`duration-150`, `duration-200`, `duration-300`) are built in
 ```typescript
 // Toggle dark mode
 function toggleDarkMode() {
-  document.documentElement.classList.toggle('dark')
+  document.documentElement.classList.toggle("dark");
 }
 
 // System preference
-if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-  document.documentElement.classList.add('dark')
+if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+  document.documentElement.classList.add("dark");
 }
 ```
 

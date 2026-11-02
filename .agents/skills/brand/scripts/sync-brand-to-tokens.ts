@@ -39,11 +39,32 @@ const CSS_TOKEN_SOURCES = [
 // A hardcoded filename list alone misses real projects by a single letter
 // (e.g. styles/global.css vs styles/globals.css), which silently defeats the
 // overwrite guard.
-const CSS_SCAN_DIRS = ["src", "src/styles", "src/css", "src/assets/styles", "app", "app/styles", "styles", "css"];
-const TAILWIND_CONFIGS = ["tailwind.config.js", "tailwind.config.cjs", "tailwind.config.mjs", "tailwind.config.ts"];
+const CSS_SCAN_DIRS = [
+  "src",
+  "src/styles",
+  "src/css",
+  "src/assets/styles",
+  "app",
+  "app/styles",
+  "styles",
+  "css",
+];
+const TAILWIND_CONFIGS = [
+  "tailwind.config.js",
+  "tailwind.config.cjs",
+  "tailwind.config.mjs",
+  "tailwind.config.ts",
+];
 // Sibling sub-skill, resolved from this file's location so it works in every
 // install context (plugin cache, project or --global CLI install).
-const GENERATE_TOKENS_SCRIPT = resolve(import.meta.dir, "..", "..", "design-system", "scripts", "generate-tokens.ts");
+const GENERATE_TOKENS_SCRIPT = resolve(
+  import.meta.dir,
+  "..",
+  "..",
+  "design-system",
+  "scripts",
+  "generate-tokens.ts",
+);
 
 interface ColorRole {
   name: string;
@@ -66,19 +87,24 @@ async function isFile(path: string): Promise<boolean> {
 
 function listCssFiles(absoluteDir: string): string[] {
   try {
-    return [...new Bun.Glob("*").scanSync({ cwd: absoluteDir, onlyFiles: true })].filter((name) =>
-      name.toLowerCase().endsWith(".css"),
-    );
+    return [
+      ...new Bun.Glob("*").scanSync({ cwd: absoluteDir, onlyFiles: true }),
+    ].filter((name) => name.toLowerCase().endsWith(".css"));
   } catch {
     return [];
   }
 }
 
 /** Find project files that already act as design-token sources. */
-export async function findExistingTokenSources(projectRoot: string): Promise<string[]> {
+export async function findExistingTokenSources(
+  projectRoot: string,
+): Promise<string[]> {
   const sources = new Set<string>();
 
-  const scanCssSource = async (absolutePath: string, visited = new Set<string>()): Promise<void> => {
+  const scanCssSource = async (
+    absolutePath: string,
+    visited = new Set<string>(),
+  ): Promise<void> => {
     const normalizedPath = resolve(absolutePath);
     const relativePath = relative(projectRoot, normalizedPath);
     if (
@@ -93,13 +119,19 @@ export async function findExistingTokenSources(projectRoot: string): Promise<str
     visited.add(normalizedPath);
     const content = await Bun.file(normalizedPath).text();
     const uncommented = content.replace(/\/\*[\s\S]*?\*\//g, "");
-    const hasRootTokens = /:root\b[^{}]*\{[^}]*--[A-Za-z0-9_-]+\s*:/.test(uncommented);
-    const hasTailwindTheme = /@theme(?:\s+[A-Za-z-]+)?\s*\{[^}]*--[A-Za-z0-9_-]+\s*:/.test(uncommented);
+    const hasRootTokens = /:root\b[^{}]*\{[^}]*--[A-Za-z0-9_-]+\s*:/.test(
+      uncommented,
+    );
+    const hasTailwindTheme =
+      /@theme(?:\s+[A-Za-z-]+)?\s*\{[^}]*--[A-Za-z0-9_-]+\s*:/.test(
+        uncommented,
+      );
     if (hasRootTokens || hasTailwindTheme) {
       sources.add(relativePath.split(sep).join("/"));
     }
 
-    const importPattern = /@import\s+(?:url\(\s*)?(['"])([^'"]+)\1\s*\)?[^;]*;/g;
+    const importPattern =
+      /@import\s+(?:url\(\s*)?(['"])([^'"]+)\1\s*\)?[^;]*;/g;
     for (const match of uncommented.matchAll(importPattern)) {
       const importTarget = match[2]!.split(/[?#]/, 1)[0]!;
       let importedPath: string;
@@ -115,12 +147,14 @@ export async function findExistingTokenSources(projectRoot: string): Promise<str
   };
 
   for (const relativePath of [DESIGN_TOKENS_JSON, DESIGN_TOKENS_CSS]) {
-    if (await isFile(resolve(projectRoot, relativePath))) sources.add(relativePath);
+    if (await isFile(resolve(projectRoot, relativePath)))
+      sources.add(relativePath);
   }
 
   const candidates = new Set(CSS_TOKEN_SOURCES);
   for (const dir of CSS_SCAN_DIRS) {
-    for (const name of listCssFiles(resolve(projectRoot, dir))) candidates.add(`${dir}/${name}`);
+    for (const name of listCssFiles(resolve(projectRoot, dir)))
+      candidates.add(`${dir}/${name}`);
   }
   for (const relativePath of candidates) {
     await scanCssSource(resolve(projectRoot, relativePath));
@@ -130,10 +164,15 @@ export async function findExistingTokenSources(projectRoot: string): Promise<str
     const absolutePath = resolve(projectRoot, relativePath);
     if (!(await isFile(absolutePath))) continue;
     const content = await Bun.file(absolutePath).text();
-    const hasInlineColors = /\btheme\s*:\s*\{[\s\S]*?\bcolors\s*:/.test(content);
+    const hasInlineColors = /\btheme\s*:\s*\{[\s\S]*?\bcolors\s*:/.test(
+      content,
+    );
     const hasPreset = /\bpresets\s*:/.test(content);
-    const hasThemeSpread = /\btheme\s*:\s*\{[\s\S]*?\.\.\.[A-Za-z_$]/.test(content);
-    if (hasInlineColors || hasPreset || hasThemeSpread) sources.add(relativePath);
+    const hasThemeSpread = /\btheme\s*:\s*\{[\s\S]*?\.\.\.[A-Za-z_$]/.test(
+      content,
+    );
+    if (hasInlineColors || hasPreset || hasThemeSpread)
+      sources.add(relativePath);
   }
 
   return [...sources];
@@ -164,7 +203,9 @@ export function extractColorsFromMarkdown(content: string): BrandColorRoles {
 
   // 2) Dedicated "### <Role> Colors" tables — base/dark/light by row label keyword.
   const assignFromSection = (heading: string, target: ColorRole): void => {
-    const section = content.match(new RegExp(`### ${heading}[\\s\\S]*?(?=\\n###|$)`, "i"));
+    const section = content.match(
+      new RegExp(`### ${heading}[\\s\\S]*?(?=\\n###|$)`, "i"),
+    );
     if (!section) return;
     for (const m of section[0].matchAll(rowRe)) {
       const label = m[1]!.trim().toLowerCase();
@@ -199,7 +240,8 @@ export function adjustBrightness(hex: unknown, percent: number): string {
   if (typeof hex !== "string") return "#000000";
   const num = parseInt(hex.replace("#", ""), 16);
   const channel = (value: number): number => {
-    const adjusted = percent >= 0 ? value + (255 - value) * percent : value * (1 + percent);
+    const adjusted =
+      percent >= 0 ? value + (255 - value) * percent : value * (1 + percent);
     return Math.min(255, Math.max(0, Math.round(adjusted)));
   };
   const r = channel((num >> 16) & 0xff);
@@ -209,7 +251,11 @@ export function adjustBrightness(hex: unknown, percent: number): string {
 }
 
 /** Generate a color scale from a base color. */
-export function generateColorScale(baseHex: string, darkHex?: string, lightHex?: string): TokenTree {
+export function generateColorScale(
+  baseHex: string,
+  darkHex?: string,
+  lightHex?: string,
+): TokenTree {
   const color = (value: string) => ({ $value: value, $type: "color" });
   return {
     "50": color(lightHex || adjustBrightness(baseHex, 0.9)),
@@ -226,7 +272,10 @@ export function generateColorScale(baseHex: string, darkHex?: string, lightHex?:
 }
 
 /** Update design tokens JSON with the extracted brand colors. */
-export function updateDesignTokens(tokens: TokenTree, colors: BrandColorRoles): TokenTree {
+export function updateDesignTokens(
+  tokens: TokenTree,
+  colors: BrandColorRoles,
+): TokenTree {
   tokens.brand = `ClaudeKit Marketing - ${colors.primary.name
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -241,7 +290,9 @@ export function updateDesignTokens(tokens: TokenTree, colors: BrandColorRoles): 
   for (const role of ["primary", "secondary", "accent"] as const) {
     const c = colors[role];
     if (!c.base) {
-      console.warn(`⚠️  No base hex found for ${role} color — skipping its token scale.`);
+      console.warn(
+        `⚠️  No base hex found for ${role} color — skipping its token scale.`,
+      );
       continue;
     }
     primitiveColors[c.name] = generateColorScale(c.base, c.dark, c.light);
@@ -253,7 +304,10 @@ export function updateDesignTokens(tokens: TokenTree, colors: BrandColorRoles): 
     const p = colors.primary.name;
     const s = colors.secondary.name;
     const a = colors.accent.name;
-    const ref = (name: string, shade: string) => ({ $value: `{primitive.color.${name}.${shade}}`, $type: "color" });
+    const ref = (name: string, shade: string) => ({
+      $value: `{primitive.color.${name}.${shade}}`,
+      $type: "color",
+    });
 
     sem.primary = ref(p, "500");
     sem["primary-hover"] = ref(p, "600");
@@ -280,7 +334,10 @@ export function updateDesignTokens(tokens: TokenTree, colors: BrandColorRoles): 
   }
 
   if (tokens.component?.button?.secondary && colors.primary.base) {
-    tokens.component.button.secondary["bg-hover"] = { $value: `${colors.primary.base}1A`, $type: "color" };
+    tokens.component.button.secondary["bg-hover"] = {
+      $value: `${colors.primary.base}1A`,
+      $type: "color",
+    };
   }
   return tokens;
 }
@@ -301,7 +358,9 @@ async function main(): Promise<void> {
 
   const existingSources = await findExistingTokenSources(projectRoot);
   if (existingSources.length > 0 && !force) {
-    const details = existingSources.map((source) => `   - ${source}`).join("\n");
+    const details = existingSources
+      .map((source) => `   - ${source}`)
+      .join("\n");
     const message =
       `Existing design-token source${existingSources.length === 1 ? "" : "s"} detected:\n${details}\n` +
       "Refusing to create or replace token files. Review the detected source and re-run with --force only if replacement is intentional.";
@@ -316,17 +375,23 @@ async function main(): Promise<void> {
   const colors = extractColorsFromMarkdown(guidelinesContent);
   console.log("📊 Extracted colors:");
   console.log(`   Primary: ${colors.primary.name} (${colors.primary.base})`);
-  console.log(`   Secondary: ${colors.secondary.name} (${colors.secondary.base})`);
+  console.log(
+    `   Secondary: ${colors.secondary.name} (${colors.secondary.base})`,
+  );
   console.log(`   Accent: ${colors.accent.name} (${colors.accent.base})\n`);
 
   const tokensPath = resolve(projectRoot, DESIGN_TOKENS_JSON);
   const tokensFile = Bun.file(tokensPath);
-  let tokens: TokenTree = (await tokensFile.exists()) ? await tokensFile.json() : {};
+  let tokens: TokenTree = (await tokensFile.exists())
+    ? await tokensFile.json()
+    : {};
   tokens = updateDesignTokens(tokens, colors);
 
   if (dryRun) {
     console.log("📋 Would update design-tokens.json:");
-    console.log(JSON.stringify(tokens.primitive.color, null, 2).slice(0, 500) + "...");
+    console.log(
+      JSON.stringify(tokens.primitive.color, null, 2).slice(0, 500) + "...",
+    );
     console.log("\n⏭️  Dry run - no files changed");
     return;
   }
@@ -345,7 +410,9 @@ async function main(): Promise<void> {
       console.error("⚠️  Failed to regenerate CSS:", (e as Error).message);
     }
   } else {
-    console.warn(`⚠️  design-system sub-skill not found at ${GENERATE_TOKENS_SCRIPT}; ${DESIGN_TOKENS_CSS} not regenerated`);
+    console.warn(
+      `⚠️  design-system sub-skill not found at ${GENERATE_TOKENS_SCRIPT}; ${DESIGN_TOKENS_CSS} not regenerated`,
+    );
   }
 
   console.log("\n✨ Brand sync complete!");

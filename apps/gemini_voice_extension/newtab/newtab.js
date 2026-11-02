@@ -184,15 +184,33 @@ let petPhase = 0;
 function drawStarSparklePath(ctx, ox, oy, radius) {
   ctx.beginPath();
   ctx.moveTo(ox, -radius + oy);
-  ctx.quadraticCurveTo(radius * 0.18 + ox, -radius * 0.18 + oy, radius + ox, oy);
+  ctx.quadraticCurveTo(
+    radius * 0.18 + ox,
+    -radius * 0.18 + oy,
+    radius + ox,
+    oy,
+  );
   ctx.quadraticCurveTo(radius * 0.18 + ox, radius * 0.18 + oy, ox, radius + oy);
-  ctx.quadraticCurveTo(-radius * 0.18 + ox, radius * 0.18 + oy, -radius + ox, oy);
-  ctx.quadraticCurveTo(-radius * 0.18 + ox, -radius * 0.18 + oy, ox, -radius + oy);
+  ctx.quadraticCurveTo(
+    -radius * 0.18 + ox,
+    radius * 0.18 + oy,
+    -radius + ox,
+    oy,
+  );
+  ctx.quadraticCurveTo(
+    -radius * 0.18 + ox,
+    -radius * 0.18 + oy,
+    ox,
+    -radius + oy,
+  );
   ctx.closePath();
 }
 
 function renderCompanionPet() {
-  if (!isDraggingPet && (Math.abs(petOffsetX) > 0.2 || Math.abs(petOffsetY) > 0.2)) {
+  if (
+    !isDraggingPet &&
+    (Math.abs(petOffsetX) > 0.2 || Math.abs(petOffsetY) > 0.2)
+  ) {
     petOffsetX *= 0.92;
     petOffsetY *= 0.92;
     if (petInteractBtn) {
@@ -359,15 +377,7 @@ function renderCompanionPet() {
     petCtx.beginPath();
     if (liveState === "SPEAKING" || audioRms > 0.14) {
       const mouthOpen = Math.min(10, 2 + audioRms * 18);
-      petCtx.ellipse(
-        eyeX,
-        6 + eyeY,
-        5,
-        mouthOpen,
-        0,
-        0,
-        Math.PI * 2,
-      );
+      petCtx.ellipse(eyeX, 6 + eyeY, 5, mouthOpen, 0, 0, Math.PI * 2);
       petCtx.stroke();
     } else {
       petCtx.arc(eyeX, 4 + eyeY, 5, 0.15 * Math.PI, 0.85 * Math.PI);
@@ -487,7 +497,10 @@ function downsampleFloat32ToInt16Pcm16k(float32Input, inputSampleRate) {
       sum += float32Input[j];
       count++;
     }
-    const sample = count > 0 ? sum / count : float32Input[Math.min(start, float32Input.length - 1)];
+    const sample =
+      count > 0
+        ? sum / count
+        : float32Input[Math.min(start, float32Input.length - 1)];
     const v = Math.max(-1, Math.min(1, sample));
     out[i] = v < 0 ? v * 32768 : v * 32767;
   }
@@ -519,7 +532,10 @@ function wrapRawPcmInWavIfNeeded(bytes, sampleRate = 24000) {
       h0 === 0xff ||
       (h0 === 0x4f && h1 === 0x67 && h2 === 0x67 && h3 === 0x53)
     ) {
-      return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      return bytes.buffer.slice(
+        bytes.byteOffset,
+        bytes.byteOffset + bytes.byteLength,
+      );
     }
   }
   const wav = new ArrayBuffer(44 + bytes.byteLength);
@@ -557,10 +573,7 @@ function stopPlayback() {
 async function playAudioBase64(base64Audio, turnId = "") {
   if (!base64Audio || base64Audio.length < 32) return;
   const sig = `${turnId}:${base64Audio.length}:${base64Audio.slice(0, 48)}`;
-  if (
-    (turnId && turnId === lastPlayedTurnId) ||
-    sig === lastPlayedAudioSig
-  ) {
+  if ((turnId && turnId === lastPlayedTurnId) || sig === lastPlayedAudioSig) {
     return;
   }
   if (turnId) lastPlayedTurnId = turnId;
@@ -722,7 +735,9 @@ async function startMic() {
 
     micStream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        ...(preferredDeviceId ? { deviceId: { ideal: preferredDeviceId } } : {}),
+        ...(preferredDeviceId
+          ? { deviceId: { ideal: preferredDeviceId } }
+          : {}),
         channelCount: 1,
         sampleRate: 16000,
         echoCancellation: true,
@@ -767,7 +782,11 @@ async function startMic() {
         return;
       }
 
-      if (liveState !== "THINKING" && liveState !== "SPEAKING" && !isSubmittingUtterance) {
+      if (
+        liveState !== "THINKING" &&
+        liveState !== "SPEAKING" &&
+        !isSubmittingUtterance
+      ) {
         if (rms > 0.012) {
           pcmChunks.push(pcm16);
           speechDetected = true;
@@ -795,7 +814,10 @@ async function startMic() {
 
 function stopMic(flushPendingTurn = true) {
   stopBrowserSpeechRecognitionAssist();
-  if (flushPendingTurn && (speechDetected || pcmChunks.length > 2 || latestBrowserTranscript)) {
+  if (
+    flushPendingTurn &&
+    (speechDetected || pcmChunks.length > 2 || latestBrowserTranscript)
+  ) {
     const pendingTurn = pcmChunks.slice();
     const pendingHint = latestBrowserTranscript;
     pcmChunks = [];
@@ -847,25 +869,39 @@ async function loadHardwareAndSurfaceSettings() {
       const hw = data.hardware_audio || data.hardware || {};
       const settings = data.settings || hw.settings || {};
 
-      if (micDeviceSelect && Array.isArray(hw.input_devices) && hw.input_devices.length > 0) {
+      if (
+        micDeviceSelect &&
+        Array.isArray(hw.input_devices) &&
+        hw.input_devices.length > 0
+      ) {
         micDeviceSelect.innerHTML = "";
         for (const dev of hw.input_devices) {
           const opt = document.createElement("option");
           opt.value = String(dev.index);
           opt.textContent = `[${dev.index}] ${dev.name} (${dev.hostapi})`;
-          if (dev.index === hw.selected_input_index || dev.index === hw.default_input_index) {
+          if (
+            dev.index === hw.selected_input_index ||
+            dev.index === hw.default_input_index
+          ) {
             opt.selected = true;
           }
           micDeviceSelect.appendChild(opt);
         }
       }
-      if (speakerDeviceSelect && Array.isArray(hw.output_devices) && hw.output_devices.length > 0) {
+      if (
+        speakerDeviceSelect &&
+        Array.isArray(hw.output_devices) &&
+        hw.output_devices.length > 0
+      ) {
         speakerDeviceSelect.innerHTML = "";
         for (const dev of hw.output_devices) {
           const opt = document.createElement("option");
           opt.value = String(dev.index);
           opt.textContent = `[${dev.index}] ${dev.name} (${dev.hostapi})`;
-          if (dev.index === hw.selected_output_index || dev.index === hw.default_output_index) {
+          if (
+            dev.index === hw.selected_output_index ||
+            dev.index === hw.default_output_index
+          ) {
             opt.selected = true;
           }
           speakerDeviceSelect.appendChild(opt);
@@ -883,14 +919,19 @@ async function loadHardwareAndSurfaceSettings() {
       if (bargeInToggle && typeof audioCfg.barge_in_enabled === "boolean") {
         bargeInToggle.checked = audioCfg.barge_in_enabled;
       }
-      if (ytmDuckingToggle && typeof audioCfg.youtube_music_ducking === "boolean") {
+      if (
+        ytmDuckingToggle &&
+        typeof audioCfg.youtube_music_ducking === "boolean"
+      ) {
         ytmDuckingToggle.checked = audioCfg.youtube_music_ducking;
       }
       if (webAutoSyncToggle && settings.gemini_web_app) {
-        webAutoSyncToggle.checked = settings.gemini_web_app.auto_sync_prompt_input !== false;
+        webAutoSyncToggle.checked =
+          settings.gemini_web_app.auto_sync_prompt_input !== false;
       }
       if (agyBridgeToggle && settings.antigravity) {
-        agyBridgeToggle.checked = settings.antigravity.agentapi_bridge !== false;
+        agyBridgeToggle.checked =
+          settings.antigravity.agentapi_bridge !== false;
       }
       return;
     } catch {}
@@ -900,14 +941,18 @@ async function loadHardwareAndSurfaceSettings() {
 async function saveHardwareAndSurfaceSettings(extra = {}) {
   const payload = {
     input_device_index: micDeviceSelect ? Number(micDeviceSelect.value) : 1,
-    output_device_index: speakerDeviceSelect ? Number(speakerDeviceSelect.value) : 5,
+    output_device_index: speakerDeviceSelect
+      ? Number(speakerDeviceSelect.value)
+      : 5,
     voice_name: voiceNameSelect ? voiceNameSelect.value : "Aoede",
     vad_mode: vadModeSelect ? vadModeSelect.value : "hybrid_auto",
     barge_in_enabled: bargeInToggle ? bargeInToggle.checked : true,
     youtube_music_ducking: ytmDuckingToggle ? ytmDuckingToggle.checked : true,
     gemini_web_app: {
       enabled: true,
-      auto_sync_prompt_input: webAutoSyncToggle ? webAutoSyncToggle.checked : true,
+      auto_sync_prompt_input: webAutoSyncToggle
+        ? webAutoSyncToggle.checked
+        : true,
       inject_minimal_orb_pill: true,
       companion_pet_mode: is3dPet ? "3d" : "2d",
     },
@@ -941,14 +986,30 @@ closeSettingsBtn?.addEventListener("click", () => {
   settingsDialog?.close();
 });
 
-micDeviceSelect?.addEventListener("change", () => saveHardwareAndSurfaceSettings());
-speakerDeviceSelect?.addEventListener("change", () => saveHardwareAndSurfaceSettings());
-voiceNameSelect?.addEventListener("change", () => saveHardwareAndSurfaceSettings());
-vadModeSelect?.addEventListener("change", () => saveHardwareAndSurfaceSettings());
-webAutoSyncToggle?.addEventListener("change", () => saveHardwareAndSurfaceSettings());
-agyBridgeToggle?.addEventListener("change", () => saveHardwareAndSurfaceSettings());
-bargeInToggle?.addEventListener("change", () => saveHardwareAndSurfaceSettings());
-ytmDuckingToggle?.addEventListener("change", () => saveHardwareAndSurfaceSettings());
+micDeviceSelect?.addEventListener("change", () =>
+  saveHardwareAndSurfaceSettings(),
+);
+speakerDeviceSelect?.addEventListener("change", () =>
+  saveHardwareAndSurfaceSettings(),
+);
+voiceNameSelect?.addEventListener("change", () =>
+  saveHardwareAndSurfaceSettings(),
+);
+vadModeSelect?.addEventListener("change", () =>
+  saveHardwareAndSurfaceSettings(),
+);
+webAutoSyncToggle?.addEventListener("change", () =>
+  saveHardwareAndSurfaceSettings(),
+);
+agyBridgeToggle?.addEventListener("change", () =>
+  saveHardwareAndSurfaceSettings(),
+);
+bargeInToggle?.addEventListener("change", () =>
+  saveHardwareAndSurfaceSettings(),
+);
+ytmDuckingToggle?.addEventListener("change", () =>
+  saveHardwareAndSurfaceSettings(),
+);
 
 testSpeakerBtn?.addEventListener("click", () => {
   playActivationChime(true);
@@ -961,7 +1022,9 @@ setInterval(() => {
     micRmsBar.style.width = `${pct}%`;
   }
   if (micRmsLabel) {
-    micRmsLabel.textContent = isLiveActive ? "En écoute (16 kHz)" : "Prêt (16 kHz)";
+    micRmsLabel.textContent = isLiveActive
+      ? "En écoute (16 kHz)"
+      : "Prêt (16 kHz)";
   }
 }, 120);
 
@@ -1007,7 +1070,8 @@ async function triggerCompanionPetVoiceGreeting() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        prompt: "Coucou ! Dis bonjour à ton humain en une phrase joyeuse et naturelle.",
+        prompt:
+          "Coucou ! Dis bonjour à ton humain en une phrase joyeuse et naturelle.",
         voice: petCharacterIndex === 0 ? "Puck" : "Aoede",
       }),
     });

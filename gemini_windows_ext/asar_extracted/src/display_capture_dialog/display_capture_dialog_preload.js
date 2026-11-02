@@ -1,1 +1,67 @@
-var c=Object.defineProperty;var u=Object.getOwnPropertyDescriptor;var f=Object.getOwnPropertyNames;var y=Object.prototype.hasOwnProperty;var w=(n,t)=>{for(var i in t)c(n,i,{get:t[i],enumerable:!0})},m=(n,t,i,a)=>{if(t&&typeof t=="object"||typeof t=="function")for(let l of f(t))!y.call(n,l)&&l!==i&&c(n,l,{get:()=>t[l],enumerable:!(a=u(t,l))||a.enumerable});return n};var E=n=>m(c({},"__esModule",{value:!0}),n);var g={};w(g,{initDisplayCaptureDialogPreload:()=>s});module.exports=E(g);var d=require("electron");function s(){if(typeof document>"u")return;let n=document.getElementById("dc-title"),t=document.getElementById("dc-desc"),i=document.getElementById("dc-preview"),a=document.getElementById("dc-brand"),l=document.getElementById("dc-allow"),r=document.getElementById("dc-cancel");function o(e){e&&(e.title&&n&&(n.textContent=e.title),e.desc&&t&&(t.textContent=e.desc),e.brand&&a&&(a.textContent=e.brand),e.allowLabel&&l&&(l.textContent=e.allowLabel),e.cancelLabel&&r&&(r.textContent=e.cancelLabel),e.previewDataUrl&&i&&(i.src=e.previewDataUrl))}d.ipcRenderer.on("display-capture:request-data",(e,p)=>{o(p)}),d.ipcRenderer.invoke("display-capture:get-current-request").then(e=>{o(e)}).catch(()=>{}),l&&l.addEventListener("click",()=>{d.ipcRenderer.send("display-capture:respond",{allowed:!0})}),r&&r.addEventListener("click",()=>{d.ipcRenderer.send("display-capture:respond",{allowed:!1})}),document.addEventListener("keydown",e=>{e.key==="Escape"&&d.ipcRenderer.send("display-capture:respond",{allowed:!1})})}typeof window<"u"&&window.addEventListener("DOMContentLoaded",()=>{s()});0&&(module.exports={initDisplayCaptureDialogPreload});
+var c = Object.defineProperty;
+var u = Object.getOwnPropertyDescriptor;
+var f = Object.getOwnPropertyNames;
+var y = Object.prototype.hasOwnProperty;
+var w = (n, t) => {
+    for (var i in t) c(n, i, { get: t[i], enumerable: !0 });
+  },
+  m = (n, t, i, a) => {
+    if ((t && typeof t == "object") || typeof t == "function")
+      for (let l of f(t))
+        !y.call(n, l) &&
+          l !== i &&
+          c(n, l, {
+            get: () => t[l],
+            enumerable: !(a = u(t, l)) || a.enumerable,
+          });
+    return n;
+  };
+var E = (n) => m(c({}, "__esModule", { value: !0 }), n);
+var g = {};
+w(g, { initDisplayCaptureDialogPreload: () => s });
+module.exports = E(g);
+var d = require("electron");
+function s() {
+  if (typeof document > "u") return;
+  let n = document.getElementById("dc-title"),
+    t = document.getElementById("dc-desc"),
+    i = document.getElementById("dc-preview"),
+    a = document.getElementById("dc-brand"),
+    l = document.getElementById("dc-allow"),
+    r = document.getElementById("dc-cancel");
+  function o(e) {
+    e &&
+      (e.title && n && (n.textContent = e.title),
+      e.desc && t && (t.textContent = e.desc),
+      e.brand && a && (a.textContent = e.brand),
+      e.allowLabel && l && (l.textContent = e.allowLabel),
+      e.cancelLabel && r && (r.textContent = e.cancelLabel),
+      e.previewDataUrl && i && (i.src = e.previewDataUrl));
+  }
+  (d.ipcRenderer.on("display-capture:request-data", (e, p) => {
+    o(p);
+  }),
+    d.ipcRenderer
+      .invoke("display-capture:get-current-request")
+      .then((e) => {
+        o(e);
+      })
+      .catch(() => {}),
+    l &&
+      l.addEventListener("click", () => {
+        d.ipcRenderer.send("display-capture:respond", { allowed: !0 });
+      }),
+    r &&
+      r.addEventListener("click", () => {
+        d.ipcRenderer.send("display-capture:respond", { allowed: !1 });
+      }),
+    document.addEventListener("keydown", (e) => {
+      e.key === "Escape" &&
+        d.ipcRenderer.send("display-capture:respond", { allowed: !1 });
+    }));
+}
+typeof window < "u" &&
+  window.addEventListener("DOMContentLoaded", () => {
+    s();
+  });
+0 && (module.exports = { initDisplayCaptureDialogPreload });

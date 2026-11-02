@@ -32,7 +32,14 @@
 
 import { basename, join } from "node:path";
 import { parseArgs } from "node:util";
-import { geminiInlineImage, loadEnv, pathForImageType, runtime, timestamp, validatePublicHttpsUrl } from "../lib/providers.ts";
+import {
+  geminiInlineImage,
+  loadEnv,
+  pathForImageType,
+  runtime,
+  timestamp,
+  validatePublicHttpsUrl,
+} from "../lib/providers.ts";
 
 await loadEnv();
 
@@ -61,7 +68,9 @@ const MUAPI_MAX_POLLS = 90;
 export const ASPECT_RATIOS = ["1:1", "16:9", "9:16", "4:3", "3:4"];
 export const DEFAULT_ASPECT_RATIO = "1:1"; // Square is ideal for logos
 
-const LOGO_PROMPT_TEMPLATE = (prompt: string) => `Generate a professional logo image: ${prompt}
+const LOGO_PROMPT_TEMPLATE = (
+  prompt: string,
+) => `Generate a professional logo image: ${prompt}
 
 Style requirements:
 - Clean vector-style illustration suitable for a logo
@@ -76,24 +85,35 @@ Style requirements:
 `;
 
 export const STYLE_MODIFIERS: Record<string, string> = {
-  minimalist: "minimalist, simple geometric shapes, clean lines, lots of white space, single color or limited palette",
-  vintage: "vintage, retro, badge style, distressed texture, heritage feel, warm earth tones",
+  minimalist:
+    "minimalist, simple geometric shapes, clean lines, lots of white space, single color or limited palette",
+  vintage:
+    "vintage, retro, badge style, distressed texture, heritage feel, warm earth tones",
   modern: "modern, sleek, gradient colors, tech-forward, innovative feel",
-  luxury: "luxury, elegant, gold accents, refined, premium feel, serif typography",
+  luxury:
+    "luxury, elegant, gold accents, refined, premium feel, serif typography",
   playful: "playful, fun, colorful, friendly, approachable, rounded shapes",
-  corporate: "corporate, professional, trustworthy, stable, conservative colors",
+  corporate:
+    "corporate, professional, trustworthy, stable, conservative colors",
   organic: "organic, natural, flowing lines, earth tones, sustainable feel",
   geometric: "geometric, abstract, mathematical precision, symmetrical",
   "hand-drawn": "hand-drawn, artisan, sketch-like, authentic, imperfect lines",
   "3d": "3D, dimensional, depth, shadows, isometric perspective",
-  abstract: "abstract mark, conceptual, symbolic, non-literal representation, artistic interpretation",
-  lettermark: "lettermark, single letter or initials, typographic, monogram style, distinctive character",
-  wordmark: "wordmark, logotype, custom typography, brand name as logo, distinctive lettering",
-  emblem: "emblem, badge, crest style, enclosed design, traditional, authoritative feel",
+  abstract:
+    "abstract mark, conceptual, symbolic, non-literal representation, artistic interpretation",
+  lettermark:
+    "lettermark, single letter or initials, typographic, monogram style, distinctive character",
+  wordmark:
+    "wordmark, logotype, custom typography, brand name as logo, distinctive lettering",
+  emblem:
+    "emblem, badge, crest style, enclosed design, traditional, authoritative feel",
   mascot: "mascot, character, friendly face, personified, memorable figure",
-  gradient: "gradient, color transition, vibrant, modern digital feel, smooth color flow",
-  lineart: "line art, single stroke, continuous line, elegant simplicity, wire-frame style",
-  "negative-space": "negative space, clever use of white space, hidden meaning, dual imagery, optical illusion",
+  gradient:
+    "gradient, color transition, vibrant, modern digital feel, smooth color flow",
+  lineart:
+    "line art, single stroke, continuous line, elegant simplicity, wire-frame style",
+  "negative-space":
+    "negative space, clever use of white space, hidden meaning, dual imagery, optical illusion",
 };
 
 export const INDUSTRY_PROMPTS: Record<string, string> = {
@@ -109,10 +129,16 @@ export const INDUSTRY_PROMPTS: Record<string, string> = {
   creative: "creative agency, artistic, unique, expressive, colorful",
 };
 
-export function enhancePrompt(basePrompt: string, style?: string | null, industry?: string | null, brandName?: string | null): string {
+export function enhancePrompt(
+  basePrompt: string,
+  style?: string | null,
+  industry?: string | null,
+  brandName?: string | null,
+): string {
   const parts = [basePrompt];
   if (style && STYLE_MODIFIERS[style]) parts.push(STYLE_MODIFIERS[style]);
-  if (industry && INDUSTRY_PROMPTS[industry]) parts.push(INDUSTRY_PROMPTS[industry]);
+  if (industry && INDUSTRY_PROMPTS[industry])
+    parts.push(INDUSTRY_PROMPTS[industry]);
   if (brandName) parts.unshift(`Logo for '${brandName}':`);
   return LOGO_PROMPT_TEMPLATE(parts.join(", "));
 }
@@ -132,7 +158,13 @@ function atlasPredictionData(response: any): Record<string, any> {
   return data;
 }
 
-export async function generateWithAtlas(prompt: string, outputPath: string, aspectRatio: string, apiKey: string | undefined | null, model: string): Promise<void> {
+export async function generateWithAtlas(
+  prompt: string,
+  outputPath: string,
+  aspectRatio: string,
+  apiKey: string | undefined | null,
+  model: string,
+): Promise<void> {
   if (!apiKey) throw new Error("ATLASCLOUD_API_KEY not set");
   let data = atlasPredictionData(
     await runtime.jsonRequest(`${ATLAS_API_BASE}/model/generateImage`, apiKey, {
@@ -141,13 +173,18 @@ export async function generateWithAtlas(prompt: string, outputPath: string, aspe
     }),
   );
   const predictionId = data.id;
-  if (!predictionId) throw new Error("Atlas Cloud did not return a prediction ID");
+  if (!predictionId)
+    throw new Error("Atlas Cloud did not return a prediction ID");
 
   for (let poll = 0; poll <= ATLAS_MAX_POLLS; poll++) {
     const status = String(data.status ?? "").toLowerCase();
     if (status === "completed") {
       const outputs = data.outputs;
-      if (!Array.isArray(outputs) || outputs.length === 0 || typeof outputs[0] !== "string") {
+      if (
+        !Array.isArray(outputs) ||
+        outputs.length === 0 ||
+        typeof outputs[0] !== "string"
+      ) {
         throw new Error("Atlas Cloud completed without an image URL");
       }
       await runtime.downloadImage(outputs[0], outputPath, "image provider");
@@ -158,17 +195,24 @@ export async function generateWithAtlas(prompt: string, outputPath: string, aspe
     }
     if (poll === ATLAS_MAX_POLLS) break;
     await runtime.sleep(ATLAS_POLL_INTERVAL_MS);
-    data = atlasPredictionData(await runtime.jsonRequest(`${ATLAS_API_BASE}/model/prediction/${predictionId}`, apiKey));
+    data = atlasPredictionData(
+      await runtime.jsonRequest(
+        `${ATLAS_API_BASE}/model/prediction/${predictionId}`,
+        apiKey,
+      ),
+    );
   }
   throw new Error("Atlas Cloud prediction timed out while polling");
 }
 
 // ============ MUAPI ============
-const isPlainObject = (v: unknown): v is Record<string, any> => !!v && typeof v === "object" && !Array.isArray(v);
+const isPlainObject = (v: unknown): v is Record<string, any> =>
+  !!v && typeof v === "object" && !Array.isArray(v);
 
 /** The response and the common MuAPI envelopes (data/output/result). */
 function muapiResponseObjects(response: unknown): Array<Record<string, any>> {
-  if (!isPlainObject(response)) throw new TypeError("MuAPI returned an invalid response");
+  if (!isPlainObject(response))
+    throw new TypeError("MuAPI returned an invalid response");
   const objects = [response];
   for (const key of ["data", "output", "result"]) {
     const value = response[key];
@@ -189,11 +233,14 @@ function muapiResponseValue(response: unknown, keys: string[]): any {
 
 function muapiError(response: unknown): string {
   const value = muapiResponseValue(response, ["error", "message", "detail"]);
-  return typeof value === "string" ? value.slice(0, 300) : "MuAPI request failed";
+  return typeof value === "string"
+    ? value.slice(0, 300)
+    : "MuAPI request failed";
 }
 
 function muapiResultUrl(response: unknown): string {
-  const invalid = "MuAPI creation response did not include a valid HTTPS result URL";
+  const invalid =
+    "MuAPI creation response did not include a valid HTTPS result URL";
   for (const item of muapiResponseObjects(response)) {
     const urls = item.urls;
     if (!isPlainObject(urls) || !("get" in urls)) continue;
@@ -214,11 +261,13 @@ function muapiOutputUrl(response: unknown): string {
     const outputs = item.outputs;
     if (!Array.isArray(outputs)) continue;
     for (const output of outputs) {
-      if (typeof output === "string" && output.startsWith("https://")) return output;
+      if (typeof output === "string" && output.startsWith("https://"))
+        return output;
       if (isPlainObject(output)) {
         for (const key of ["url", "image_url"]) {
           const value = output[key];
-          if (typeof value === "string" && value.startsWith("https://")) return value;
+          if (typeof value === "string" && value.startsWith("https://"))
+            return value;
         }
       }
     }
@@ -226,56 +275,92 @@ function muapiOutputUrl(response: unknown): string {
   throw new Error("MuAPI completed without an HTTPS image URL");
 }
 
-export async function generateWithMuapi(prompt: string, outputPath: string, aspectRatio: string, apiKey: string | undefined | null, model: string): Promise<void> {
+export async function generateWithMuapi(
+  prompt: string,
+  outputPath: string,
+  aspectRatio: string,
+  apiKey: string | undefined | null,
+  model: string,
+): Promise<void> {
   if (!apiKey) throw new Error("MUAPI_API_KEY not set");
   if (!MUAPI_MODELS.includes(model)) {
-    throw new Error(`Unsupported MuAPI logo model: ${model}. Choose one of: ${MUAPI_MODELS.join(", ")}`);
+    throw new Error(
+      `Unsupported MuAPI logo model: ${model}. Choose one of: ${MUAPI_MODELS.join(", ")}`,
+    );
   }
-  const response = await runtime.jsonRequest(`${MUAPI_API_BASE}/${model}`, apiKey, {
-    method: "POST",
-    payload: { prompt, aspect_ratio: aspectRatio },
-    apiKeyHeader: "x-api-key",
-  });
+  const response = await runtime.jsonRequest(
+    `${MUAPI_API_BASE}/${model}`,
+    apiKey,
+    {
+      method: "POST",
+      payload: { prompt, aspect_ratio: aspectRatio },
+      apiKeyHeader: "x-api-key",
+    },
+  );
   const requestId = muapiResponseValue(response, ["request_id", "id"]);
-  if (typeof requestId !== "string" || !requestId) throw new Error("MuAPI did not return a request ID");
+  if (typeof requestId !== "string" || !requestId)
+    throw new Error("MuAPI did not return a request ID");
   const resultUrl = muapiResultUrl(response);
 
   let data = response;
   for (let poll = 0; poll <= MUAPI_MAX_POLLS; poll++) {
-    const status = String(muapiResponseValue(data, ["status"]) ?? "").toLowerCase();
+    const status = String(
+      muapiResponseValue(data, ["status"]) ?? "",
+    ).toLowerCase();
     if (["completed", "succeeded", "success"].includes(status)) {
       await runtime.downloadImage(muapiOutputUrl(data), outputPath, "MuAPI");
       return;
     }
-    if (["failed", "error", "timeout", "canceled", "cancelled"].includes(status)) {
+    if (
+      ["failed", "error", "timeout", "canceled", "cancelled"].includes(status)
+    ) {
       throw new Error(`MuAPI generation ${status}: ${muapiError(data)}`);
     }
     if (poll === MUAPI_MAX_POLLS) break;
     await runtime.sleep(MUAPI_POLL_INTERVAL_MS);
-    data = await runtime.jsonRequest(resultUrl, apiKey, { apiKeyHeader: "x-api-key" });
+    data = await runtime.jsonRequest(resultUrl, apiKey, {
+      apiKeyHeader: "x-api-key",
+    });
   }
   throw new Error("MuAPI prediction timed out while polling");
 }
 
 // ============ GEMINI ============
-const SAFETY_SETTINGS = ["HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_HARASSMENT"].map(
-  (category) => ({ category, threshold: "BLOCK_LOW_AND_ABOVE" }),
-);
+const SAFETY_SETTINGS = [
+  "HARM_CATEGORY_HATE_SPEECH",
+  "HARM_CATEGORY_DANGEROUS_CONTENT",
+  "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+  "HARM_CATEGORY_HARASSMENT",
+].map((category) => ({ category, threshold: "BLOCK_LOW_AND_ABOVE" }));
 
 /** Generate with Gemini and return the path the image was saved to. */
-export async function generateWithGemini(prompt: string, outputPath: string, aspectRatio: string, usePro: boolean): Promise<string> {
+export async function generateWithGemini(
+  prompt: string,
+  outputPath: string,
+  aspectRatio: string,
+  usePro: boolean,
+): Promise<string> {
   if (!config.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not set");
   const models = geminiModels();
-  const response = await runtime.geminiGenerateContent(usePro ? models.pro : models.flash, config.GEMINI_API_KEY, {
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: { responseModalities: ["IMAGE", "TEXT"], imageConfig: { aspectRatio } },
-    safetySettings: SAFETY_SETTINGS,
-  });
+  const response = await runtime.geminiGenerateContent(
+    usePro ? models.pro : models.flash,
+    config.GEMINI_API_KEY,
+    {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseModalities: ["IMAGE", "TEXT"],
+        imageConfig: { aspectRatio },
+      },
+      safetySettings: SAFETY_SETTINGS,
+    },
+  );
   const image = geminiInlineImage(response);
   if (!image) throw new Error("Gemini did not return an image");
   const savedPath = pathForImageType(outputPath, image.mimeType);
   if (savedPath !== outputPath) {
-    console.log(`Gemini returned ${image.mimeType}, so saving as ${savedPath} instead of ${outputPath}`);
+    console.log(
+      `Gemini returned ${image.mimeType}, so saving as ${savedPath} instead of ${outputPath}`,
+    );
   }
   await Bun.write(savedPath, image.data);
   return savedPath;
@@ -296,10 +381,24 @@ export interface LogoOptions {
 
 /** Generate a logo; returns the saved path or null on failure. */
 async function generateLogo(options: LogoOptions): Promise<string | null> {
-  const { prompt, style, industry, brandName, usePro = false, provider = "gemini", atlasModel = ATLAS_MODEL, muapiModel = MUAPI_MODEL } = options;
+  const {
+    prompt,
+    style,
+    industry,
+    brandName,
+    usePro = false,
+    provider = "gemini",
+    atlasModel = ATLAS_MODEL,
+    muapiModel = MUAPI_MODEL,
+  } = options;
   const fullPrompt = enhancePrompt(prompt, style, industry, brandName);
-  const ratio = options.aspectRatio && ASPECT_RATIOS.includes(options.aspectRatio) ? options.aspectRatio : DEFAULT_ASPECT_RATIO;
-  let outputPath = options.outputPath ?? `${brandName ? brandName.toLowerCase().replaceAll(" ", "_") : "logo"}_${timestamp()}.png`;
+  const ratio =
+    options.aspectRatio && ASPECT_RATIOS.includes(options.aspectRatio)
+      ? options.aspectRatio
+      : DEFAULT_ASPECT_RATIO;
+  let outputPath =
+    options.outputPath ??
+    `${brandName ? brandName.toLowerCase().replaceAll(" ", "_") : "logo"}_${timestamp()}.png`;
 
   const models = geminiModels();
   const modelLabel =
@@ -317,9 +416,29 @@ async function generateLogo(options: LogoOptions): Promise<string | null> {
   console.log();
 
   try {
-    if (provider === "atlas") await generateWithAtlas(fullPrompt, outputPath, ratio, config.ATLASCLOUD_API_KEY, atlasModel);
-    else if (provider === "muapi") await generateWithMuapi(fullPrompt, outputPath, ratio, config.MUAPI_API_KEY, muapiModel);
-    else outputPath = await generateWithGemini(fullPrompt, outputPath, ratio, usePro);
+    if (provider === "atlas")
+      await generateWithAtlas(
+        fullPrompt,
+        outputPath,
+        ratio,
+        config.ATLASCLOUD_API_KEY,
+        atlasModel,
+      );
+    else if (provider === "muapi")
+      await generateWithMuapi(
+        fullPrompt,
+        outputPath,
+        ratio,
+        config.MUAPI_API_KEY,
+        muapiModel,
+      );
+    else
+      outputPath = await generateWithGemini(
+        fullPrompt,
+        outputPath,
+        ratio,
+        usePro,
+      );
     console.log(`Logo saved to: ${outputPath}`);
     return outputPath;
   } catch (error) {
@@ -353,10 +472,28 @@ async function generateBatch(options: {
   atlasModel?: string;
   muapiModel?: string;
 }): Promise<string[]> {
-  const { prompt, brandName, count, outputDir, usePro = false, brandContext, provider = "gemini", atlasModel = ATLAS_MODEL, muapiModel = MUAPI_MODEL } = options;
+  const {
+    prompt,
+    brandName,
+    count,
+    outputDir,
+    usePro = false,
+    brandContext,
+    provider = "gemini",
+    atlasModel = ATLAS_MODEL,
+    muapiModel = MUAPI_MODEL,
+  } = options;
   const results: string[] = [];
-  const modelLabel = provider === "atlas" ? `Atlas Cloud (${atlasModel})` : provider === "muapi" ? `MuAPI (${muapiModel})` : `Nano Banana ${usePro ? "Pro" : "Flash"}`;
-  const ratio = options.aspectRatio && ASPECT_RATIOS.includes(options.aspectRatio) ? options.aspectRatio : DEFAULT_ASPECT_RATIO;
+  const modelLabel =
+    provider === "atlas"
+      ? `Atlas Cloud (${atlasModel})`
+      : provider === "muapi"
+        ? `MuAPI (${muapiModel})`
+        : `Nano Banana ${usePro ? "Pro" : "Flash"}`;
+  const ratio =
+    options.aspectRatio && ASPECT_RATIOS.includes(options.aspectRatio)
+      ? options.aspectRatio
+      : DEFAULT_ASPECT_RATIO;
 
   console.log(`\n${"=".repeat(60)}`);
   console.log(`  BATCH LOGO GENERATION: ${brandName}`);
@@ -426,43 +563,66 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       provider: { type: "string", default: "gemini" },
       "atlas-model": { type: "string", default: ATLAS_MODEL },
       "muapi-model": { type: "string", default: MUAPI_MODEL },
-      "aspect-ratio": { type: "string", short: "r", default: DEFAULT_ASPECT_RATIO },
+      "aspect-ratio": {
+        type: "string",
+        short: "r",
+        default: DEFAULT_ASPECT_RATIO,
+      },
       "list-styles": { type: "boolean" },
       "list-industries": { type: "boolean" },
     },
   });
 
   const provider = String(values.provider);
-  if (!["gemini", "atlas", "muapi"].includes(provider)) return usageError(`argument --provider: invalid choice: '${provider}'`);
-  if (values.style && !STYLE_MODIFIERS[values.style]) return usageError(`argument --style/-s: invalid choice: '${values.style}'`);
-  if (values.industry && !INDUSTRY_PROMPTS[values.industry]) return usageError(`argument --industry/-i: invalid choice: '${values.industry}'`);
-  if (!MUAPI_MODELS.includes(String(values["muapi-model"]))) return usageError(`argument --muapi-model: invalid choice: '${values["muapi-model"]}'`);
-  if (!ASPECT_RATIOS.includes(String(values["aspect-ratio"]))) return usageError(`argument --aspect-ratio/-r: invalid choice: '${values["aspect-ratio"]}'`);
+  if (!["gemini", "atlas", "muapi"].includes(provider))
+    return usageError(`argument --provider: invalid choice: '${provider}'`);
+  if (values.style && !STYLE_MODIFIERS[values.style])
+    return usageError(`argument --style/-s: invalid choice: '${values.style}'`);
+  if (values.industry && !INDUSTRY_PROMPTS[values.industry])
+    return usageError(
+      `argument --industry/-i: invalid choice: '${values.industry}'`,
+    );
+  if (!MUAPI_MODELS.includes(String(values["muapi-model"])))
+    return usageError(
+      `argument --muapi-model: invalid choice: '${values["muapi-model"]}'`,
+    );
+  if (!ASPECT_RATIOS.includes(String(values["aspect-ratio"])))
+    return usageError(
+      `argument --aspect-ratio/-r: invalid choice: '${values["aspect-ratio"]}'`,
+    );
   if (provider !== "gemini" && values.pro) {
-    return usageError("--pro is only available with --provider gemini; use --muapi-model nano-banana-pro for MuAPI");
+    return usageError(
+      "--pro is only available with --provider gemini; use --muapi-model nano-banana-pro for MuAPI",
+    );
   }
 
   if (values["list-styles"]) {
     console.log("Available styles:");
-    for (const [style, desc] of Object.entries(STYLE_MODIFIERS)) console.log(`  ${style}: ${desc.slice(0, 60)}...`);
+    for (const [style, desc] of Object.entries(STYLE_MODIFIERS))
+      console.log(`  ${style}: ${desc.slice(0, 60)}...`);
     return 0;
   }
   if (values["list-industries"]) {
     console.log("Available industries:");
-    for (const [industry, desc] of Object.entries(INDUSTRY_PROMPTS)) console.log(`  ${industry}: ${desc.slice(0, 60)}...`);
+    for (const [industry, desc] of Object.entries(INDUSTRY_PROMPTS))
+      console.log(`  ${industry}: ${desc.slice(0, 60)}...`);
     return 0;
   }
-  if (!values.prompt && !values.brand) return usageError("Either --prompt or --brand is required");
+  if (!values.prompt && !values.brand)
+    return usageError("Either --prompt or --brand is required");
 
   const prompt = values.prompt || "professional logo";
-  const batch = values.batch !== undefined ? Number.parseInt(values.batch, 10) : 0;
+  const batch =
+    values.batch !== undefined ? Number.parseInt(values.batch, 10) : 0;
   if (batch) {
     const brand = values.brand ?? "Logo";
     const results = await api.generateBatch({
       prompt,
       brandName: brand,
       count: batch,
-      outputDir: values["output-dir"] || `./${brand.toLowerCase().replaceAll(" ", "_")}_logos`,
+      outputDir:
+        values["output-dir"] ||
+        `./${brand.toLowerCase().replaceAll(" ", "_")}_logos`,
       usePro: Boolean(values.pro),
       brandContext: values["brand-context"],
       aspectRatio: values["aspect-ratio"],

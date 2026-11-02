@@ -27,20 +27,28 @@ export function e(value: unknown, fallback = ""): string {
 
 /** Only http(s), # and / URLs are allowed in href attributes (prevents javascript: URIs, CWE-79). */
 export function safeUrl(url: unknown, fallback = "#"): string {
-  if (url && /^(https?:\/\/|#|\/)/.test(String(url).trim().toLowerCase())) return e(url);
+  if (url && /^(https?:\/\/|#|\/)/.test(String(url).trim().toLowerCase()))
+    return e(url);
   return fallback;
 }
 
-const get = (data: SlideData, key: string, fallback: unknown) => (key in data ? data[key] : fallback);
+const get = (data: SlideData, key: string, fallback: unknown) =>
+  key in data ? data[key] : fallback;
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
-const yymmdd = (d: Date) => `${pad2(d.getFullYear() % 100)}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}`;
-const monthYear = (d: Date) => d.toLocaleString("en-US", { month: "long", year: "numeric" });
+const yymmdd = (d: Date) =>
+  `${pad2(d.getFullYear() % 100)}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}`;
+const monthYear = (d: Date) =>
+  d.toLocaleString("en-US", { month: "long", year: "numeric" });
 
 // ============ BRAND-COMPLIANT SLIDE TEMPLATE ============
 // ALL values reference CSS variables from design-tokens.css
 
-const slideTemplate = (title: string, tokensCssPath: string, slidesContent: string): string => `<!DOCTYPE html>
+const slideTemplate = (
+  title: string,
+  tokensCssPath: string,
+  slidesContent: string,
+): string => `<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -444,7 +452,13 @@ export function generateTitleSlide(data: SlideData): string {
     `;
 }
 
-const painCard = (data: SlideData, n: 1 | 2 | 3, colorClass: string, title: string, desc: string) => `
+const painCard = (
+  data: SlideData,
+  n: 1 | 2 | 3,
+  colorClass: string,
+  title: string,
+  desc: string,
+) => `
             <div class="card">
                 <div class="${colorClass}" style="font-size: var(--primitive-fontSize-4xl); margin-bottom: var(--primitive-spacing-4);">0${n}</div>
                 <h4 style="margin-bottom: var(--primitive-spacing-2); font-size: var(--primitive-fontSize-xl);">${e(get(data, `pain_${n}_title`, title))}</h4>
@@ -613,7 +627,10 @@ export const SLIDE_GENERATORS: Record<string, (data: SlideData) => string> = {
 };
 
 /** Generate a complete deck from a slide data list. */
-export function generateDeck(slidesData: SlideData[], title: unknown = "Pitch Deck"): string {
+export function generateDeck(
+  slidesData: SlideData[],
+  title: unknown = "Pitch Deck",
+): string {
   let slidesHtml = "";
   for (const slide of slidesData) {
     const slideType = get(slide, "type", "title");
@@ -622,7 +639,11 @@ export function generateDeck(slidesData: SlideData[], title: unknown = "Pitch De
     else console.log(`Warning: Unknown slide type '${slideType}'`);
   }
   // Decks are written to assets/designs/slides/, three levels below the project root.
-  return slideTemplate(e(title), "../../../assets/design-tokens.css", slidesHtml);
+  return slideTemplate(
+    e(title),
+    "../../../assets/design-tokens.css",
+    slidesHtml,
+  );
 }
 
 export const DEMO_SLIDES: SlideData[] = [
@@ -688,7 +709,8 @@ export const DEMO_SLIDES: SlideData[] = [
   },
   {
     type: "testimonial",
-    quote: "ClaudeKit replaced 3 tools and 2 contractors. Our content output tripled while costs dropped 60%.",
+    quote:
+      "ClaudeKit replaced 3 tools and 2 contractors. Our content output tripled while costs dropped 60%.",
     author: "Sarah Chen",
     role: "Head of Marketing, TechStartup",
     company: "ClaudeKit",
@@ -724,7 +746,12 @@ async function main(): Promise<void> {
     },
   });
 
-  const outputDir = join(await findProjectRoot(), "assets", "designs", "slides");
+  const outputDir = join(
+    await findProjectRoot(),
+    "assets",
+    "designs",
+    "slides",
+  );
   const now = new Date();
 
   if (values.demo) {
@@ -734,10 +761,16 @@ async function main(): Promise<void> {
     console.log(`Demo deck generated: ${outputPath}`);
   } else if (values.json) {
     const data = (await Bun.file(values.json).json()) as SlideData;
-    const html = generateDeck(get(data, "slides", []), get(data, "title", "Presentation"));
+    const html = generateDeck(
+      get(data, "slides", []),
+      get(data, "title", "Presentation"),
+    );
     const outputPath = values.output
       ? resolve(values.output)
-      : join(outputDir, `deck-${yymmdd(now)}-${pad2(now.getHours())}${pad2(now.getMinutes())}.html`);
+      : join(
+          outputDir,
+          `deck-${yymmdd(now)}-${pad2(now.getHours())}${pad2(now.getMinutes())}.html`,
+        );
     await Bun.write(outputPath, html);
     console.log(`Deck generated: ${outputPath}`);
   } else {

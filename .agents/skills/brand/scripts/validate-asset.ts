@@ -18,7 +18,10 @@ export const RULES = {
   naming: {
     pattern: /^[a-z]+_[a-z0-9-]+_[a-z0-9-]+_\d{8}(_[a-z0-9-]+)?\.[a-z]+$/,
     description: "{type}_{campaign}_{description}_{timestamp}_{variant}.{ext}",
-    examples: ["banner_claude-launch_hero-image_20251209.png", "logo_brand-refresh_horizontal_20251209_dark.svg"],
+    examples: [
+      "banner_claude-launch_hero-image_20251209.png",
+      "logo_brand-refresh_horizontal_20251209_dark.svg",
+    ],
   },
   dimensions: {
     banner: { minWidth: 600, minHeight: 300 },
@@ -74,11 +77,23 @@ export function validateFilename(filename: string) {
 
   const parsed = parseFilename(filename);
   if (parsed) {
-    if (!/^\d{8}$/.test(parsed.timestamp)) issues.push("Timestamp should be YYYYMMDD format");
-    if (parsed.campaign && !/^[a-z0-9-]+$/.test(parsed.campaign)) issues.push("Campaign name should be kebab-case");
-    if (parsed.description && !/^[a-z0-9-]+$/.test(parsed.description)) issues.push("Description should be kebab-case");
-    const validTypes = ["banner", "logo", "design", "video", "infographic", "icon", "photo"];
-    if (!validTypes.includes(parsed.type)) suggestions.push(`Consider using type: ${validTypes.join(", ")}`);
+    if (!/^\d{8}$/.test(parsed.timestamp))
+      issues.push("Timestamp should be YYYYMMDD format");
+    if (parsed.campaign && !/^[a-z0-9-]+$/.test(parsed.campaign))
+      issues.push("Campaign name should be kebab-case");
+    if (parsed.description && !/^[a-z0-9-]+$/.test(parsed.description))
+      issues.push("Description should be kebab-case");
+    const validTypes = [
+      "banner",
+      "logo",
+      "design",
+      "video",
+      "infographic",
+      "icon",
+      "photo",
+    ];
+    if (!validTypes.includes(parsed.type))
+      suggestions.push(`Consider using type: ${validTypes.join(", ")}`);
   }
   return { valid: issues.length === 0, issues, suggestions, parsed };
 }
@@ -100,9 +115,13 @@ export function validateFileSize(size: number, extension: string) {
       ? RULES.fileSize.svg
       : RULES.fileSize.image;
   if (size > limits.max) {
-    issues.push(`File size (${formatBytes(size)}) exceeds maximum (${formatBytes(limits.max)})`);
+    issues.push(
+      `File size (${formatBytes(size)}) exceeds maximum (${formatBytes(limits.max)})`,
+    );
   } else if (size > limits.recommended) {
-    warnings.push(`File size (${formatBytes(size)}) exceeds recommended (${formatBytes(limits.recommended)})`);
+    warnings.push(
+      `File size (${formatBytes(size)}) exceeds recommended (${formatBytes(limits.recommended)})`,
+    );
   }
   return { valid: issues.length === 0, issues, warnings, size };
 }
@@ -123,12 +142,19 @@ export function validateFormat(extension: string) {
 }
 
 async function checkManifest(filepath: string) {
-  const manifestFile = Bun.file(join(process.cwd(), ".assets", "manifest.json"));
-  if (!(await manifestFile.exists())) return { registered: false, message: "Manifest not found" };
+  const manifestFile = Bun.file(
+    join(process.cwd(), ".assets", "manifest.json"),
+  );
+  if (!(await manifestFile.exists()))
+    return { registered: false, message: "Manifest not found" };
   try {
-    const manifest = (await manifestFile.json()) as { assets?: Array<{ path: string }> };
+    const manifest = (await manifestFile.json()) as {
+      assets?: Array<{ path: string }>;
+    };
     const relativePath = relative(process.cwd(), filepath);
-    const found = manifest.assets?.find((a) => a.path === relativePath || a.path === filepath);
+    const found = manifest.assets?.find(
+      (a) => a.path === relativePath || a.path === filepath,
+    );
     return {
       registered: !!found,
       message: found ? "Asset registered in manifest" : "Asset not in manifest",
@@ -186,7 +212,9 @@ export async function validateAsset(assetPath: string) {
   results.checks.manifest = manifestResult;
   if (!manifestResult.registered) {
     results.warnings.push("Asset not registered in manifest.json");
-    results.suggestions.push("Register asset in .assets/manifest.json for tracking");
+    results.suggestions.push(
+      "Register asset in .assets/manifest.json for tracking",
+    );
   }
 
   if (!filenameResult.valid && filenameResult.parsed) {
@@ -198,7 +226,9 @@ export async function validateAsset(assetPath: string) {
   return results;
 }
 
-function formatOutput(results: Awaited<ReturnType<typeof validateAsset>>): string {
+function formatOutput(
+  results: Awaited<ReturnType<typeof validateAsset>>,
+): string {
   const lines: string[] = [];
   lines.push("\n" + "=".repeat(60));
   lines.push(`ASSET VALIDATION: ${results.filename}`);
@@ -216,7 +246,8 @@ function formatOutput(results: Awaited<ReturnType<typeof validateAsset>>): strin
       for (const item of items) lines.push(`  - ${item}`);
     }
   }
-  if (results.checks.fileSize?.size) lines.push(`\nFile Size: ${formatBytes(results.checks.fileSize.size)}`);
+  if (results.checks.fileSize?.size)
+    lines.push(`\nFile Size: ${formatBytes(results.checks.fileSize.size)}`);
   lines.push("\n" + "=".repeat(60));
   return lines.join("\n");
 }
@@ -229,14 +260,22 @@ async function main(): Promise<void> {
   if (!assetPath) {
     console.error("Usage: bun scripts/validate-asset.ts <asset-path> [--json]");
     console.error("\nExamples:");
-    console.error("  bun scripts/validate-asset.ts assets/banners/social-media/banner_launch_hero_20251209.png");
-    console.error("  bun scripts/validate-asset.ts assets/logos/icon-only/logo-icon.svg --json");
+    console.error(
+      "  bun scripts/validate-asset.ts assets/banners/social-media/banner_launch_hero_20251209.png",
+    );
+    console.error(
+      "  bun scripts/validate-asset.ts assets/logos/icon-only/logo-icon.svg --json",
+    );
     process.exit(1);
   }
 
-  const resolvedPath = isAbsolute(assetPath) ? assetPath : join(process.cwd(), assetPath);
+  const resolvedPath = isAbsolute(assetPath)
+    ? assetPath
+    : join(process.cwd(), assetPath);
   const results = await validateAsset(resolvedPath);
-  console.log(jsonOutput ? JSON.stringify(results, null, 2) : formatOutput(results));
+  console.log(
+    jsonOutput ? JSON.stringify(results, null, 2) : formatOutput(results),
+  );
   process.exit(results.valid ? 0 : 1);
 }
 

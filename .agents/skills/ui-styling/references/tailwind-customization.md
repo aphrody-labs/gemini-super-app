@@ -36,14 +36,13 @@ Modern approach to customize Tailwind using CSS:
 ```
 
 **Usage:**
+
 ```html
 <div class="bg-brand-500 font-display shadow-glow rounded-large">
   Custom themed element
 </div>
 
-<div class="tablet:grid-cols-2 3xl:grid-cols-6">
-  Custom breakpoints
-</div>
+<div class="tablet:grid-cols-2 3xl:grid-cols-6">Custom breakpoints</div>
 ```
 
 ## Color Customization
@@ -55,15 +54,15 @@ Modern approach to customize Tailwind using CSS:
   /* Full color scale */
   --color-primary-50: oklch(0.98 0.02 250);
   --color-primary-100: oklch(0.95 0.05 250);
-  --color-primary-200: oklch(0.90 0.10 250);
+  --color-primary-200: oklch(0.9 0.1 250);
   --color-primary-300: oklch(0.85 0.15 250);
   --color-primary-400: oklch(0.75 0.18 250);
   --color-primary-500: oklch(0.65 0.22 250);
   --color-primary-600: oklch(0.55 0.22 250);
-  --color-primary-700: oklch(0.45 0.20 250);
+  --color-primary-700: oklch(0.45 0.2 250);
   --color-primary-800: oklch(0.35 0.18 250);
   --color-primary-900: oklch(0.25 0.15 250);
-  --color-primary-950: oklch(0.15 0.10 250);
+  --color-primary-950: oklch(0.15 0.1 250);
 }
 ```
 
@@ -73,7 +72,7 @@ Modern approach to customize Tailwind using CSS:
 @theme {
   --color-success: oklch(0.65 0.18 145);
   --color-warning: oklch(0.75 0.15 85);
-  --color-error: oklch(0.60 0.22 25);
+  --color-error: oklch(0.6 0.22 25);
   --color-info: oklch(0.65 0.18 240);
 }
 ```
@@ -161,6 +160,7 @@ Create reusable utility classes:
 ```
 
 **Usage:**
+
 ```html
 <div class="content-auto">Optimized rendering</div>
 <pre class="tab-4">Code with 4-space tabs</pre>
@@ -178,11 +178,10 @@ Create custom state variants:
 ```
 
 **Usage:**
+
 ```html
 <div data-theme="midnight">
-  <div class="theme-midnight:bg-navy-900">
-    Applies in midnight theme
-  </div>
+  <div class="theme-midnight:bg-navy-900">Applies in midnight theme</div>
 </div>
 
 <input class="required:border-red-500" required />
@@ -267,6 +266,7 @@ Extract repeated utility patterns:
 ```
 
 **Usage:**
+
 ```html
 <button class="btn-primary">Click me</button>
 <input class="input-field" />
@@ -292,6 +292,7 @@ queries are built in: `@container`, `@sm:`, `@lg:`):
 ```
 
 **Typography plugin:**
+
 ```html
 <article class="prose lg:prose-xl">
   <h1>Styled article</h1>
@@ -300,6 +301,7 @@ queries are built in: `@container`, `@sm:`, `@lg:`):
 ```
 
 **Forms plugin:**
+
 ```html
 <!-- Automatically styled form elements -->
 <input type="text" />
@@ -335,9 +337,9 @@ queries are built in: `@container`, `@sm:`, `@lg:`):
 ```css
 /* app/globals.css */
 @import "tailwindcss" source("..");
-@import "tw-animate-css";            /* replaces tailwindcss-animate in v4 */
+@import "tw-animate-css"; /* replaces tailwindcss-animate in v4 */
 @plugin "@tailwindcss/typography";
-@source "../../packages/ui/src";      /* workspace packages outside the app */
+@source "../../packages/ui/src"; /* workspace packages outside the app */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -382,8 +384,12 @@ queries are built in: `@container`, `@sm:`, `@lg:`):
   --animate-slide-in: slide-in 0.5s ease-out;
 
   @keyframes slide-in {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(0); }
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
   }
 }
 
@@ -409,17 +415,20 @@ Tailwind v4 uses `prefers-color-scheme` by default. For a class toggle, declare 
 Also set `color-scheme` so native controls and scrollbars follow the theme:
 
 ```css
-:root { color-scheme: light; }
-.dark { color-scheme: dark; }
+:root {
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
+}
 ```
 
 **Usage:**
+
 ```html
 <!-- Class-based -->
 <html class="dark">
-  <div class="bg-white dark:bg-gray-900">
-    Responds to .dark class
-  </div>
+  <div class="bg-white dark:bg-gray-900">Responds to .dark class</div>
 </html>
 
 <!-- Media query-based (default, no @custom-variant) -->
@@ -434,9 +443,9 @@ Tailwind v4 detects sources automatically (ignoring `.gitignore`d files and
 `node_modules`). Set the base with `source()` and add paths it cannot see:
 
 ```css
-@import "tailwindcss" source("..");          /* scan from the project root */
-@source "../../packages/rg-ui/src";           /* a workspace package */
-@source not "../legacy";                      /* exclude a directory */
+@import "tailwindcss" source(".."); /* scan from the project root */
+@source "../../packages/rg-ui/src"; /* a workspace package */
+@source not "../legacy"; /* exclude a directory */
 ```
 
 ### Safelist

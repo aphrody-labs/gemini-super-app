@@ -15,36 +15,54 @@
 
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { geminiText, loadEnv, runtime, timestamp, type GeminiResponse } from "../lib/providers.ts";
+import {
+  geminiText,
+  loadEnv,
+  runtime,
+  timestamp,
+  type GeminiResponse,
+} from "../lib/providers.ts";
 
 await loadEnv();
 
 // ============ CONFIGURATION ============
-export const config = { GEMINI_API_KEY: process.env.GEMINI_API_KEY as string | undefined };
+export const config = {
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY as string | undefined,
+};
 export const MODEL = "gemini-3.1-pro-preview";
 
 export const ICON_STYLES: Record<string, string> = {
-  outlined: "outlined stroke icons, 2px stroke width, no fill, clean open paths",
+  outlined:
+    "outlined stroke icons, 2px stroke width, no fill, clean open paths",
   filled: "solid filled icons, no stroke, flat color fills, bold shapes",
-  duotone: "duotone style with primary color at full opacity and secondary color at 30% opacity, layered shapes",
+  duotone:
+    "duotone style with primary color at full opacity and secondary color at 30% opacity, layered shapes",
   thin: "thin line icons, 1px or 1.5px stroke width, delicate minimalist lines",
   bold: "bold thick line icons, 3px stroke width, heavy weight, impactful",
-  rounded: "rounded icons with round line caps and joins, soft corners, friendly feel",
-  sharp: "sharp angular icons, square line caps and mitered joins, precise edges",
+  rounded:
+    "rounded icons with round line caps and joins, soft corners, friendly feel",
+  sharp:
+    "sharp angular icons, square line caps and mitered joins, precise edges",
   flat: "flat design icons, solid fills, no gradients or shadows, geometric simplicity",
   gradient: "linear or radial gradient fills, modern vibrant color transitions",
-  glassmorphism: "glassmorphism style with semi-transparent fills, blur backdrop effect simulation, frosted glass",
+  glassmorphism:
+    "glassmorphism style with semi-transparent fills, blur backdrop effect simulation, frosted glass",
   pixel: "pixel art style icons on a grid, retro 8-bit aesthetic, crisp edges",
-  "hand-drawn": "hand-drawn sketch style, slightly irregular strokes, organic feel, imperfect lines",
+  "hand-drawn":
+    "hand-drawn sketch style, slightly irregular strokes, organic feel, imperfect lines",
   isometric: "isometric 3D projection, 30-degree angles, dimensional depth",
   glyph: "simple glyph style, single solid shape, minimal detail, pictogram",
-  "animated-ready": "animated-ready SVG with named groups and IDs for CSS/JS animation targets",
+  "animated-ready":
+    "animated-ready SVG with named groups and IDs for CSS/JS animation targets",
 };
 
 export const ICON_CATEGORIES: Record<string, string> = {
-  navigation: "arrows, menus, hamburger, chevrons, home, back, forward, breadcrumb",
-  action: "edit, delete, save, download, upload, share, copy, paste, print, search",
-  communication: "email, chat, phone, video call, notification, bell, message bubble",
+  navigation:
+    "arrows, menus, hamburger, chevrons, home, back, forward, breadcrumb",
+  action:
+    "edit, delete, save, download, upload, share, copy, paste, print, search",
+  communication:
+    "email, chat, phone, video call, notification, bell, message bubble",
   media: "play, pause, stop, skip, volume, microphone, camera, image, gallery",
   file: "document, folder, archive, attachment, cloud, database, storage",
   user: "person, group, avatar, profile, settings, lock, key, shield",
@@ -56,7 +74,13 @@ export const ICON_CATEGORIES: Record<string, string> = {
   map: "pin, location, compass, globe, route, directions, map marker",
 };
 
-const SVG_PROMPT_TEMPLATE = (p: { prompt: string; viewbox: number; styleInstructions: string; colorInstructions: string; sizeInstructions: string }) =>
+const SVG_PROMPT_TEMPLATE = (p: {
+  prompt: string;
+  viewbox: number;
+  styleInstructions: string;
+  colorInstructions: string;
+  sizeInstructions: string;
+}) =>
   `Generate a clean, production-ready SVG icon.
 
 Requirements:
@@ -75,7 +99,13 @@ Icon to generate: ${p.prompt}
 
 Output the SVG code only, wrapped in \`\`\`svg\`\`\` code block.`;
 
-const SVG_BATCH_PROMPT_TEMPLATE = (p: { prompt: string; count: number; viewbox: number; styleInstructions: string; colorInstructions: string }) =>
+const SVG_BATCH_PROMPT_TEMPLATE = (p: {
+  prompt: string;
+  count: number;
+  viewbox: number;
+  styleInstructions: string;
+  colorInstructions: string;
+}) =>
   `Generate ${p.count} distinct SVG icon variations for: ${p.prompt}
 
 Requirements for EACH icon:
@@ -124,36 +154,59 @@ export function applyColor(svgCode: string, color?: string | null): string {
 // Root <svg ...> opening tag; quoted attribute values may contain ">".
 const SVG_ROOT_TAG = /<svg\b(?:[^>"']|"[^"]*"|'[^']*')*>/;
 // One token of an opening tag: name[=value], or a stray quoted string.
-const TAG_ATTR = /([^\s=/>"']+)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>"']+))?|"[^"]*"|'[^']*'/g;
+const TAG_ATTR =
+  /([^\s=/>"']+)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>"']+))?|"[^"]*"|'[^']*'/g;
 
 /** Set attr on a single <svg ...> opening tag, whatever quote style it uses. */
-function setRootAttr(tag: string, attr: string, value: string | number): string {
+function setRootAttr(
+  tag: string,
+  attr: string,
+  value: string | number,
+): string {
   const re = new RegExp(TAG_ATTR.source, "g");
   re.lastIndex = "<svg".length;
   for (let m = re.exec(tag); m; m = re.exec(tag)) {
-    if (m[1] === attr) return tag.slice(0, m.index) + `${attr}="${value}"` + tag.slice(m.index + m[0].length);
+    if (m[1] === attr)
+      return (
+        tag.slice(0, m.index) +
+        `${attr}="${value}"` +
+        tag.slice(m.index + m[0].length)
+      );
     if (m[0].length === 0) re.lastIndex++;
   }
   return tag.replace("<svg", `<svg ${attr}="${value}"`);
 }
 
 /** Set width/height on the root <svg> tag only, leaving the viewBox alone. */
-export function applyViewboxSize(svgCode: string, size?: number | null): string {
+export function applyViewboxSize(
+  svgCode: string,
+  size?: number | null,
+): string {
   if (!size) return svgCode;
   const match = svgCode.match(SVG_ROOT_TAG);
   if (!match) return svgCode;
   let tag = setRootAttr(match[0], "width", size);
   tag = setRootAttr(tag, "height", size);
-  return svgCode.slice(0, match.index!) + tag + svgCode.slice(match.index! + match[0].length);
+  return (
+    svgCode.slice(0, match.index!) +
+    tag +
+    svgCode.slice(match.index! + match[0].length)
+  );
 }
 
 function finishReason(response: GeminiResponse | null): string {
   return String(response?.candidates?.[0]?.finishReason ?? "");
 }
 
-function reportNoSvg(response: GeminiResponse | null, responseText: string, what = "SVG"): void {
+function reportNoSvg(
+  response: GeminiResponse | null,
+  responseText: string,
+  what = "SVG",
+): void {
   if (finishReason(response).includes("MAX_TOKENS")) {
-    console.log("Error: output hit the token limit (finish_reason MAX_TOKENS) before the SVG was complete. Try a simpler prompt or style.");
+    console.log(
+      "Error: output hit the token limit (finish_reason MAX_TOKENS) before the SVG was complete. Try a simpler prompt or style.",
+    );
   } else if (!responseText.trim()) {
     console.log("Error: model returned an empty response.");
   } else {
@@ -162,10 +215,14 @@ function reportNoSvg(response: GeminiResponse | null, responseText: string, what
   }
 }
 
-const slugify = (text: string) => text.toLowerCase().replace(/[^a-zA-Z0-9_-]/g, "_");
+const slugify = (text: string) =>
+  text.toLowerCase().replace(/[^a-zA-Z0-9_-]/g, "_");
 const firstWord = (text: string) => text.trim().split(/\s+/)[0] ?? "";
 
-async function callModel(prompt: string, temperature: number): Promise<GeminiResponse> {
+async function callModel(
+  prompt: string,
+  temperature: number,
+): Promise<GeminiResponse> {
   return runtime.geminiGenerateContent(MODEL, config.GEMINI_API_KEY!, {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: { temperature, maxOutputTokens: 16384 },
@@ -184,8 +241,18 @@ export interface IconOptions {
 }
 
 /** Generate a single SVG icon; returns the saved path or null. */
-export async function generateIcon(options: IconOptions): Promise<string | null> {
-  const { prompt, style, category, name, color, size = 24, viewbox = 24 } = options;
+export async function generateIcon(
+  options: IconOptions,
+): Promise<string | null> {
+  const {
+    prompt,
+    style,
+    category,
+    name,
+    color,
+    size = 24,
+    viewbox = 24,
+  } = options;
   if (!config.GEMINI_API_KEY) {
     console.log("Error: GEMINI_API_KEY not set");
     console.log("Set it with: export GEMINI_API_KEY='your-key'");
@@ -193,14 +260,18 @@ export async function generateIcon(options: IconOptions): Promise<string | null>
   }
 
   let iconPrompt = prompt;
-  if (category && ICON_CATEGORIES[category]) iconPrompt = `${prompt} (category: ${ICON_CATEGORIES[category]})`;
+  if (category && ICON_CATEGORIES[category])
+    iconPrompt = `${prompt} (category: ${ICON_CATEGORIES[category]})`;
   if (name) iconPrompt = `'${name}' icon: ${iconPrompt}`;
 
   const fullPrompt = SVG_PROMPT_TEMPLATE({
     prompt: iconPrompt,
     viewbox,
-    styleInstructions: style && ICON_STYLES[style] ? `- Style: ${ICON_STYLES[style]}` : "",
-    colorInstructions: color ? `- Use color: ${color} for primary elements, currentColor for secondary` : "- Use currentColor for all strokes and fills",
+    styleInstructions:
+      style && ICON_STYLES[style] ? `- Style: ${ICON_STYLES[style]}` : "",
+    colorInstructions: color
+      ? `- Use color: ${color} for primary elements, currentColor for secondary`
+      : "- Use currentColor for all strokes and fills",
     sizeInstructions: `- Design for ${size}px display size, optimize detail level accordingly`,
   });
 
@@ -233,7 +304,15 @@ export async function generateIcon(options: IconOptions): Promise<string | null>
 }
 
 /** Generate multiple icon variations in one request. */
-export async function generateBatch(prompt: string, count: number, outputDir: string, style?: string | null, color?: string | null, viewbox = 24, name?: string | null): Promise<string[]> {
+export async function generateBatch(
+  prompt: string,
+  count: number,
+  outputDir: string,
+  style?: string | null,
+  color?: string | null,
+  viewbox = 24,
+  name?: string | null,
+): Promise<string[]> {
   if (!config.GEMINI_API_KEY) {
     console.log("Error: GEMINI_API_KEY not set");
     return [];
@@ -242,8 +321,11 @@ export async function generateBatch(prompt: string, count: number, outputDir: st
     prompt,
     count,
     viewbox,
-    styleInstructions: style && ICON_STYLES[style] ? `- Style: ${ICON_STYLES[style]}` : "",
-    colorInstructions: color ? `- Use color: ${color} for primary elements` : "- Use currentColor for all strokes and fills",
+    styleInstructions:
+      style && ICON_STYLES[style] ? `- Style: ${ICON_STYLES[style]}` : "",
+    colorInstructions: color
+      ? `- Use color: ${color} for primary elements`
+      : "- Use currentColor for all strokes and fills",
   });
 
   console.log(`\n${"=".repeat(60)}`);
@@ -273,8 +355,13 @@ export async function generateBatch(prompt: string, count: number, outputDir: st
       results.push(filepath);
       console.log(`  [${i + 1}/${selected.length}] Saved: ${filename}`);
     }
-    if (results.length < count && finishReason(response).includes("MAX_TOKENS")) {
-      console.log("Warning: output hit the token limit (finish_reason MAX_TOKENS); the last icon was cut off. Try fewer variants or a simpler prompt.");
+    if (
+      results.length < count &&
+      finishReason(response).includes("MAX_TOKENS")
+    ) {
+      console.log(
+        "Warning: output hit the token limit (finish_reason MAX_TOKENS); the last icon was cut off. Try fewer variants or a simpler prompt.",
+      );
     }
     console.log(`\n${"=".repeat(60)}`);
     console.log(`  BATCH COMPLETE: ${results.length}/${count} icons generated`);
@@ -287,13 +374,27 @@ export async function generateBatch(prompt: string, count: number, outputDir: st
 }
 
 /** Generate the same icon at multiple sizes. */
-export async function generateSizes(prompt: string, sizes: number[], style?: string | null, color?: string | null, outputDir = ".", name?: string | null): Promise<string[]> {
+export async function generateSizes(
+  prompt: string,
+  sizes: number[],
+  style?: string | null,
+  color?: string | null,
+  outputDir = ".",
+  name?: string | null,
+): Promise<string[]> {
   const results: string[] = [];
   const slug = name || slugify(firstWord(prompt));
   const styleSuffix = style ? `_${style}` : "";
   for (const size of sizes) {
     console.log(`Generating ${size}px variant...`);
-    const result = await generateIcon({ prompt, style, color, size, outputPath: join(outputDir, `${slug}${styleSuffix}_${size}px.svg`), viewbox: size });
+    const result = await generateIcon({
+      prompt,
+      style,
+      color,
+      size,
+      outputPath: join(outputDir, `${slug}${styleSuffix}_${size}px.svg`),
+      viewbox: size,
+    });
     if (result) results.push(result);
     await runtime.sleep(1000);
   }
@@ -322,21 +423,27 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
   });
 
   if (values.style && !ICON_STYLES[values.style]) {
-    console.error(`generate.ts: error: argument --style/-s: invalid choice: '${values.style}'`);
+    console.error(
+      `generate.ts: error: argument --style/-s: invalid choice: '${values.style}'`,
+    );
     return 2;
   }
   if (values.category && !ICON_CATEGORIES[values.category]) {
-    console.error(`generate.ts: error: argument --category/-c: invalid choice: '${values.category}'`);
+    console.error(
+      `generate.ts: error: argument --category/-c: invalid choice: '${values.category}'`,
+    );
     return 2;
   }
   if (values["list-styles"]) {
     console.log("Available icon styles:");
-    for (const [style, desc] of Object.entries(ICON_STYLES)) console.log(`  ${style}: ${desc.slice(0, 70)}...`);
+    for (const [style, desc] of Object.entries(ICON_STYLES))
+      console.log(`  ${style}: ${desc.slice(0, 70)}...`);
     return 0;
   }
   if (values["list-categories"]) {
     console.log("Available icon categories:");
-    for (const [cat, desc] of Object.entries(ICON_CATEGORIES)) console.log(`  ${cat}: ${desc}`);
+    for (const [cat, desc] of Object.entries(ICON_CATEGORIES))
+      console.log(`  ${cat}: ${desc}`);
     return 0;
   }
   if (!values.prompt && !values.name) {
@@ -348,10 +455,27 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
   const viewbox = Number.parseInt(String(values.viewbox), 10);
   let generated: string | string[] | null;
   if (values.sizes) {
-    const sizes = values.sizes.split(",").map((s) => Number.parseInt(s.trim(), 10));
-    generated = await generateSizes(prompt, sizes, values.style, values.color, values["output-dir"] || "./icons", values.name);
+    const sizes = values.sizes
+      .split(",")
+      .map((s) => Number.parseInt(s.trim(), 10));
+    generated = await generateSizes(
+      prompt,
+      sizes,
+      values.style,
+      values.color,
+      values["output-dir"] || "./icons",
+      values.name,
+    );
   } else if (values.batch && Number.parseInt(values.batch, 10)) {
-    generated = await generateBatch(prompt, Number.parseInt(values.batch, 10), values["output-dir"] || "./icons", values.style, values.color, viewbox, values.name);
+    generated = await generateBatch(
+      prompt,
+      Number.parseInt(values.batch, 10),
+      values["output-dir"] || "./icons",
+      values.style,
+      values.color,
+      viewbox,
+      values.name,
+    );
   } else {
     generated = await generateIcon({
       prompt,

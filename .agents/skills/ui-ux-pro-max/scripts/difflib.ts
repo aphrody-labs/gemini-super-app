@@ -10,7 +10,10 @@ interface Match {
   size: number;
 }
 
-function buildB2j(b: readonly string[]): { b2j: Map<string, number[]>; popular: Set<string> } {
+function buildB2j(b: readonly string[]): {
+  b2j: Map<string, number[]>;
+  popular: Set<string>;
+} {
   const b2j = new Map<string, number[]>();
   b.forEach((element, index) => {
     const indices = b2j.get(element);
@@ -64,16 +67,25 @@ function findLongestMatch(
     bestj--;
     bestsize++;
   }
-  while (besti + bestsize < ahi && bestj + bestsize < bhi && a[besti + bestsize] === b[bestj + bestsize]) {
+  while (
+    besti + bestsize < ahi &&
+    bestj + bestsize < bhi &&
+    a[besti + bestsize] === b[bestj + bestsize]
+  ) {
     bestsize++;
   }
   return { i: besti, j: bestj, size: bestsize };
 }
 
 /** Sum of matching block sizes (get_matching_blocks). */
-function matchingCharacters(a: readonly string[], b: readonly string[]): number {
+function matchingCharacters(
+  a: readonly string[],
+  b: readonly string[],
+): number {
   const { b2j } = buildB2j(b);
-  const queue: [number, number, number, number][] = [[0, a.length, 0, b.length]];
+  const queue: [number, number, number, number][] = [
+    [0, a.length, 0, b.length],
+  ];
   let total = 0;
   while (queue.length) {
     const [alo, ahi, blo, bhi] = queue.pop()!;
@@ -81,7 +93,8 @@ function matchingCharacters(a: readonly string[], b: readonly string[]): number 
     if (size) {
       total += size;
       if (alo < i && blo < j) queue.push([alo, i, blo, j]);
-      if (i + size < ahi && j + size < bhi) queue.push([i + size, ahi, j + size, bhi]);
+      if (i + size < ahi && j + size < bhi)
+        queue.push([i + size, ahi, j + size, bhi]);
     }
   }
   return total;

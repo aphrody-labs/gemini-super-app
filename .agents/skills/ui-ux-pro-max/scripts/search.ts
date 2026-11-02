@@ -13,7 +13,15 @@
  */
 
 import { parseArgs } from "node:util";
-import { AVAILABLE_STACKS, CSV_CONFIG, MAX_RESULTS, UNTRUNCATED_COLS, search, searchStack, type SearchResult } from "./core.ts";
+import {
+  AVAILABLE_STACKS,
+  CSV_CONFIG,
+  MAX_RESULTS,
+  UNTRUNCATED_COLS,
+  search,
+  searchStack,
+  type SearchResult,
+} from "./core.ts";
 import { generateDesignSystem } from "./design-system.ts";
 
 const TRUNCATE_AT = 300;
@@ -30,12 +38,15 @@ export function formatOutput(result: SearchResult, full = false): string {
     let domainNote = String(result.domain);
     if (result.auto_detected) {
       domainNote += " (auto-detected";
-      if (result.runner_up_domain) domainNote += `, runner-up: ${result.runner_up_domain}`;
+      if (result.runner_up_domain)
+        domainNote += `, runner-up: ${result.runner_up_domain}`;
       domainNote += ")";
     }
     output.push(`**Domain:** ${domainNote} | **Query:** ${result.query}`);
   }
-  output.push(`**Source:** ${result.file} | **Found:** ${result.count} results\n`);
+  output.push(
+    `**Source:** ${result.file} | **Found:** ${result.count} results\n`,
+  );
 
   if (result.count === 0) {
     if (result.redirect) {
@@ -52,7 +63,8 @@ export function formatOutput(result: SearchResult, full = false): string {
         "before falling back to general defaults, and say explicitly that " +
         "no database match was found if you do fall back.",
     );
-    if (result.suggestions?.length) output.push(`**Closest known terms:** ${result.suggestions.join(", ")}`);
+    if (result.suggestions?.length)
+      output.push(`**Closest known terms:** ${result.suggestions.join(", ")}`);
     return output.join("\n");
   }
 
@@ -60,7 +72,11 @@ export function formatOutput(result: SearchResult, full = false): string {
     output.push(`### Result ${index + 1}`);
     for (const [key, value] of Object.entries(row)) {
       let text = String(value);
-      if (!full && !UNTRUNCATED_COLS.has(key) && Array.from(text).length > TRUNCATE_AT) {
+      if (
+        !full &&
+        !UNTRUNCATED_COLS.has(key) &&
+        Array.from(text).length > TRUNCATE_AT
+      ) {
         text = Array.from(text).slice(0, TRUNCATE_AT).join("") + "...";
       }
       output.push(`- **${key}:** ${text}`);
@@ -107,17 +123,33 @@ function fail(message: string): never {
   process.exit(2);
 }
 
-function intInRange(name: string, value: string | undefined, lo: number, hi: number): number | null {
+function intInRange(
+  name: string,
+  value: string | undefined,
+  lo: number,
+  hi: number,
+): number | null {
   if (value === undefined) return null;
-  if (!/^[+-]?\d+$/.test(value.trim())) fail(`argument ${name}: invalid int value: '${value}'`);
+  if (!/^[+-]?\d+$/.test(value.trim()))
+    fail(`argument ${name}: invalid int value: '${value}'`);
   const parsed = Number.parseInt(value, 10);
-  if (parsed < lo || parsed > hi) fail(`argument ${name}: invalid choice: ${parsed} (choose from ${lo}-${hi})`);
+  if (parsed < lo || parsed > hi)
+    fail(
+      `argument ${name}: invalid choice: ${parsed} (choose from ${lo}-${hi})`,
+    );
   return parsed;
 }
 
-function choice(name: string, value: string | undefined, choices: readonly string[]): string | null {
+function choice(
+  name: string,
+  value: string | undefined,
+  choices: readonly string[],
+): string | null {
   if (value === undefined) return null;
-  if (!choices.includes(value)) fail(`argument ${name}: invalid choice: '${value}' (choose from ${choices.map((c) => `'${c}'`).join(", ")})`);
+  if (!choices.includes(value))
+    fail(
+      `argument ${name}: invalid choice: '${value}' (choose from ${choices.map((c) => `'${c}'`).join(", ")})`,
+    );
   return value;
 }
 
@@ -157,20 +189,26 @@ export async function main(argv: string[]): Promise<number> {
     console.log(HELP);
     return 0;
   }
-  if (positionals.length === 0) fail("the following arguments are required: query");
-  if (positionals.length > 1) fail(`unrecognized arguments: ${positionals.slice(1).join(" ")}`);
+  if (positionals.length === 0)
+    fail("the following arguments are required: query");
+  if (positionals.length > 1)
+    fail(`unrecognized arguments: ${positionals.slice(1).join(" ")}`);
   const query = positionals[0]!;
   const domain = choice("--domain/-d", values.domain, Object.keys(CSV_CONFIG));
   const stack = choice("--stack/-s", values.stack, AVAILABLE_STACKS);
-  const maxResults = intInRange("--max-results/-n", values["max-results"], 1, 20) ?? MAX_RESULTS;
-  const format = (choice("--format/-f", values.format, ["ascii", "markdown"]) ?? "ascii") as "ascii" | "markdown";
+  const maxResults =
+    intInRange("--max-results/-n", values["max-results"], 1, 20) ?? MAX_RESULTS;
+  const format = (choice("--format/-f", values.format, ["ascii", "markdown"]) ??
+    "ascii") as "ascii" | "markdown";
   const variance = intInRange("--variance", values.variance, 1, 10);
   const motion = intInRange("--motion", values.motion, 1, 10);
   const density = intInRange("--density", values.density, 1, 10);
 
   if (values["design-system"]) {
     if (stack) {
-      console.error(`note: --stack ${stack} is ignored in --design-system mode; run a separate --stack query for stack-specific guidelines`);
+      console.error(
+        `note: --stack ${stack} is ignored in --design-system mode; run a separate --stack query for stack-specific guidelines`,
+      );
     }
     let result;
     try {
@@ -191,7 +229,16 @@ export async function main(argv: string[]): Promise<number> {
       return 1;
     }
     if (values.json) {
-      console.log(JSON.stringify({ design_system: result.design_system, persistence: result.persistence }, null, 2));
+      console.log(
+        JSON.stringify(
+          {
+            design_system: result.design_system,
+            persistence: result.persistence,
+          },
+          null,
+          2,
+        ),
+      );
       return 0;
     }
     console.log(result.text);
@@ -199,22 +246,35 @@ export async function main(argv: string[]): Promise<number> {
       const persistence = result.persistence;
       console.log("\n" + "=".repeat(60));
       if (persistence?.status === "skipped_exists") {
-        console.log(`⚠️  ${persistence.message ?? "MASTER.md already exists; not overwritten."}`);
+        console.log(
+          `⚠️  ${persistence.message ?? "MASTER.md already exists; not overwritten."}`,
+        );
       } else {
         const dir = persistence?.design_system_dir ?? "design-system/<project>";
         console.log(`✅ Design system persisted to ${dir}/`);
-        for (const file of persistence?.created_files ?? []) console.log(`   📄 ${file}`);
+        for (const file of persistence?.created_files ?? [])
+          console.log(`   📄 ${file}`);
         console.log("");
-        console.log(`📖 Usage: When building a page, check ${dir}/pages/[page].md first.`);
-        console.log("   If it exists, its rules override MASTER.md. Otherwise, use MASTER.md.");
+        console.log(
+          `📖 Usage: When building a page, check ${dir}/pages/[page].md first.`,
+        );
+        console.log(
+          "   If it exists, its rules override MASTER.md. Otherwise, use MASTER.md.",
+        );
       }
       console.log("=".repeat(60));
     }
     return 0;
   }
 
-  const result = stack ? await searchStack(query, stack, maxResults) : await search(query, domain, maxResults);
-  console.log(values.json ? JSON.stringify(result, null, 2) : formatOutput(result, values.full ?? false));
+  const result = stack
+    ? await searchStack(query, stack, maxResults)
+    : await search(query, domain, maxResults);
+  console.log(
+    values.json
+      ? JSON.stringify(result, null, 2)
+      : formatOutput(result, values.full ?? false),
+  );
   return 0;
 }
 

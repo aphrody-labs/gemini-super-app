@@ -1,1 +1,1108 @@
-(()=>{var f={},M="",D="",v=!1,S="",b=!1,F="",w=!1,R=!1,h=!1,m=!1,y="",V=0,H=null,nt=new Set;function ot(t){return!t||t==="None"?!1:nt.has(t)}function B(t){let e=document.getElementById("shortcut-conflict-warning"),n=document.getElementById("text-shortcut-conflict");e&&n&&(n.textContent=t,e.style.display="flex")}function N(){let t=document.getElementById("shortcut-conflict-warning");t&&(t.style.display="none")}async function gt(){if(v)return;v=!0,N();let t=document.getElementById("select-shortcut"),e=document.getElementById("shortcut-recorder-box"),n=document.getElementById("recorder-display-text");t&&(t.style.display="none"),e&&(e.style.display="inline-flex",n&&(n.textContent=f.settings_shortcut_type_shortcut||"",n.className="recorder-placeholder"),e.focus()),window.settingsApi&&await window.settingsApi.setShortcut("None"),N()}async function j(){if(!v)return;v=!1;let t=document.getElementById("select-shortcut"),e=document.getElementById("shortcut-recorder-box");e&&(e.style.display="none"),t&&(t.style.display="",$(S)),N(),window.settingsApi&&S&&await window.settingsApi.setShortcut(S)}async function ft(t){v=!1;let e=document.getElementById("select-shortcut"),n=document.getElementById("shortcut-recorder-box");n&&(n.style.display="none"),e&&(e.style.display=""),await ct(t)}function $(t){S=t;let e=document.getElementById("select-shortcut");if(!e)return;let n=["Alt+Space","Alt+Shift+Space","Win+Alt+Space","Win+Shift+G","None"],s=document.getElementById("opt-shortcut-custom-active");if(n.includes(t))e.value=t,s&&(s.hidden=!0,s.value="__custom_active__",s.textContent="");else if(t&&t!=="None"&&t!=="Custom"){let c=(f.settings_shortcut_custom_prefix||"$1").replaceAll("$1",t);s&&(s.textContent=c,s.hidden=!0),e.value="__custom_active__"}else e.value="None",s&&(s.hidden=!0,s.value="__custom_active__",s.textContent="")}function st(t){if(t.code==="Convert")return"Henkan";if(t.code==="NonConvert")return"Muhenkan";if(t.code==="KanaMode")return"Kana";if(t.code==="IntlYen")return"IntlYen";if(t.code==="IntlRo")return"IntlRo";if(t.code==="HangulMode"||t.code==="Lang1")return"Hangul";if(t.code==="Hanja"||t.code==="Lang2")return"Hanja";if(t.code==="IntlBackslash")return"IntlBackslash";if(t.code==="NumpadComma")return"NumpadComma";if(t.code==="Space")return"Space";if(t.code==="Enter"||t.code==="NumpadEnter")return"Enter";if(t.code==="Tab")return"Tab";if(t.code==="Escape")return"Escape";if(t.code==="Backspace")return"Backspace";if(t.code==="Delete")return"Delete";if(t.code==="Insert")return"Insert";if(t.code==="Home")return"Home";if(t.code==="End")return"End";if(t.code==="PageUp")return"PageUp";if(t.code==="PageDown")return"PageDown";if(t.code==="Pause")return"Pause";if(t.code==="PrintScreen")return"PrintScreen";if(t.code==="ArrowUp")return"Up";if(t.code==="ArrowDown")return"Down";if(t.code==="ArrowLeft")return"Left";if(t.code==="ArrowRight")return"Right";if(/^F([1-9]|1[0-9]|2[0-4])$/i.exec(t.code))return t.code.toUpperCase();let n=/^Numpad([0-9])$/i.exec(t.code);if(n)return"Num"+n[1];if(t.code==="NumpadAdd")return"NumAdd";if(t.code==="NumpadSubtract")return"NumSubtract";if(t.code==="NumpadMultiply")return"NumMultiply";if(t.code==="NumpadDivide")return"NumDivide";if(t.code==="NumpadDecimal")return"NumDecimal";if(t.code==="NumLock")return"NumLock";let s=/^Key([A-Z])$/i.exec(t.code);if(s)return s[1].toUpperCase();let i=/^Digit([0-9])$/i.exec(t.code);return i?i[1]:t.code==="Backquote"?"`":t.code==="Minus"?"-":t.code==="Equal"?"=":t.code==="BracketLeft"?"[":t.code==="BracketRight"?"]":t.code==="Backslash"?"\\":t.code==="Semicolon"?";":t.code==="Quote"?"'":t.code==="Comma"?",":t.code==="Period"?".":t.code==="Slash"?"/":null}function pt(t){if(!v)return;t.preventDefault(),t.stopPropagation();let e=!!t.ctrlKey,n=!!t.altKey,s=!!t.shiftKey,i=!!t.metaKey;if(!e&&!n&&!i&&!s&&(t.code==="Escape"||t.code==="Tab"||t.code==="Backspace"||t.code==="Delete")){j();return}let c=[];i&&c.push("Win"),e&&c.push("Ctrl"),n&&c.push("Alt"),s&&c.push("Shift");let d=t.code.startsWith("Control")||t.code.startsWith("Alt")||t.code.startsWith("Shift")||t.code.startsWith("Meta"),a=document.getElementById("recorder-display-text");if(d){a&&c.length>0&&(a.textContent=c.join(" + ")+" + ...",a.className="recorder-active-keys");return}let l=st(t);if(!l)return;if(!(e||n||i)){let o=[...c,l].join("+"),p=f.settings_shortcut_modifier_required||"";B(p.replaceAll("$1",o));return}let g=[...c,l].join("+");if(ot(g)){let o=f.settings_shortcut_reserved||"";B(o.replaceAll("$1",g));return}N(),ft(g)}function mt(t){if(!v)return;let e=!!t.metaKey,n=!!t.ctrlKey,s=!!t.altKey,i=!!t.shiftKey,c=[];e&&c.push("Win"),n&&c.push("Ctrl"),s&&c.push("Alt"),i&&c.push("Shift");let d=document.getElementById("recorder-display-text");d&&(c.length>0?(d.textContent=c.join(" + ")+" + ...",d.className="recorder-active-keys"):(d.textContent=f.settings_shortcut_type_shortcut||"",d.className="recorder-placeholder"))}var ht=["Alt+Shift+D","Ctrl+Shift+D","None"];function q(t){let e=document.getElementById("stc-shortcut-conflict-warning"),n=document.getElementById("text-stc-shortcut-conflict");e&&n&&(n.textContent=t,e.style.display="flex")}function K(){let t=document.getElementById("stc-shortcut-conflict-warning");t&&(t.style.display="none")}function _t(){if(b)return;b=!0,K();let t=document.getElementById("select-stc-shortcut"),e=document.getElementById("stc-shortcut-recorder-box"),n=document.getElementById("stc-recorder-display-text");t&&(t.style.display="none"),e&&(e.style.display="inline-flex",n&&(n.textContent=f.settings_shortcut_type_shortcut||"",n.className="recorder-placeholder"),e.focus())}function G(){if(!b)return;b=!1;let t=document.getElementById("select-stc-shortcut"),e=document.getElementById("stc-shortcut-recorder-box");e&&(e.style.display="none"),t&&(t.style.display="",Y(F)),K()}async function yt(t){b=!1;let e=document.getElementById("select-stc-shortcut"),n=document.getElementById("stc-shortcut-recorder-box");n&&(n.style.display="none"),e&&(e.style.display=""),await it(t)}function Y(t){F=t;let e=document.getElementById("select-stc-shortcut");if(!e)return;let n=document.getElementById("opt-stc-shortcut-custom-active");if(ht.includes(t))e.value=t,n&&(n.hidden=!0,n.value="__custom_active__",n.textContent="");else if(t&&t!=="None"&&t!=="Custom"){let i=(f.settings_shortcut_custom_prefix||"$1").replaceAll("$1",t);n&&(n.textContent=i,n.hidden=!0),e.value="__custom_active__"}else e.value="None",n&&(n.hidden=!0,n.value="__custom_active__",n.textContent="")}async function it(t){if(!window.settingsApi)return;let e=await window.settingsApi.setStcShortcut(t);if(e&&e.success?e.shortcut&&(F=e.shortcut,Y(e.shortcut)):Y(F),e&&!e.success&&t!=="None")if(e.error==="RESERVED_SHORTCUT"){let n=f.settings_shortcut_reserved||"";q(n.replaceAll("$1",t))}else{let n=f.settings_shortcut_modifier_required||"";q(n.replaceAll("$1",t))}else K()}function wt(t){if(t==="Custom"){_t();return}K(),it(t)}function vt(t){if(!b)return;t.preventDefault(),t.stopPropagation();let e=!!t.ctrlKey,n=!!t.altKey,s=!!t.shiftKey,i=!!t.metaKey;if(!e&&!n&&!i&&!s&&(t.code==="Escape"||t.code==="Tab"||t.code==="Backspace"||t.code==="Delete")){G();return}let c=[];i&&c.push("Win"),e&&c.push("Ctrl"),n&&c.push("Alt"),s&&c.push("Shift");let d=t.code.startsWith("Control")||t.code.startsWith("Alt")||t.code.startsWith("Shift")||t.code.startsWith("Meta"),a=document.getElementById("stc-recorder-display-text");if(d){a&&c.length>0&&(a.textContent=c.join(" + ")+" + ...",a.className="recorder-active-keys");return}let l=st(t);if(!l)return;if(!(e||n||i)){let o=[...c,l].join("+"),p=f.settings_shortcut_modifier_required||"";q(p.replaceAll("$1",o));return}let g=[...c,l].join("+");if(ot(g)){let o=f.settings_shortcut_reserved||"";q(o.replaceAll("$1",g));return}K(),yt(g)}function Et(t){if(!b)return;let e=[];t.metaKey&&e.push("Win"),t.ctrlKey&&e.push("Ctrl"),t.altKey&&e.push("Alt"),t.shiftKey&&e.push("Shift");let n=document.getElementById("stc-recorder-display-text");n&&(e.length>0?(n.textContent=e.join(" + ")+" + ...",n.className="recorder-active-keys"):(n.textContent=f.settings_shortcut_type_shortcut||"",n.className="recorder-placeholder"))}function C(t){document.querySelectorAll(".tab-content").forEach(s=>{s.classList.remove("active")}),document.querySelectorAll(".nav-item").forEach(s=>{s.classList.remove("active")});let e=document.getElementById("pane-"+t);e&&e.classList.add("active");let n=document.getElementById("btn-tab-"+t);n&&n.classList.add("active")}function bt(t){let e=t.target;e&&e.id==="backdrop"&&z()}function z(){v&&j(),b&&G(),window.settingsApi&&window.settingsApi.closeWindow()}async function ct(t){if(!window.settingsApi)return;let e=await window.settingsApi.setShortcut(t);e&&e.success?e.shortcut&&(S=e.shortcut,$(e.shortcut)):$(S);let n=document.getElementById("shortcut-conflict-warning");if(n)if(e&&!e.success&&t!=="None")if(e.error==="RESERVED_SHORTCUT"){let s=f.settings_shortcut_reserved||"";B(s.replaceAll("$1",t))}else if(e.error==="INVALID_SHORTCUT"){let s=f.settings_shortcut_modifier_required||"";B(s.replaceAll("$1",t))}else{let s=f.settings_shortcut_conflict||"";B(s.replaceAll("$1",t))}else n.style.display="none"}function St(t){if(t==="Custom"){gt();return}N(),ct(t)}async function Bt(t){if(window.settingsApi){await window.settingsApi.setOpenAtLogin(t);let e=document.getElementById("startup-windows-warning");e&&t&&(e.style.display="none")}}async function Ct(t){window.settingsApi&&await window.settingsApi.setDisableShortcutInFullScreen(t)}async function kt(t){window.settingsApi&&await window.settingsApi.setDiagnosticConsent(t)}async function Q(t,e){window.settingsApi&&await window.settingsApi.setPermission(t,e?"granted":"denied")}async function It(){window.settingsApi&&(await window.settingsApi.resetPermissions(),await Z())}async function xt(){window.settingsApi&&await window.settingsApi.openWindowsPrivacy()}async function At(){window.settingsApi&&await window.settingsApi.openWindowsCameraPrivacy()}async function Tt(){window.settingsApi&&await window.settingsApi.openWindowsLocationPrivacy()}async function Lt(){window.settingsApi&&await window.settingsApi.openWindowsStartupSettings()}async function at(){window.settingsApi&&await window.settingsApi.relaunchToUpdate()}function rt(t){let e=document.getElementById("modal-top-update-banner"),n=document.getElementById("staged-update-title"),s=document.getElementById("staged-update-subtext"),i=document.getElementById("btn-modal-restart");!e||!n||!s||!i||(t&&t.stagedUpdateVersion?(n.textContent=t.stagedUpdateTitle||"",s.textContent=t.stagedUpdateSubtext||"",i.textContent=t.stagedUpdateRestartLabel||"",e.style.display="flex"):e.style.display="none")}function Ut(t){return t.offsetHeight}var Pt=1e3;function dt(){let t=document.getElementById("backdrop");!t||!t.classList.contains("preload")||(Ut(t),t.classList.remove("preload"),window.settingsApi&&window.settingsApi.notifyReady())}async function Z(){V+=1;try{await Mt()}finally{V-=1,V===0&&(H=null),dt()}}async function Mt(){if(!window.settingsApi)return;let t=await window.settingsApi.getSettings();if(!t)return;R=t.updatesDisabled===!0;function e(o,p){let _=document.getElementById(o);_&&p!==void 0&&(_.textContent=p)}if(t.messages){f=t.messages;let o=t.messages;e("settings-heading",o.settings_title),e("label-tab-general",o.settings_tab_general),e("label-tab-privacy",o.settings_tab_privacy),e("label-tab-about",o.settings_tab_about),e("title-pane-general",o.settings_tab_general),e("desc-pane-general",o.settings_general_desc),e("label-shortcut",o.settings_shortcut_label),e("desc-shortcut",o.settings_shortcut_desc),e("opt-shortcut-none",o.settings_shortcut_none),e("opt-shortcut-alt-space",o.settings_shortcut_alt_space),e("opt-shortcut-alt-shift-space",o.settings_shortcut_alt_shift_space),e("opt-shortcut-win-alt-space",o.settings_shortcut_win_alt_space),e("opt-shortcut-win-shift-g",o.settings_shortcut_win_shift_g),e("opt-shortcut-custom",o.settings_shortcut_custom),e("recorder-display-text",o.settings_shortcut_type_shortcut);let p=document.getElementById("shortcut-recorder-box");p&&o.settings_shortcut_type_shortcut&&p.setAttribute("aria-label",o.settings_shortcut_type_shortcut),e("label-stc-shortcut",o.settings_stc_shortcut_label),e("desc-stc-shortcut",o.settings_stc_shortcut_desc),e("opt-stc-shortcut-alt-shift-d",o.settings_shortcut_alt_shift_d),e("opt-stc-shortcut-ctrl-shift-d",o.settings_shortcut_ctrl_shift_d),e("opt-stc-shortcut-none",o.settings_shortcut_none),e("opt-stc-shortcut-custom",o.settings_shortcut_custom),e("stc-recorder-display-text",o.settings_shortcut_type_shortcut);let _=document.getElementById("stc-shortcut-recorder-box");_&&o.settings_shortcut_type_shortcut&&_.setAttribute("aria-label",o.settings_shortcut_type_shortcut),e("label-open-at-login",o.settings_open_at_login_label),e("desc-open-at-login",o.settings_open_at_login_desc),e("label-disable-shortcut-in-fullscreen",o.settings_disable_shortcut_in_fullscreen_label),e("desc-disable-shortcut-in-fullscreen",o.settings_disable_shortcut_in_fullscreen_desc),e("title-pane-privacy",o.settings_privacy_title),e("desc-pane-privacy",o.settings_privacy_desc),e("label-mic",o.settings_mic_label),e("desc-mic",o.settings_mic_desc),e("label-camera",o.settings_camera_label),e("desc-camera",o.settings_camera_desc),e("label-location",o.settings_location_label),e("desc-location",o.settings_location_desc),e("label-diagnostic-consent",o.settings_diagnostic_consent_label),e("desc-diagnostic-consent",o.settings_diagnostic_consent_desc),e("btn-reset-permissions",o.settings_reset_permissions),e("title-pane-about",o.settings_about_title),e("copyright-pane-about",o.settings_about_copyright),e("desc-pane-about",o.settings_about_desc),e("label-build-version",o.settings_build_version);let O=document.getElementById("check-for-updates-btn");if(!w&&!h&&!O?.disabled&&e("label-check-for-updates",o.settings_check_for_updates||"Check for Updates"),o.settings_open_at_login_windows_warning){let u=document.getElementById("text-startup-warning");u&&(u.textContent=o.settings_open_at_login_windows_warning)}if(o.settings_mic_windows_warning){let u=document.getElementById("text-mic-warning");u&&(u.textContent=o.settings_mic_windows_warning)}if(o.settings_camera_windows_warning){let u=document.getElementById("text-camera-warning");u&&(u.textContent=o.settings_camera_windows_warning)}if(o.settings_location_windows_warning){let u=document.getElementById("text-location-warning");u&&(u.textContent=o.settings_location_windows_warning)}if(o.settings_open_windows_settings){let u=o.settings_open_windows_settings+" \u2197",I=document.getElementById("btn-open-windows-startup");I&&(I.textContent=u);let x=document.getElementById("btn-open-windows-privacy");x&&(x.textContent=u);let A=document.getElementById("btn-open-windows-camera-privacy");A&&(A.textContent=u);let T=document.getElementById("btn-open-windows-location-privacy");T&&(T.textContent=u)}if(o.settings_done&&document.querySelectorAll(".btn-done").forEach(u=>{u.textContent=o.settings_done}),o.settings_close){let u=document.getElementById("btn-close-modal");u&&(u.title=o.settings_close)}}Array.isArray(t.reservedShortcuts)&&(nt=new Set(t.reservedShortcuts)),t.shortcut?(S=t.shortcut,$(t.shortcut)):(S="None",$("None"));let n=document.getElementById("stc-shortcut-setting-item");n&&(n.style.display=t.speakToWindowEnabled?"":"none"),t.speakToWindowEnabled&&Y(t.stcShortcut||"None");let s=document.getElementById("shortcut-conflict-warning");if(s)if(!v&&t.shortcut&&t.shortcut!=="None"&&t.shortcut!=="Custom"&&t.shortcutRegistered===!1){let o=f.settings_shortcut_conflict||"";B(o.replaceAll("$1",t.shortcut))}else s.style.display="none";let i=document.getElementById("toggle-open-at-login");i&&(i.checked=!!t.openAtLogin,i.disabled=!!t.windowsStartupBlocked);let c=document.getElementById("startup-windows-warning");c&&(c.style.display=t.windowsStartupBlocked?"flex":"none");let d=document.getElementById("toggle-disable-shortcut-in-fullscreen");d&&(d.checked=!!t.disableShortcutInFullScreen);let a=document.getElementById("toggle-diagnostic-consent");if(a&&(a.checked=!!t.diagnosticConsent),t.permissions){let o=document.getElementById("toggle-media");o&&(o.checked=t.permissions.media==="granted");let p=document.getElementById("toggle-camera");p&&(p.checked=t.permissions.camera==="granted");let _=document.getElementById("toggle-geolocation");_&&(_.checked=t.permissions.geolocation==="granted")}let l=document.getElementById("mic-windows-warning");l&&(l.style.display=t.windowsMicBlocked?"flex":"none");let E=document.getElementById("camera-windows-warning");E&&(E.style.display=t.windowsCameraBlocked?"flex":"none");let g=document.getElementById("location-windows-warning");if(g&&(g.style.display=t.windowsLocationBlocked?"flex":"none"),t.version){M=t.version;let p=!!(t.channel&&t.channel!=="prod")?`${t.version} (${t.channel})`:t.version;if(D=p,t.stagedUpdateVersion){let _=document.getElementById("val-version");_&&lt(_,p,t.stagedUpdateVersion)}else e("val-version",p)}if(rt(t),R){w=!1,h=!1,m=!1,y="";let o=document.getElementById("check-for-updates-btn");o&&(o.disabled=!0,o.title=r("settings_update_unavailable","Updates are managed by your installation.")),e("label-check-for-updates",r("settings_check_for_updates","Check for Updates"))}else if(t.stagedUpdateVersion){w=!0,h=!1,m=!1,y="";let o=r("settings_restart_to_update","Restart to Update");e("label-check-for-updates",o)}else H?(w=!1,h=!1,W(H)):(w=!1,h=!1,m=!1,y="",document.getElementById("check-for-updates-btn")?.disabled||e("label-check-for-updates",r("settings_check_for_updates","Check for Updates")))}function r(t,e,n){let s=f[t],i=s&&s!==t?s:e;return n!==void 0&&(i=i.replaceAll("$1",n)),i}function lt(t,e,n){let s=String(n).replace(/^v/i,""),i=r("settings_update_ready_inline","$1 ready to install",s);if(t.textContent=`${e} \u2192 ${i}`,typeof document<"u"&&typeof document.createElementNS=="function"&&typeof t.replaceChildren=="function"){let c=document.createTextNode(`${e} `),d=document.createElementNS("http://www.w3.org/2000/svg","svg");d.setAttribute("width","14"),d.setAttribute("height","14"),d.setAttribute("viewBox","0 0 24 24"),d.setAttribute("fill","none"),d.setAttribute("stroke","currentColor"),d.setAttribute("stroke-width","2.2"),d.setAttribute("stroke-linecap","round"),d.setAttribute("stroke-linejoin","round"),d.setAttribute("aria-hidden","true"),d.setAttribute("style","display:inline-block;vertical-align:-2px;margin:0 4px;opacity:0.85");let a=document.createElementNS("http://www.w3.org/2000/svg","path");a.setAttribute("d","M5 12h14");let l=document.createElementNS("http://www.w3.org/2000/svg","path");l.setAttribute("d","m13 6 6 6-6 6"),d.appendChild(a),d.appendChild(l);let E=document.createTextNode(` ${i}`);t.replaceChildren(c,d,E)}}var Dt=5e3,P=null,k=!1;function J(){P!==null&&(clearTimeout(P),P=null)}function W(t){if(R)return;let e=document.getElementById("check-for-updates-btn"),n=document.getElementById("label-check-for-updates"),s=document.getElementById("val-version");if(!t)return;let i=String(t.status);if(i==="checking"&&m)return;V>0&&(H=t),J();let c=D||M;if(i==="checking"){w=!1,h=!1,y="",e&&(e.disabled=!0),n&&(n.textContent=r("settings_checking_btn","Checking\u2026")),s&&(s.textContent=`${c} - ${r("settings_checking_for_updates","Checking for updates\u2026")}`);return}if(i==="ready_to_install"){w=!0,h=!1,m=!1,y="",e&&(e.disabled=!1);let a=r("settings_restart_to_update","Restart to Update");n?n.textContent=a:e&&(e.textContent=a);let l=t.version||"new";s&&lt(s,c,l),rt({stagedUpdateVersion:t.version||"new",stagedUpdateTitle:r("settings_update_ready","Update ready - Restart to apply"),stagedUpdateSubtext:f.settings_update_subtext,stagedUpdateRestartLabel:a});return}if(i==="available"){C("about"),w=!1,h=!0,m=!1,y=t.version||"",e&&(e.disabled=!1);let a=r("settings_download_update","Install Update");n?n.textContent=a:e&&(e.textContent=a),s&&(t.version?s.textContent=`${c} - ${r("settings_update_available","Update available (v$1)",t.version)}`:s.textContent=`${c} - ${r("settings_update_available_short","Update available")}`);return}if(i==="downloading"){w=!1,h=!1,m=!0,t.version&&(y=t.version);let a=t.version||y;e&&(e.disabled=!0),n&&(n.textContent=r("settings_downloading_btn","Downloading\u2026")),s&&(a?s.textContent=`${c} - ${r("settings_update_downloading_version","Downloading update (v$1)\u2026",a)}`:s.textContent=`${c} - ${r("settings_update_downloading","Downloading update\u2026")}`);return}if(i==="error"){let a=m,l=a&&t.reason!=="not_registered";w=!1,h=l,m=!1,l||(y=""),e&&(e.disabled=!1);let E=l?r("settings_download_update","Install Update"):r("settings_check_for_updates","Check for Updates");if(n?n.textContent=E:e&&(e.textContent=E),s){let g;switch(t.reason){case"not_registered":g=r("settings_update_not_registered_short","Reinstall Gemini to get updates");break;case"install_incomplete":g=r("settings_update_install_incomplete_short","Couldn\u2019t install the update. Try again");break;default:g=a?r("settings_update_download_error_short","Update download failed"):r("settings_update_error_short","Update check failed")}s.textContent=`${c} - ${g}`}return}if(i==="unavailable"){w=!1,h=!1,m=!1,y="",e&&(e.disabled=!1);let a=r("settings_check_for_updates","Check for Updates");n&&(n.textContent=a),s&&(s.textContent=c);return}w=!1,h=!1,m=!1,y="",e&&(e.disabled=!1);let d=r("settings_check_for_updates","Check for Updates");n&&(n.textContent=d),s&&(s.textContent=`${c} - ${r("settings_up_to_date_short","Up to date")}`,P=setTimeout(()=>{let a=document.getElementById("val-version");if(a){let l=D||M;a.textContent=l}P=null},Dt))}async function ut(){if(R||w||k||m||!window.settingsApi||!window.settingsApi.checkForUpdates)return;J();let t=document.getElementById("check-for-updates-btn"),e=document.getElementById("label-check-for-updates"),n=document.getElementById("val-version"),s=D||M;h=!1,k=!0,t&&(t.disabled=!0),e&&(e.textContent=r("settings_checking_btn","Checking...")),n&&(n.textContent=`${s} - ${r("settings_checking_for_updates","Checking for updates...")}`);try{let i=await window.settingsApi.checkForUpdates();if(!i)throw new Error("Update check failed");W(i)}catch{n&&(n.textContent=`${s} - ${r("settings_update_error_short","Update check failed")}`),t&&(t.disabled=!1),e&&(e.textContent=r("settings_check_for_updates","Check for Updates"))}finally{k=!1}}async function Rt(){if(R)return;if(w){await at();return}if(k||m)return;J();let t=document.getElementById("check-for-updates-btn"),e=document.getElementById("label-check-for-updates"),n=document.getElementById("val-version"),s=D||M;if(h){if(h=!1,!window.settingsApi?.downloadUpdate){t&&(t.disabled=!1),e&&(e.textContent=r("settings_check_for_updates","Check for Updates"));return}m=!0,k=!0,t&&(t.disabled=!0),e&&(e.textContent=r("settings_downloading_btn","Downloading\u2026")),n&&(y?n.textContent=`${s} - ${r("settings_update_downloading_version","Downloading update (v$1)\u2026",y)}`:n.textContent=`${s} - ${r("settings_update_downloading","Downloading update\u2026")}`);try{let i=await window.settingsApi.downloadUpdate();if(!i)throw new Error("Update download failed");W(i)}catch{m=!1,h=!0,n&&(n.textContent=`${s} - ${r("settings_update_download_error_short","Update download failed")}`),t&&(t.disabled=!1);let i=r("settings_download_update","Install Update");e?e.textContent=i:t&&(t.textContent=i)}finally{k=!1}return}await ut()}function Ht(){let t=document.getElementById("backdrop");t&&t.addEventListener("click",bt);let e=document.getElementById("btn-close-modal");e&&e.addEventListener("click",z);let n=document.getElementById("btn-modal-restart");n&&n.addEventListener("click",at);let s=document.getElementById("check-for-updates-btn");s&&s.addEventListener("click",()=>{Rt()});let i=document.getElementById("btn-tab-general");i&&i.addEventListener("click",()=>{C("general")});let c=document.getElementById("btn-tab-privacy");c&&c.addEventListener("click",()=>{C("privacy")});let d=document.getElementById("btn-tab-about");d&&d.addEventListener("click",()=>{C("about")});let a=document.getElementById("select-shortcut");a&&a.addEventListener("change",function(){St(this.value)});let l=document.getElementById("shortcut-recorder-box");l&&(l.addEventListener("keydown",pt),l.addEventListener("keyup",mt),l.addEventListener("blur",()=>{v&&j()})),document.addEventListener("pointerdown",L=>{if(!v)return;let U=document.getElementById("shortcut-select-container");U&&!U.contains(L.target)&&j()});let E=document.getElementById("select-stc-shortcut");E&&E.addEventListener("change",function(){wt(this.value)});let g=document.getElementById("stc-shortcut-recorder-box");g&&(g.addEventListener("keydown",vt),g.addEventListener("keyup",Et),g.addEventListener("blur",()=>{b&&G()})),document.addEventListener("pointerdown",L=>{if(!b)return;let U=document.getElementById("stc-shortcut-select-container");U&&!U.contains(L.target)&&G()});let o=document.getElementById("btn-open-windows-startup");o&&o.addEventListener("click",Lt);let p=document.getElementById("toggle-open-at-login");p&&p.addEventListener("change",function(){Bt(this.checked)});let _=document.getElementById("toggle-disable-shortcut-in-fullscreen");_&&_.addEventListener("change",function(){Ct(this.checked)});let O=document.getElementById("btn-open-windows-privacy");O&&O.addEventListener("click",xt);let u=document.getElementById("toggle-media");u&&u.addEventListener("change",function(){Q("media",this.checked)});let I=document.getElementById("btn-open-windows-camera-privacy");I&&I.addEventListener("click",At);let x=document.getElementById("toggle-camera");x&&x.addEventListener("change",function(){Q("camera",this.checked)});let A=document.getElementById("btn-open-windows-location-privacy");A&&A.addEventListener("click",Tt);let T=document.getElementById("toggle-geolocation");T&&T.addEventListener("change",function(){Q("geolocation",this.checked)});let X=document.getElementById("toggle-diagnostic-consent");X&&X.addEventListener("change",function(){kt(this.checked)});let tt=document.getElementById("btn-reset-permissions");tt&&tt.addEventListener("click",It),document.querySelectorAll(".btn-done").forEach(L=>{L.addEventListener("click",z)})}function et(){H=null,m=!1,y="",Ht(),window.settingsApi&&(window.settingsApi.onOpened(()=>{Z()}),typeof window.settingsApi.onTriggerUpdateCheck=="function"&&window.settingsApi.onTriggerUpdateCheck(()=>{C("about"),document.getElementById("check-for-updates-btn")?.scrollIntoView?.({behavior:"smooth",block:"center"}),ut()}),typeof window.settingsApi.onUpdateCheckResult=="function"&&window.settingsApi.onUpdateCheckResult(t=>{W(t)}),window.settingsApi.onHotkeyStatus(({registered:t})=>{if(v)return;let e=document.getElementById("select-shortcut"),n=S||(e?e.value:"None"),s=document.getElementById("shortcut-conflict-warning");if(s)if(n!=="None"&&n!=="Custom"&&t===!1){let i=f.settings_shortcut_conflict||"";B(i.replaceAll("$1",n))}else s.style.display="none"}),window.settingsApi.onOpenAtLoginStatus(({enabled:t,blocked:e})=>{let n=document.getElementById("toggle-open-at-login");n&&(n.checked=!!t,n.disabled=!!e);let s=document.getElementById("startup-windows-warning");s&&(e&&!t?s.style.display="flex":s.style.display="none")})),setTimeout(dt,Pt),window.addEventListener("keydown",t=>{t.code==="Escape"&&!v&&!b&&(t.preventDefault(),z())}),window.applyUpdateCheckResult=W,Z()}typeof window<"u"&&typeof document<"u"&&(document.readyState==="loading"?window.addEventListener("DOMContentLoaded",()=>{et()}):et());})();
+(() => {
+  var f = {},
+    M = "",
+    D = "",
+    v = !1,
+    S = "",
+    b = !1,
+    F = "",
+    w = !1,
+    R = !1,
+    h = !1,
+    m = !1,
+    y = "",
+    V = 0,
+    H = null,
+    nt = new Set();
+  function ot(t) {
+    return !t || t === "None" ? !1 : nt.has(t);
+  }
+  function B(t) {
+    let e = document.getElementById("shortcut-conflict-warning"),
+      n = document.getElementById("text-shortcut-conflict");
+    e && n && ((n.textContent = t), (e.style.display = "flex"));
+  }
+  function N() {
+    let t = document.getElementById("shortcut-conflict-warning");
+    t && (t.style.display = "none");
+  }
+  async function gt() {
+    if (v) return;
+    ((v = !0), N());
+    let t = document.getElementById("select-shortcut"),
+      e = document.getElementById("shortcut-recorder-box"),
+      n = document.getElementById("recorder-display-text");
+    (t && (t.style.display = "none"),
+      e &&
+        ((e.style.display = "inline-flex"),
+        n &&
+          ((n.textContent = f.settings_shortcut_type_shortcut || ""),
+          (n.className = "recorder-placeholder")),
+        e.focus()),
+      window.settingsApi && (await window.settingsApi.setShortcut("None")),
+      N());
+  }
+  async function j() {
+    if (!v) return;
+    v = !1;
+    let t = document.getElementById("select-shortcut"),
+      e = document.getElementById("shortcut-recorder-box");
+    (e && (e.style.display = "none"),
+      t && ((t.style.display = ""), $(S)),
+      N(),
+      window.settingsApi && S && (await window.settingsApi.setShortcut(S)));
+  }
+  async function ft(t) {
+    v = !1;
+    let e = document.getElementById("select-shortcut"),
+      n = document.getElementById("shortcut-recorder-box");
+    (n && (n.style.display = "none"), e && (e.style.display = ""), await ct(t));
+  }
+  function $(t) {
+    S = t;
+    let e = document.getElementById("select-shortcut");
+    if (!e) return;
+    let n = [
+        "Alt+Space",
+        "Alt+Shift+Space",
+        "Win+Alt+Space",
+        "Win+Shift+G",
+        "None",
+      ],
+      s = document.getElementById("opt-shortcut-custom-active");
+    if (n.includes(t))
+      ((e.value = t),
+        s &&
+          ((s.hidden = !0),
+          (s.value = "__custom_active__"),
+          (s.textContent = "")));
+    else if (t && t !== "None" && t !== "Custom") {
+      let c = (f.settings_shortcut_custom_prefix || "$1").replaceAll("$1", t);
+      (s && ((s.textContent = c), (s.hidden = !0)),
+        (e.value = "__custom_active__"));
+    } else
+      ((e.value = "None"),
+        s &&
+          ((s.hidden = !0),
+          (s.value = "__custom_active__"),
+          (s.textContent = "")));
+  }
+  function st(t) {
+    if (t.code === "Convert") return "Henkan";
+    if (t.code === "NonConvert") return "Muhenkan";
+    if (t.code === "KanaMode") return "Kana";
+    if (t.code === "IntlYen") return "IntlYen";
+    if (t.code === "IntlRo") return "IntlRo";
+    if (t.code === "HangulMode" || t.code === "Lang1") return "Hangul";
+    if (t.code === "Hanja" || t.code === "Lang2") return "Hanja";
+    if (t.code === "IntlBackslash") return "IntlBackslash";
+    if (t.code === "NumpadComma") return "NumpadComma";
+    if (t.code === "Space") return "Space";
+    if (t.code === "Enter" || t.code === "NumpadEnter") return "Enter";
+    if (t.code === "Tab") return "Tab";
+    if (t.code === "Escape") return "Escape";
+    if (t.code === "Backspace") return "Backspace";
+    if (t.code === "Delete") return "Delete";
+    if (t.code === "Insert") return "Insert";
+    if (t.code === "Home") return "Home";
+    if (t.code === "End") return "End";
+    if (t.code === "PageUp") return "PageUp";
+    if (t.code === "PageDown") return "PageDown";
+    if (t.code === "Pause") return "Pause";
+    if (t.code === "PrintScreen") return "PrintScreen";
+    if (t.code === "ArrowUp") return "Up";
+    if (t.code === "ArrowDown") return "Down";
+    if (t.code === "ArrowLeft") return "Left";
+    if (t.code === "ArrowRight") return "Right";
+    if (/^F([1-9]|1[0-9]|2[0-4])$/i.exec(t.code)) return t.code.toUpperCase();
+    let n = /^Numpad([0-9])$/i.exec(t.code);
+    if (n) return "Num" + n[1];
+    if (t.code === "NumpadAdd") return "NumAdd";
+    if (t.code === "NumpadSubtract") return "NumSubtract";
+    if (t.code === "NumpadMultiply") return "NumMultiply";
+    if (t.code === "NumpadDivide") return "NumDivide";
+    if (t.code === "NumpadDecimal") return "NumDecimal";
+    if (t.code === "NumLock") return "NumLock";
+    let s = /^Key([A-Z])$/i.exec(t.code);
+    if (s) return s[1].toUpperCase();
+    let i = /^Digit([0-9])$/i.exec(t.code);
+    return i
+      ? i[1]
+      : t.code === "Backquote"
+        ? "`"
+        : t.code === "Minus"
+          ? "-"
+          : t.code === "Equal"
+            ? "="
+            : t.code === "BracketLeft"
+              ? "["
+              : t.code === "BracketRight"
+                ? "]"
+                : t.code === "Backslash"
+                  ? "\\"
+                  : t.code === "Semicolon"
+                    ? ";"
+                    : t.code === "Quote"
+                      ? "'"
+                      : t.code === "Comma"
+                        ? ","
+                        : t.code === "Period"
+                          ? "."
+                          : t.code === "Slash"
+                            ? "/"
+                            : null;
+  }
+  function pt(t) {
+    if (!v) return;
+    (t.preventDefault(), t.stopPropagation());
+    let e = !!t.ctrlKey,
+      n = !!t.altKey,
+      s = !!t.shiftKey,
+      i = !!t.metaKey;
+    if (
+      !e &&
+      !n &&
+      !i &&
+      !s &&
+      (t.code === "Escape" ||
+        t.code === "Tab" ||
+        t.code === "Backspace" ||
+        t.code === "Delete")
+    ) {
+      j();
+      return;
+    }
+    let c = [];
+    (i && c.push("Win"),
+      e && c.push("Ctrl"),
+      n && c.push("Alt"),
+      s && c.push("Shift"));
+    let d =
+        t.code.startsWith("Control") ||
+        t.code.startsWith("Alt") ||
+        t.code.startsWith("Shift") ||
+        t.code.startsWith("Meta"),
+      a = document.getElementById("recorder-display-text");
+    if (d) {
+      a &&
+        c.length > 0 &&
+        ((a.textContent = c.join(" + ") + " + ..."),
+        (a.className = "recorder-active-keys"));
+      return;
+    }
+    let l = st(t);
+    if (!l) return;
+    if (!(e || n || i)) {
+      let o = [...c, l].join("+"),
+        p = f.settings_shortcut_modifier_required || "";
+      B(p.replaceAll("$1", o));
+      return;
+    }
+    let g = [...c, l].join("+");
+    if (ot(g)) {
+      let o = f.settings_shortcut_reserved || "";
+      B(o.replaceAll("$1", g));
+      return;
+    }
+    (N(), ft(g));
+  }
+  function mt(t) {
+    if (!v) return;
+    let e = !!t.metaKey,
+      n = !!t.ctrlKey,
+      s = !!t.altKey,
+      i = !!t.shiftKey,
+      c = [];
+    (e && c.push("Win"),
+      n && c.push("Ctrl"),
+      s && c.push("Alt"),
+      i && c.push("Shift"));
+    let d = document.getElementById("recorder-display-text");
+    d &&
+      (c.length > 0
+        ? ((d.textContent = c.join(" + ") + " + ..."),
+          (d.className = "recorder-active-keys"))
+        : ((d.textContent = f.settings_shortcut_type_shortcut || ""),
+          (d.className = "recorder-placeholder")));
+  }
+  var ht = ["Alt+Shift+D", "Ctrl+Shift+D", "None"];
+  function q(t) {
+    let e = document.getElementById("stc-shortcut-conflict-warning"),
+      n = document.getElementById("text-stc-shortcut-conflict");
+    e && n && ((n.textContent = t), (e.style.display = "flex"));
+  }
+  function K() {
+    let t = document.getElementById("stc-shortcut-conflict-warning");
+    t && (t.style.display = "none");
+  }
+  function _t() {
+    if (b) return;
+    ((b = !0), K());
+    let t = document.getElementById("select-stc-shortcut"),
+      e = document.getElementById("stc-shortcut-recorder-box"),
+      n = document.getElementById("stc-recorder-display-text");
+    (t && (t.style.display = "none"),
+      e &&
+        ((e.style.display = "inline-flex"),
+        n &&
+          ((n.textContent = f.settings_shortcut_type_shortcut || ""),
+          (n.className = "recorder-placeholder")),
+        e.focus()));
+  }
+  function G() {
+    if (!b) return;
+    b = !1;
+    let t = document.getElementById("select-stc-shortcut"),
+      e = document.getElementById("stc-shortcut-recorder-box");
+    (e && (e.style.display = "none"), t && ((t.style.display = ""), Y(F)), K());
+  }
+  async function yt(t) {
+    b = !1;
+    let e = document.getElementById("select-stc-shortcut"),
+      n = document.getElementById("stc-shortcut-recorder-box");
+    (n && (n.style.display = "none"), e && (e.style.display = ""), await it(t));
+  }
+  function Y(t) {
+    F = t;
+    let e = document.getElementById("select-stc-shortcut");
+    if (!e) return;
+    let n = document.getElementById("opt-stc-shortcut-custom-active");
+    if (ht.includes(t))
+      ((e.value = t),
+        n &&
+          ((n.hidden = !0),
+          (n.value = "__custom_active__"),
+          (n.textContent = "")));
+    else if (t && t !== "None" && t !== "Custom") {
+      let i = (f.settings_shortcut_custom_prefix || "$1").replaceAll("$1", t);
+      (n && ((n.textContent = i), (n.hidden = !0)),
+        (e.value = "__custom_active__"));
+    } else
+      ((e.value = "None"),
+        n &&
+          ((n.hidden = !0),
+          (n.value = "__custom_active__"),
+          (n.textContent = "")));
+  }
+  async function it(t) {
+    if (!window.settingsApi) return;
+    let e = await window.settingsApi.setStcShortcut(t);
+    if (
+      (e && e.success ? e.shortcut && ((F = e.shortcut), Y(e.shortcut)) : Y(F),
+      e && !e.success && t !== "None")
+    )
+      if (e.error === "RESERVED_SHORTCUT") {
+        let n = f.settings_shortcut_reserved || "";
+        q(n.replaceAll("$1", t));
+      } else {
+        let n = f.settings_shortcut_modifier_required || "";
+        q(n.replaceAll("$1", t));
+      }
+    else K();
+  }
+  function wt(t) {
+    if (t === "Custom") {
+      _t();
+      return;
+    }
+    (K(), it(t));
+  }
+  function vt(t) {
+    if (!b) return;
+    (t.preventDefault(), t.stopPropagation());
+    let e = !!t.ctrlKey,
+      n = !!t.altKey,
+      s = !!t.shiftKey,
+      i = !!t.metaKey;
+    if (
+      !e &&
+      !n &&
+      !i &&
+      !s &&
+      (t.code === "Escape" ||
+        t.code === "Tab" ||
+        t.code === "Backspace" ||
+        t.code === "Delete")
+    ) {
+      G();
+      return;
+    }
+    let c = [];
+    (i && c.push("Win"),
+      e && c.push("Ctrl"),
+      n && c.push("Alt"),
+      s && c.push("Shift"));
+    let d =
+        t.code.startsWith("Control") ||
+        t.code.startsWith("Alt") ||
+        t.code.startsWith("Shift") ||
+        t.code.startsWith("Meta"),
+      a = document.getElementById("stc-recorder-display-text");
+    if (d) {
+      a &&
+        c.length > 0 &&
+        ((a.textContent = c.join(" + ") + " + ..."),
+        (a.className = "recorder-active-keys"));
+      return;
+    }
+    let l = st(t);
+    if (!l) return;
+    if (!(e || n || i)) {
+      let o = [...c, l].join("+"),
+        p = f.settings_shortcut_modifier_required || "";
+      q(p.replaceAll("$1", o));
+      return;
+    }
+    let g = [...c, l].join("+");
+    if (ot(g)) {
+      let o = f.settings_shortcut_reserved || "";
+      q(o.replaceAll("$1", g));
+      return;
+    }
+    (K(), yt(g));
+  }
+  function Et(t) {
+    if (!b) return;
+    let e = [];
+    (t.metaKey && e.push("Win"),
+      t.ctrlKey && e.push("Ctrl"),
+      t.altKey && e.push("Alt"),
+      t.shiftKey && e.push("Shift"));
+    let n = document.getElementById("stc-recorder-display-text");
+    n &&
+      (e.length > 0
+        ? ((n.textContent = e.join(" + ") + " + ..."),
+          (n.className = "recorder-active-keys"))
+        : ((n.textContent = f.settings_shortcut_type_shortcut || ""),
+          (n.className = "recorder-placeholder")));
+  }
+  function C(t) {
+    (document.querySelectorAll(".tab-content").forEach((s) => {
+      s.classList.remove("active");
+    }),
+      document.querySelectorAll(".nav-item").forEach((s) => {
+        s.classList.remove("active");
+      }));
+    let e = document.getElementById("pane-" + t);
+    e && e.classList.add("active");
+    let n = document.getElementById("btn-tab-" + t);
+    n && n.classList.add("active");
+  }
+  function bt(t) {
+    let e = t.target;
+    e && e.id === "backdrop" && z();
+  }
+  function z() {
+    (v && j(),
+      b && G(),
+      window.settingsApi && window.settingsApi.closeWindow());
+  }
+  async function ct(t) {
+    if (!window.settingsApi) return;
+    let e = await window.settingsApi.setShortcut(t);
+    e && e.success ? e.shortcut && ((S = e.shortcut), $(e.shortcut)) : $(S);
+    let n = document.getElementById("shortcut-conflict-warning");
+    if (n)
+      if (e && !e.success && t !== "None")
+        if (e.error === "RESERVED_SHORTCUT") {
+          let s = f.settings_shortcut_reserved || "";
+          B(s.replaceAll("$1", t));
+        } else if (e.error === "INVALID_SHORTCUT") {
+          let s = f.settings_shortcut_modifier_required || "";
+          B(s.replaceAll("$1", t));
+        } else {
+          let s = f.settings_shortcut_conflict || "";
+          B(s.replaceAll("$1", t));
+        }
+      else n.style.display = "none";
+  }
+  function St(t) {
+    if (t === "Custom") {
+      gt();
+      return;
+    }
+    (N(), ct(t));
+  }
+  async function Bt(t) {
+    if (window.settingsApi) {
+      await window.settingsApi.setOpenAtLogin(t);
+      let e = document.getElementById("startup-windows-warning");
+      e && t && (e.style.display = "none");
+    }
+  }
+  async function Ct(t) {
+    window.settingsApi &&
+      (await window.settingsApi.setDisableShortcutInFullScreen(t));
+  }
+  async function kt(t) {
+    window.settingsApi && (await window.settingsApi.setDiagnosticConsent(t));
+  }
+  async function Q(t, e) {
+    window.settingsApi &&
+      (await window.settingsApi.setPermission(t, e ? "granted" : "denied"));
+  }
+  async function It() {
+    window.settingsApi &&
+      (await window.settingsApi.resetPermissions(), await Z());
+  }
+  async function xt() {
+    window.settingsApi && (await window.settingsApi.openWindowsPrivacy());
+  }
+  async function At() {
+    window.settingsApi && (await window.settingsApi.openWindowsCameraPrivacy());
+  }
+  async function Tt() {
+    window.settingsApi &&
+      (await window.settingsApi.openWindowsLocationPrivacy());
+  }
+  async function Lt() {
+    window.settingsApi &&
+      (await window.settingsApi.openWindowsStartupSettings());
+  }
+  async function at() {
+    window.settingsApi && (await window.settingsApi.relaunchToUpdate());
+  }
+  function rt(t) {
+    let e = document.getElementById("modal-top-update-banner"),
+      n = document.getElementById("staged-update-title"),
+      s = document.getElementById("staged-update-subtext"),
+      i = document.getElementById("btn-modal-restart");
+    !e ||
+      !n ||
+      !s ||
+      !i ||
+      (t && t.stagedUpdateVersion
+        ? ((n.textContent = t.stagedUpdateTitle || ""),
+          (s.textContent = t.stagedUpdateSubtext || ""),
+          (i.textContent = t.stagedUpdateRestartLabel || ""),
+          (e.style.display = "flex"))
+        : (e.style.display = "none"));
+  }
+  function Ut(t) {
+    return t.offsetHeight;
+  }
+  var Pt = 1e3;
+  function dt() {
+    let t = document.getElementById("backdrop");
+    !t ||
+      !t.classList.contains("preload") ||
+      (Ut(t),
+      t.classList.remove("preload"),
+      window.settingsApi && window.settingsApi.notifyReady());
+  }
+  async function Z() {
+    V += 1;
+    try {
+      await Mt();
+    } finally {
+      ((V -= 1), V === 0 && (H = null), dt());
+    }
+  }
+  async function Mt() {
+    if (!window.settingsApi) return;
+    let t = await window.settingsApi.getSettings();
+    if (!t) return;
+    R = t.updatesDisabled === !0;
+    function e(o, p) {
+      let _ = document.getElementById(o);
+      _ && p !== void 0 && (_.textContent = p);
+    }
+    if (t.messages) {
+      f = t.messages;
+      let o = t.messages;
+      (e("settings-heading", o.settings_title),
+        e("label-tab-general", o.settings_tab_general),
+        e("label-tab-privacy", o.settings_tab_privacy),
+        e("label-tab-about", o.settings_tab_about),
+        e("title-pane-general", o.settings_tab_general),
+        e("desc-pane-general", o.settings_general_desc),
+        e("label-shortcut", o.settings_shortcut_label),
+        e("desc-shortcut", o.settings_shortcut_desc),
+        e("opt-shortcut-none", o.settings_shortcut_none),
+        e("opt-shortcut-alt-space", o.settings_shortcut_alt_space),
+        e("opt-shortcut-alt-shift-space", o.settings_shortcut_alt_shift_space),
+        e("opt-shortcut-win-alt-space", o.settings_shortcut_win_alt_space),
+        e("opt-shortcut-win-shift-g", o.settings_shortcut_win_shift_g),
+        e("opt-shortcut-custom", o.settings_shortcut_custom),
+        e("recorder-display-text", o.settings_shortcut_type_shortcut));
+      let p = document.getElementById("shortcut-recorder-box");
+      (p &&
+        o.settings_shortcut_type_shortcut &&
+        p.setAttribute("aria-label", o.settings_shortcut_type_shortcut),
+        e("label-stc-shortcut", o.settings_stc_shortcut_label),
+        e("desc-stc-shortcut", o.settings_stc_shortcut_desc),
+        e("opt-stc-shortcut-alt-shift-d", o.settings_shortcut_alt_shift_d),
+        e("opt-stc-shortcut-ctrl-shift-d", o.settings_shortcut_ctrl_shift_d),
+        e("opt-stc-shortcut-none", o.settings_shortcut_none),
+        e("opt-stc-shortcut-custom", o.settings_shortcut_custom),
+        e("stc-recorder-display-text", o.settings_shortcut_type_shortcut));
+      let _ = document.getElementById("stc-shortcut-recorder-box");
+      (_ &&
+        o.settings_shortcut_type_shortcut &&
+        _.setAttribute("aria-label", o.settings_shortcut_type_shortcut),
+        e("label-open-at-login", o.settings_open_at_login_label),
+        e("desc-open-at-login", o.settings_open_at_login_desc),
+        e(
+          "label-disable-shortcut-in-fullscreen",
+          o.settings_disable_shortcut_in_fullscreen_label,
+        ),
+        e(
+          "desc-disable-shortcut-in-fullscreen",
+          o.settings_disable_shortcut_in_fullscreen_desc,
+        ),
+        e("title-pane-privacy", o.settings_privacy_title),
+        e("desc-pane-privacy", o.settings_privacy_desc),
+        e("label-mic", o.settings_mic_label),
+        e("desc-mic", o.settings_mic_desc),
+        e("label-camera", o.settings_camera_label),
+        e("desc-camera", o.settings_camera_desc),
+        e("label-location", o.settings_location_label),
+        e("desc-location", o.settings_location_desc),
+        e("label-diagnostic-consent", o.settings_diagnostic_consent_label),
+        e("desc-diagnostic-consent", o.settings_diagnostic_consent_desc),
+        e("btn-reset-permissions", o.settings_reset_permissions),
+        e("title-pane-about", o.settings_about_title),
+        e("copyright-pane-about", o.settings_about_copyright),
+        e("desc-pane-about", o.settings_about_desc),
+        e("label-build-version", o.settings_build_version));
+      let O = document.getElementById("check-for-updates-btn");
+      if (
+        (!w &&
+          !h &&
+          !O?.disabled &&
+          e(
+            "label-check-for-updates",
+            o.settings_check_for_updates || "Check for Updates",
+          ),
+        o.settings_open_at_login_windows_warning)
+      ) {
+        let u = document.getElementById("text-startup-warning");
+        u && (u.textContent = o.settings_open_at_login_windows_warning);
+      }
+      if (o.settings_mic_windows_warning) {
+        let u = document.getElementById("text-mic-warning");
+        u && (u.textContent = o.settings_mic_windows_warning);
+      }
+      if (o.settings_camera_windows_warning) {
+        let u = document.getElementById("text-camera-warning");
+        u && (u.textContent = o.settings_camera_windows_warning);
+      }
+      if (o.settings_location_windows_warning) {
+        let u = document.getElementById("text-location-warning");
+        u && (u.textContent = o.settings_location_windows_warning);
+      }
+      if (o.settings_open_windows_settings) {
+        let u = o.settings_open_windows_settings + " \u2197",
+          I = document.getElementById("btn-open-windows-startup");
+        I && (I.textContent = u);
+        let x = document.getElementById("btn-open-windows-privacy");
+        x && (x.textContent = u);
+        let A = document.getElementById("btn-open-windows-camera-privacy");
+        A && (A.textContent = u);
+        let T = document.getElementById("btn-open-windows-location-privacy");
+        T && (T.textContent = u);
+      }
+      if (
+        (o.settings_done &&
+          document.querySelectorAll(".btn-done").forEach((u) => {
+            u.textContent = o.settings_done;
+          }),
+        o.settings_close)
+      ) {
+        let u = document.getElementById("btn-close-modal");
+        u && (u.title = o.settings_close);
+      }
+    }
+    (Array.isArray(t.reservedShortcuts) && (nt = new Set(t.reservedShortcuts)),
+      t.shortcut
+        ? ((S = t.shortcut), $(t.shortcut))
+        : ((S = "None"), $("None")));
+    let n = document.getElementById("stc-shortcut-setting-item");
+    (n && (n.style.display = t.speakToWindowEnabled ? "" : "none"),
+      t.speakToWindowEnabled && Y(t.stcShortcut || "None"));
+    let s = document.getElementById("shortcut-conflict-warning");
+    if (s)
+      if (
+        !v &&
+        t.shortcut &&
+        t.shortcut !== "None" &&
+        t.shortcut !== "Custom" &&
+        t.shortcutRegistered === !1
+      ) {
+        let o = f.settings_shortcut_conflict || "";
+        B(o.replaceAll("$1", t.shortcut));
+      } else s.style.display = "none";
+    let i = document.getElementById("toggle-open-at-login");
+    i &&
+      ((i.checked = !!t.openAtLogin), (i.disabled = !!t.windowsStartupBlocked));
+    let c = document.getElementById("startup-windows-warning");
+    c && (c.style.display = t.windowsStartupBlocked ? "flex" : "none");
+    let d = document.getElementById("toggle-disable-shortcut-in-fullscreen");
+    d && (d.checked = !!t.disableShortcutInFullScreen);
+    let a = document.getElementById("toggle-diagnostic-consent");
+    if ((a && (a.checked = !!t.diagnosticConsent), t.permissions)) {
+      let o = document.getElementById("toggle-media");
+      o && (o.checked = t.permissions.media === "granted");
+      let p = document.getElementById("toggle-camera");
+      p && (p.checked = t.permissions.camera === "granted");
+      let _ = document.getElementById("toggle-geolocation");
+      _ && (_.checked = t.permissions.geolocation === "granted");
+    }
+    let l = document.getElementById("mic-windows-warning");
+    l && (l.style.display = t.windowsMicBlocked ? "flex" : "none");
+    let E = document.getElementById("camera-windows-warning");
+    E && (E.style.display = t.windowsCameraBlocked ? "flex" : "none");
+    let g = document.getElementById("location-windows-warning");
+    if (
+      (g && (g.style.display = t.windowsLocationBlocked ? "flex" : "none"),
+      t.version)
+    ) {
+      M = t.version;
+      let p = !!(t.channel && t.channel !== "prod")
+        ? `${t.version} (${t.channel})`
+        : t.version;
+      if (((D = p), t.stagedUpdateVersion)) {
+        let _ = document.getElementById("val-version");
+        _ && lt(_, p, t.stagedUpdateVersion);
+      } else e("val-version", p);
+    }
+    if ((rt(t), R)) {
+      ((w = !1), (h = !1), (m = !1), (y = ""));
+      let o = document.getElementById("check-for-updates-btn");
+      (o &&
+        ((o.disabled = !0),
+        (o.title = r(
+          "settings_update_unavailable",
+          "Updates are managed by your installation.",
+        ))),
+        e(
+          "label-check-for-updates",
+          r("settings_check_for_updates", "Check for Updates"),
+        ));
+    } else if (t.stagedUpdateVersion) {
+      ((w = !0), (h = !1), (m = !1), (y = ""));
+      let o = r("settings_restart_to_update", "Restart to Update");
+      e("label-check-for-updates", o);
+    } else
+      H
+        ? ((w = !1), (h = !1), W(H))
+        : ((w = !1),
+          (h = !1),
+          (m = !1),
+          (y = ""),
+          document.getElementById("check-for-updates-btn")?.disabled ||
+            e(
+              "label-check-for-updates",
+              r("settings_check_for_updates", "Check for Updates"),
+            ));
+  }
+  function r(t, e, n) {
+    let s = f[t],
+      i = s && s !== t ? s : e;
+    return (n !== void 0 && (i = i.replaceAll("$1", n)), i);
+  }
+  function lt(t, e, n) {
+    let s = String(n).replace(/^v/i, ""),
+      i = r("settings_update_ready_inline", "$1 ready to install", s);
+    if (
+      ((t.textContent = `${e} \u2192 ${i}`),
+      typeof document < "u" &&
+        typeof document.createElementNS == "function" &&
+        typeof t.replaceChildren == "function")
+    ) {
+      let c = document.createTextNode(`${e} `),
+        d = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      (d.setAttribute("width", "14"),
+        d.setAttribute("height", "14"),
+        d.setAttribute("viewBox", "0 0 24 24"),
+        d.setAttribute("fill", "none"),
+        d.setAttribute("stroke", "currentColor"),
+        d.setAttribute("stroke-width", "2.2"),
+        d.setAttribute("stroke-linecap", "round"),
+        d.setAttribute("stroke-linejoin", "round"),
+        d.setAttribute("aria-hidden", "true"),
+        d.setAttribute(
+          "style",
+          "display:inline-block;vertical-align:-2px;margin:0 4px;opacity:0.85",
+        ));
+      let a = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      a.setAttribute("d", "M5 12h14");
+      let l = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      (l.setAttribute("d", "m13 6 6 6-6 6"),
+        d.appendChild(a),
+        d.appendChild(l));
+      let E = document.createTextNode(` ${i}`);
+      t.replaceChildren(c, d, E);
+    }
+  }
+  var Dt = 5e3,
+    P = null,
+    k = !1;
+  function J() {
+    P !== null && (clearTimeout(P), (P = null));
+  }
+  function W(t) {
+    if (R) return;
+    let e = document.getElementById("check-for-updates-btn"),
+      n = document.getElementById("label-check-for-updates"),
+      s = document.getElementById("val-version");
+    if (!t) return;
+    let i = String(t.status);
+    if (i === "checking" && m) return;
+    (V > 0 && (H = t), J());
+    let c = D || M;
+    if (i === "checking") {
+      ((w = !1),
+        (h = !1),
+        (y = ""),
+        e && (e.disabled = !0),
+        n && (n.textContent = r("settings_checking_btn", "Checking\u2026")),
+        s &&
+          (s.textContent = `${c} - ${r("settings_checking_for_updates", "Checking for updates\u2026")}`));
+      return;
+    }
+    if (i === "ready_to_install") {
+      ((w = !0), (h = !1), (m = !1), (y = ""), e && (e.disabled = !1));
+      let a = r("settings_restart_to_update", "Restart to Update");
+      n ? (n.textContent = a) : e && (e.textContent = a);
+      let l = t.version || "new";
+      (s && lt(s, c, l),
+        rt({
+          stagedUpdateVersion: t.version || "new",
+          stagedUpdateTitle: r(
+            "settings_update_ready",
+            "Update ready - Restart to apply",
+          ),
+          stagedUpdateSubtext: f.settings_update_subtext,
+          stagedUpdateRestartLabel: a,
+        }));
+      return;
+    }
+    if (i === "available") {
+      (C("about"),
+        (w = !1),
+        (h = !0),
+        (m = !1),
+        (y = t.version || ""),
+        e && (e.disabled = !1));
+      let a = r("settings_download_update", "Install Update");
+      (n ? (n.textContent = a) : e && (e.textContent = a),
+        s &&
+          (t.version
+            ? (s.textContent = `${c} - ${r("settings_update_available", "Update available (v$1)", t.version)}`)
+            : (s.textContent = `${c} - ${r("settings_update_available_short", "Update available")}`)));
+      return;
+    }
+    if (i === "downloading") {
+      ((w = !1), (h = !1), (m = !0), t.version && (y = t.version));
+      let a = t.version || y;
+      (e && (e.disabled = !0),
+        n &&
+          (n.textContent = r("settings_downloading_btn", "Downloading\u2026")),
+        s &&
+          (a
+            ? (s.textContent = `${c} - ${r("settings_update_downloading_version", "Downloading update (v$1)\u2026", a)}`)
+            : (s.textContent = `${c} - ${r("settings_update_downloading", "Downloading update\u2026")}`)));
+      return;
+    }
+    if (i === "error") {
+      let a = m,
+        l = a && t.reason !== "not_registered";
+      ((w = !1), (h = l), (m = !1), l || (y = ""), e && (e.disabled = !1));
+      let E = l
+        ? r("settings_download_update", "Install Update")
+        : r("settings_check_for_updates", "Check for Updates");
+      if ((n ? (n.textContent = E) : e && (e.textContent = E), s)) {
+        let g;
+        switch (t.reason) {
+          case "not_registered":
+            g = r(
+              "settings_update_not_registered_short",
+              "Reinstall Gemini to get updates",
+            );
+            break;
+          case "install_incomplete":
+            g = r(
+              "settings_update_install_incomplete_short",
+              "Couldn\u2019t install the update. Try again",
+            );
+            break;
+          default:
+            g = a
+              ? r(
+                  "settings_update_download_error_short",
+                  "Update download failed",
+                )
+              : r("settings_update_error_short", "Update check failed");
+        }
+        s.textContent = `${c} - ${g}`;
+      }
+      return;
+    }
+    if (i === "unavailable") {
+      ((w = !1), (h = !1), (m = !1), (y = ""), e && (e.disabled = !1));
+      let a = r("settings_check_for_updates", "Check for Updates");
+      (n && (n.textContent = a), s && (s.textContent = c));
+      return;
+    }
+    ((w = !1), (h = !1), (m = !1), (y = ""), e && (e.disabled = !1));
+    let d = r("settings_check_for_updates", "Check for Updates");
+    (n && (n.textContent = d),
+      s &&
+        ((s.textContent = `${c} - ${r("settings_up_to_date_short", "Up to date")}`),
+        (P = setTimeout(() => {
+          let a = document.getElementById("val-version");
+          if (a) {
+            let l = D || M;
+            a.textContent = l;
+          }
+          P = null;
+        }, Dt))));
+  }
+  async function ut() {
+    if (
+      R ||
+      w ||
+      k ||
+      m ||
+      !window.settingsApi ||
+      !window.settingsApi.checkForUpdates
+    )
+      return;
+    J();
+    let t = document.getElementById("check-for-updates-btn"),
+      e = document.getElementById("label-check-for-updates"),
+      n = document.getElementById("val-version"),
+      s = D || M;
+    ((h = !1),
+      (k = !0),
+      t && (t.disabled = !0),
+      e && (e.textContent = r("settings_checking_btn", "Checking...")),
+      n &&
+        (n.textContent = `${s} - ${r("settings_checking_for_updates", "Checking for updates...")}`));
+    try {
+      let i = await window.settingsApi.checkForUpdates();
+      if (!i) throw new Error("Update check failed");
+      W(i);
+    } catch {
+      (n &&
+        (n.textContent = `${s} - ${r("settings_update_error_short", "Update check failed")}`),
+        t && (t.disabled = !1),
+        e &&
+          (e.textContent = r(
+            "settings_check_for_updates",
+            "Check for Updates",
+          )));
+    } finally {
+      k = !1;
+    }
+  }
+  async function Rt() {
+    if (R) return;
+    if (w) {
+      await at();
+      return;
+    }
+    if (k || m) return;
+    J();
+    let t = document.getElementById("check-for-updates-btn"),
+      e = document.getElementById("label-check-for-updates"),
+      n = document.getElementById("val-version"),
+      s = D || M;
+    if (h) {
+      if (((h = !1), !window.settingsApi?.downloadUpdate)) {
+        (t && (t.disabled = !1),
+          e &&
+            (e.textContent = r(
+              "settings_check_for_updates",
+              "Check for Updates",
+            )));
+        return;
+      }
+      ((m = !0),
+        (k = !0),
+        t && (t.disabled = !0),
+        e &&
+          (e.textContent = r("settings_downloading_btn", "Downloading\u2026")),
+        n &&
+          (y
+            ? (n.textContent = `${s} - ${r("settings_update_downloading_version", "Downloading update (v$1)\u2026", y)}`)
+            : (n.textContent = `${s} - ${r("settings_update_downloading", "Downloading update\u2026")}`)));
+      try {
+        let i = await window.settingsApi.downloadUpdate();
+        if (!i) throw new Error("Update download failed");
+        W(i);
+      } catch {
+        ((m = !1),
+          (h = !0),
+          n &&
+            (n.textContent = `${s} - ${r("settings_update_download_error_short", "Update download failed")}`),
+          t && (t.disabled = !1));
+        let i = r("settings_download_update", "Install Update");
+        e ? (e.textContent = i) : t && (t.textContent = i);
+      } finally {
+        k = !1;
+      }
+      return;
+    }
+    await ut();
+  }
+  function Ht() {
+    let t = document.getElementById("backdrop");
+    t && t.addEventListener("click", bt);
+    let e = document.getElementById("btn-close-modal");
+    e && e.addEventListener("click", z);
+    let n = document.getElementById("btn-modal-restart");
+    n && n.addEventListener("click", at);
+    let s = document.getElementById("check-for-updates-btn");
+    s &&
+      s.addEventListener("click", () => {
+        Rt();
+      });
+    let i = document.getElementById("btn-tab-general");
+    i &&
+      i.addEventListener("click", () => {
+        C("general");
+      });
+    let c = document.getElementById("btn-tab-privacy");
+    c &&
+      c.addEventListener("click", () => {
+        C("privacy");
+      });
+    let d = document.getElementById("btn-tab-about");
+    d &&
+      d.addEventListener("click", () => {
+        C("about");
+      });
+    let a = document.getElementById("select-shortcut");
+    a &&
+      a.addEventListener("change", function () {
+        St(this.value);
+      });
+    let l = document.getElementById("shortcut-recorder-box");
+    (l &&
+      (l.addEventListener("keydown", pt),
+      l.addEventListener("keyup", mt),
+      l.addEventListener("blur", () => {
+        v && j();
+      })),
+      document.addEventListener("pointerdown", (L) => {
+        if (!v) return;
+        let U = document.getElementById("shortcut-select-container");
+        U && !U.contains(L.target) && j();
+      }));
+    let E = document.getElementById("select-stc-shortcut");
+    E &&
+      E.addEventListener("change", function () {
+        wt(this.value);
+      });
+    let g = document.getElementById("stc-shortcut-recorder-box");
+    (g &&
+      (g.addEventListener("keydown", vt),
+      g.addEventListener("keyup", Et),
+      g.addEventListener("blur", () => {
+        b && G();
+      })),
+      document.addEventListener("pointerdown", (L) => {
+        if (!b) return;
+        let U = document.getElementById("stc-shortcut-select-container");
+        U && !U.contains(L.target) && G();
+      }));
+    let o = document.getElementById("btn-open-windows-startup");
+    o && o.addEventListener("click", Lt);
+    let p = document.getElementById("toggle-open-at-login");
+    p &&
+      p.addEventListener("change", function () {
+        Bt(this.checked);
+      });
+    let _ = document.getElementById("toggle-disable-shortcut-in-fullscreen");
+    _ &&
+      _.addEventListener("change", function () {
+        Ct(this.checked);
+      });
+    let O = document.getElementById("btn-open-windows-privacy");
+    O && O.addEventListener("click", xt);
+    let u = document.getElementById("toggle-media");
+    u &&
+      u.addEventListener("change", function () {
+        Q("media", this.checked);
+      });
+    let I = document.getElementById("btn-open-windows-camera-privacy");
+    I && I.addEventListener("click", At);
+    let x = document.getElementById("toggle-camera");
+    x &&
+      x.addEventListener("change", function () {
+        Q("camera", this.checked);
+      });
+    let A = document.getElementById("btn-open-windows-location-privacy");
+    A && A.addEventListener("click", Tt);
+    let T = document.getElementById("toggle-geolocation");
+    T &&
+      T.addEventListener("change", function () {
+        Q("geolocation", this.checked);
+      });
+    let X = document.getElementById("toggle-diagnostic-consent");
+    X &&
+      X.addEventListener("change", function () {
+        kt(this.checked);
+      });
+    let tt = document.getElementById("btn-reset-permissions");
+    (tt && tt.addEventListener("click", It),
+      document.querySelectorAll(".btn-done").forEach((L) => {
+        L.addEventListener("click", z);
+      }));
+  }
+  function et() {
+    ((H = null),
+      (m = !1),
+      (y = ""),
+      Ht(),
+      window.settingsApi &&
+        (window.settingsApi.onOpened(() => {
+          Z();
+        }),
+        typeof window.settingsApi.onTriggerUpdateCheck == "function" &&
+          window.settingsApi.onTriggerUpdateCheck(() => {
+            (C("about"),
+              document
+                .getElementById("check-for-updates-btn")
+                ?.scrollIntoView?.({ behavior: "smooth", block: "center" }),
+              ut());
+          }),
+        typeof window.settingsApi.onUpdateCheckResult == "function" &&
+          window.settingsApi.onUpdateCheckResult((t) => {
+            W(t);
+          }),
+        window.settingsApi.onHotkeyStatus(({ registered: t }) => {
+          if (v) return;
+          let e = document.getElementById("select-shortcut"),
+            n = S || (e ? e.value : "None"),
+            s = document.getElementById("shortcut-conflict-warning");
+          if (s)
+            if (n !== "None" && n !== "Custom" && t === !1) {
+              let i = f.settings_shortcut_conflict || "";
+              B(i.replaceAll("$1", n));
+            } else s.style.display = "none";
+        }),
+        window.settingsApi.onOpenAtLoginStatus(({ enabled: t, blocked: e }) => {
+          let n = document.getElementById("toggle-open-at-login");
+          n && ((n.checked = !!t), (n.disabled = !!e));
+          let s = document.getElementById("startup-windows-warning");
+          s &&
+            (e && !t ? (s.style.display = "flex") : (s.style.display = "none"));
+        })),
+      setTimeout(dt, Pt),
+      window.addEventListener("keydown", (t) => {
+        t.code === "Escape" && !v && !b && (t.preventDefault(), z());
+      }),
+      (window.applyUpdateCheckResult = W),
+      Z());
+  }
+  typeof window < "u" &&
+    typeof document < "u" &&
+    (document.readyState === "loading"
+      ? window.addEventListener("DOMContentLoaded", () => {
+          et();
+        })
+      : et());
+})();

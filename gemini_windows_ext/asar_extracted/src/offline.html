@@ -1,1 +1,99 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self';"><title>You're offline</title><link rel="stylesheet" href="../assets/fonts/fonts.css"><style>:root{color-scheme:light dark}html,body{height:100%;margin:0;box-sizing:border-box}body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-family);background:radial-gradient(1200px 600px at 50% -10%,#e8f0fe 0%,#ffffff 60%);color:#1f1f1f;text-align:center;padding:24px;user-select:none}@media (prefers-color-scheme:dark){body{background:radial-gradient(1200px 600px at 50% -10%,#1a2233 0%,#0b0f19 60%);color:#e3e3e3}}.spark{width:56px;height:56px;opacity:.9;margin-bottom:20px}h1{font-size:22px;font-weight:500;margin:0 0 10px}p{font-size:14px;line-height:1.5;opacity:.75;max-width:360px;margin:0 0 24px}button{font-family:inherit;font-size:14px;font-weight:500;color:#fff;background:#1a73e8;border:0;border-radius:9999px;padding:10px 24px;cursor:pointer;transition:background .15s ease}button:hover{background:#1765cc}@media (prefers-color-scheme:dark){button{background:#8ab4f8;color:#062e6f}button:hover{background:#aecbfa}}</style></head><body><img class="spark" src="../assets/icon.png" alt="" aria-hidden="true"><h1 id="offline-title">You're offline</h1><p id="offline-body">Gemini couldn't connect. Check your internet connection and try again.</p><button id="reload" type="button">Reload</button></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self';"
+    />
+    <title>You're offline</title>
+    <link rel="stylesheet" href="../assets/fonts/fonts.css" />
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-family);
+        background: radial-gradient(
+          1200px 600px at 50% -10%,
+          #e8f0fe 0%,
+          #ffffff 60%
+        );
+        color: #1f1f1f;
+        text-align: center;
+        padding: 24px;
+        user-select: none;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: radial-gradient(
+            1200px 600px at 50% -10%,
+            #1a2233 0%,
+            #0b0f19 60%
+          );
+          color: #e3e3e3;
+        }
+      }
+      .spark {
+        width: 56px;
+        height: 56px;
+        opacity: 0.9;
+        margin-bottom: 20px;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: 500;
+        margin: 0 0 10px;
+      }
+      p {
+        font-size: 14px;
+        line-height: 1.5;
+        opacity: 0.75;
+        max-width: 360px;
+        margin: 0 0 24px;
+      }
+      button {
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+        background: #1a73e8;
+        border: 0;
+        border-radius: 9999px;
+        padding: 10px 24px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+      button:hover {
+        background: #1765cc;
+      }
+      @media (prefers-color-scheme: dark) {
+        button {
+          background: #8ab4f8;
+          color: #062e6f;
+        }
+        button:hover {
+          background: #aecbfa;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <img class="spark" src="../assets/icon.png" alt="" aria-hidden="true" />
+    <h1 id="offline-title">You're offline</h1>
+    <p id="offline-body">
+      Gemini couldn't connect. Check your internet connection and try again.
+    </p>
+    <button id="reload" type="button">Reload</button>
+  </body>
+</html>

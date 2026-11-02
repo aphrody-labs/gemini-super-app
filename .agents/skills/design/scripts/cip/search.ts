@@ -12,7 +12,13 @@
 
 import { parseArgs } from "node:util";
 import type { Row } from "../../../design-system/scripts/lib/search-core.ts";
-import { CSV_CONFIG, getCipBrief, search, searchAll, type CipBrief } from "./core.ts";
+import {
+  CSV_CONFIG,
+  getCipBrief,
+  search,
+  searchAll,
+  type CipBrief,
+} from "./core.ts";
 
 export function formatResults(results: Row[]): string {
   if (!results.length) return "No results found.";
@@ -20,14 +26,19 @@ export function formatResults(results: Row[]): string {
   results.forEach((item, i) => {
     out.push(`\n${"=".repeat(60)}`);
     out.push(`Result ${i + 1}:`);
-    for (const [key, value] of Object.entries(item)) if (value) out.push(`  ${key}: ${value}`);
+    for (const [key, value] of Object.entries(item))
+      if (value) out.push(`  ${key}: ${value}`);
   });
   return out.join("\n");
 }
 
 export function formatBrief(brief: CipBrief): string {
   const na = (v: string | undefined) => v ?? "N/A";
-  const out = [`\n${"=".repeat(60)}`, `CIP DESIGN BRIEF: ${brief.brand_name}`, "=".repeat(60)];
+  const out = [
+    `\n${"=".repeat(60)}`,
+    `CIP DESIGN BRIEF: ${brief.brand_name}`,
+    "=".repeat(60),
+  ];
   if (Object.keys(brief.industry).length) {
     out.push(`\n📊 INDUSTRY: ${na(brief.industry.Industry)}`);
     out.push(`   Style: ${na(brief.industry["CIP Style"])}`);
@@ -46,7 +57,9 @@ export function formatBrief(brief: CipBrief): string {
   if (brief.recommended_deliverables.length) {
     out.push(`\n📦 RECOMMENDED DELIVERABLES:`);
     for (const d of brief.recommended_deliverables) {
-      out.push(`   • ${na(d.Deliverable)}: ${(d.Description ?? "").slice(0, 60)}...`);
+      out.push(
+        `   • ${na(d.Deliverable)}: ${(d.Description ?? "").slice(0, 60)}...`,
+      );
     }
   }
   return out.join("\n");
@@ -68,18 +81,24 @@ async function main(): Promise<void> {
   });
   const query = positionals[0];
   if (!query) {
-    console.error("usage: search.ts [-d DOMAIN] [-m MAX] [-a] [-c] [-b BRAND] [-s STYLE] [-j] query");
+    console.error(
+      "usage: search.ts [-d DOMAIN] [-m MAX] [-a] [-c] [-b BRAND] [-s STYLE] [-j] query",
+    );
     process.exit(2);
   }
   if (values.domain && !(values.domain in CSV_CONFIG)) {
-    console.error(`error: argument --domain/-d: invalid choice: '${values.domain}' (choose from ${Object.keys(CSV_CONFIG).join(", ")})`);
+    console.error(
+      `error: argument --domain/-d: invalid choice: '${values.domain}' (choose from ${Object.keys(CSV_CONFIG).join(", ")})`,
+    );
     process.exit(2);
   }
   const max = Number.parseInt(String(values.max), 10);
 
   if (values["cip-brief"]) {
     const brief = await getCipBrief(String(values.brand), query, values.style);
-    console.log(values.json ? JSON.stringify(brief, null, 2) : formatBrief(brief));
+    console.log(
+      values.json ? JSON.stringify(brief, null, 2) : formatBrief(brief),
+    );
   } else if (values.all) {
     const results = await searchAll(query, max);
     if (values.json) {

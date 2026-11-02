@@ -10,7 +10,8 @@ import { homedir } from "node:os";
 import { extname, join } from "node:path";
 
 export const HTTP_USER_AGENT = "ui-ux-pro-max/2.5 (design generation)";
-export const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
+export const GEMINI_API_BASE =
+  "https://generativelanguage.googleapis.com/v1beta";
 
 /** File extensions for the image types Gemini returns as inline data. */
 export const IMAGE_EXTENSIONS: Record<string, string> = {
@@ -22,7 +23,13 @@ export const IMAGE_EXTENSIONS: Record<string, string> = {
 const SKILL_DIR = join(import.meta.dir, "..", "..");
 
 /** Load .env files in priority order without overriding the process environment. */
-export async function loadEnv(paths = [join(SKILL_DIR, ".env"), join(homedir(), ".claude", "skills", ".env"), join(homedir(), ".claude", ".env")]): Promise<void> {
+export async function loadEnv(
+  paths = [
+    join(SKILL_DIR, ".env"),
+    join(homedir(), ".claude", "skills", ".env"),
+    join(homedir(), ".claude", ".env"),
+  ],
+): Promise<void> {
   for (const envPath of paths) {
     const file = Bun.file(envPath);
     if (!(await file.exists())) continue;
@@ -31,7 +38,8 @@ export async function loadEnv(paths = [join(SKILL_DIR, ".env"), join(homedir(), 
       if (!line || line.startsWith("#") || !line.includes("=")) continue;
       const index = line.indexOf("=");
       const key = line.slice(0, index);
-      if (!(key in process.env)) process.env[key] = line.slice(index + 1).replace(/^["']+|["']+$/g, "");
+      if (!(key in process.env))
+        process.env[key] = line.slice(index + 1).replace(/^["']+|["']+$/g, "");
     }
   }
 }
@@ -72,21 +80,36 @@ function expandIpv6(ip: string): number[] | null {
   const v4 = address.match(/(\d+\.\d+\.\d+\.\d+)$/);
   if (v4) {
     const n = ipv4ToInt(v4[1]!);
-    address = address.slice(0, -v4[1]!.length) + `${(n >>> 16).toString(16)}:${(n & 0xffff).toString(16)}`;
+    address =
+      address.slice(0, -v4[1]!.length) +
+      `${(n >>> 16).toString(16)}:${(n & 0xffff).toString(16)}`;
   }
   const [head, tail] = address.split("::");
   const headParts = head ? head.split(":") : [];
   const tailParts = tail !== undefined && tail !== "" ? tail.split(":") : [];
   const missing = 8 - headParts.length - tailParts.length;
   if (address.includes("::") ? missing < 0 : missing !== 0) return null;
-  const parts = [...headParts, ...Array(address.includes("::") ? missing : 0).fill("0"), ...tailParts];
+  const parts = [
+    ...headParts,
+    ...Array(address.includes("::") ? missing : 0).fill("0"),
+    ...tailParts,
+  ];
   return parts.map((p) => parseInt(p, 16));
 }
 
 function isGlobalIpv6(ip: string): boolean {
   const words = expandIpv6(ip);
   if (!words) return false;
-  const [w0, w1, , , , w5, w6, w7] = words as [number, number, number, number, number, number, number, number];
+  const [w0, w1, , , , w5, w6, w7] = words as [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ];
   if (words.every((w) => w === 0)) return false; // ::
   if (words.slice(0, 7).every((w) => w === 0) && w7 === 1) return false; // ::1
   if (words.slice(0, 5).every((w) => w === 0) && w5 === 0xffff) {
@@ -110,25 +133,52 @@ export function validatePublicHttpsUrl(url: string): void {
   } catch {
     throw new Error("Provider returned an invalid media URL");
   }
-  if (parsed.protocol !== "https:" || !parsed.hostname || parsed.username || parsed.password) {
+  if (
+    parsed.protocol !== "https:" ||
+    !parsed.hostname ||
+    parsed.username ||
+    parsed.password
+  ) {
     throw new Error("Provider returned an invalid media URL");
   }
-  const hostname = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
-  if (hostname === "localhost" || [".localhost", ".local", ".internal"].some((suffix) => hostname.endsWith(suffix))) {
+  const hostname = parsed.hostname
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "")
+    .replace(/\.$/, "");
+  if (
+    hostname === "localhost" ||
+    [".localhost", ".local", ".internal"].some((suffix) =>
+      hostname.endsWith(suffix),
+    )
+  ) {
     throw new Error("Provider media URL used a local hostname");
   }
   const family = isIP(hostname);
-  if (family === 4 && !isGlobalIpv4(hostname)) throw new Error("Provider media URL used a non-public address");
-  if (family === 6 && !isGlobalIpv6(hostname)) throw new Error("Provider media URL used a non-public address");
+  if (family === 4 && !isGlobalIpv4(hostname))
+    throw new Error("Provider media URL used a non-public address");
+  if (family === 6 && !isGlobalIpv6(hostname))
+    throw new Error("Provider media URL used a non-public address");
 }
 
 /** fetch that follows at most 5 redirects, validating each target like the Python safe redirect handler. */
-export async function safeFetch(url: string, init: RequestInit & { timeoutMs?: number } = {}): Promise<Response> {
+export async function safeFetch(
+  url: string,
+  init: RequestInit & { timeoutMs?: number } = {},
+): Promise<Response> {
   const { timeoutMs = 60_000, ...rest } = init;
   let current = url;
   for (let hop = 0; hop <= 5; hop++) {
-    const response = await runtime.fetch(current, { ...rest, redirect: "manual", signal: AbortSignal.timeout(timeoutMs) });
-    if (response.status < 300 || response.status >= 400 || !response.headers.get("location")) return response;
+    const response = await runtime.fetch(current, {
+      ...rest,
+      redirect: "manual",
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (
+      response.status < 300 ||
+      response.status >= 400 ||
+      !response.headers.get("location")
+    )
+      return response;
     const next = new URL(response.headers.get("location")!, current).toString();
     validatePublicHttpsUrl(next);
     current = next;
@@ -144,13 +194,21 @@ export interface JsonRequestOptions {
   apiKeyHeader?: ApiKeyHeader;
 }
 
-export function authHeaders(apiKey: string, apiKeyHeader: string = "Authorization"): Record<string, string> {
-  if (apiKeyHeader === "Authorization") return { Authorization: `Bearer ${apiKey}` };
+export function authHeaders(
+  apiKey: string,
+  apiKeyHeader: string = "Authorization",
+): Record<string, string> {
+  if (apiKeyHeader === "Authorization")
+    return { Authorization: `Bearer ${apiKey}` };
   if (apiKeyHeader === "x-api-key") return { "x-api-key": apiKey };
   throw new Error("Unsupported API key header");
 }
 
-async function jsonRequest(url: string, apiKey: string, options: JsonRequestOptions = {}): Promise<any> {
+async function jsonRequest(
+  url: string,
+  apiKey: string,
+  options: JsonRequestOptions = {},
+): Promise<any> {
   const { method = "GET", payload, apiKeyHeader = "Authorization" } = options;
   const headers: Record<string, string> = {
     ...authHeaders(apiKey, apiKeyHeader),
@@ -161,12 +219,20 @@ async function jsonRequest(url: string, apiKey: string, options: JsonRequestOpti
   if (body !== undefined) headers["Content-Type"] = "application/json";
   let response: Response;
   try {
-    response = await safeFetch(url, { method, headers, body, timeoutMs: 60_000 });
+    response = await safeFetch(url, {
+      method,
+      headers,
+      body,
+      timeoutMs: 60_000,
+    });
   } catch (error) {
     throw new Error(`Provider request failed: ${(error as Error).message}`);
   }
   const text = await response.text();
-  if (!response.ok) throw new Error(`Provider request failed (${response.status}): ${text.slice(0, 300)}`);
+  if (!response.ok)
+    throw new Error(
+      `Provider request failed (${response.status}): ${text.slice(0, 300)}`,
+    );
   try {
     return JSON.parse(text);
   } catch (error) {
@@ -175,7 +241,11 @@ async function jsonRequest(url: string, apiKey: string, options: JsonRequestOpti
 }
 
 /** Download a provider-hosted image without forwarding any API key. */
-async function downloadImage(url: string, outputPath: string, providerName: string): Promise<void> {
+async function downloadImage(
+  url: string,
+  outputPath: string,
+  providerName: string,
+): Promise<void> {
   validatePublicHttpsUrl(url);
   let data: Uint8Array;
   try {
@@ -184,26 +254,44 @@ async function downloadImage(url: string, outputPath: string, providerName: stri
       timeoutMs: 120_000,
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const contentType = (response.headers.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
-    if (!contentType.startsWith("image/")) throw new Error(`${providerName} output is not an image (${contentType})`);
+    const contentType = (response.headers.get("content-type") ?? "")
+      .split(";")[0]!
+      .trim()
+      .toLowerCase();
+    if (!contentType.startsWith("image/"))
+      throw new Error(
+        `${providerName} output is not an image (${contentType})`,
+      );
     data = new Uint8Array(await response.arrayBuffer());
   } catch (error) {
     const message = (error as Error).message;
     if (message.includes("is not an image")) throw error;
     throw new Error(`Unable to download ${providerName} image: ${message}`);
   }
-  if (data.length === 0) throw new Error(`${providerName} returned an empty image`);
+  if (data.length === 0)
+    throw new Error(`${providerName} returned an empty image`);
   await Bun.write(outputPath, data);
 }
 
 /** Gemini REST generateContent (the API the google-genai SDK wraps). */
-async function geminiGenerateContent(model: string, apiKey: string, body: unknown): Promise<GeminiResponse> {
-  const response = await runtime.fetch(`${GEMINI_API_BASE}/models/${encodeURIComponent(model)}:generateContent`, {
-    method: "POST",
-    headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json", "User-Agent": HTTP_USER_AGENT },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(300_000),
-  });
+async function geminiGenerateContent(
+  model: string,
+  apiKey: string,
+  body: unknown,
+): Promise<GeminiResponse> {
+  const response = await runtime.fetch(
+    `${GEMINI_API_BASE}/models/${encodeURIComponent(model)}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "x-goog-api-key": apiKey,
+        "Content-Type": "application/json",
+        "User-Agent": HTTP_USER_AGENT,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(300_000),
+    },
+  );
   const text = await response.text();
   if (!response.ok) throw new Error(`${response.status} ${text.slice(0, 300)}`);
   return JSON.parse(text) as GeminiResponse;
@@ -215,15 +303,23 @@ export interface GeminiPart {
 }
 
 export interface GeminiResponse {
-  candidates?: Array<{ finishReason?: string; content?: { parts?: GeminiPart[] } }>;
+  candidates?: Array<{
+    finishReason?: string;
+    content?: { parts?: GeminiPart[] };
+  }>;
 }
 
 /** First inline image of a Gemini response, decoded. */
-export function geminiInlineImage(response: GeminiResponse): { mimeType: string; data: Uint8Array } | null {
+export function geminiInlineImage(
+  response: GeminiResponse,
+): { mimeType: string; data: Uint8Array } | null {
   for (const part of response.candidates?.[0]?.content?.parts ?? []) {
     const inline = part.inlineData;
     if (inline?.data && (inline.mimeType ?? "").startsWith("image/")) {
-      return { mimeType: inline.mimeType!, data: Uint8Array.from(Buffer.from(inline.data, "base64")) };
+      return {
+        mimeType: inline.mimeType!,
+        data: Uint8Array.from(Buffer.from(inline.data, "base64")),
+      };
     }
   }
   return null;
@@ -231,15 +327,26 @@ export function geminiInlineImage(response: GeminiResponse): { mimeType: string;
 
 /** Concatenated text of the first candidate ('' when blocked or empty). */
 export function geminiText(response: GeminiResponse): string {
-  return (response.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
+  return (response.candidates?.[0]?.content?.parts ?? [])
+    .map((p) => p.text ?? "")
+    .join("");
 }
 
 /** Return outputPath with the extension of the returned image type (unknown types keep the path). */
 export function pathForImageType(outputPath: string, mimeType: string): string {
-  const extension = IMAGE_EXTENSIONS[mimeType.split(";")[0]!.trim().toLowerCase()];
+  const extension =
+    IMAGE_EXTENSIONS[mimeType.split(";")[0]!.trim().toLowerCase()];
   const suffix = extname(outputPath).toLowerCase();
-  if (extension === undefined || suffix === extension || (suffix === ".jpeg" && extension === ".jpg")) return outputPath;
-  return outputPath.slice(0, outputPath.length - extname(outputPath).length) + extension;
+  if (
+    extension === undefined ||
+    suffix === extension ||
+    (suffix === ".jpeg" && extension === ".jpg")
+  )
+    return outputPath;
+  return (
+    outputPath.slice(0, outputPath.length - extname(outputPath).length) +
+    extension
+  );
 }
 
 /** Python-style strftime("%Y%m%d_%H%M%S") for generated filenames. */
@@ -253,7 +360,8 @@ export function timestamp(date = new Date()): string {
  * unittest.mock.patch.object on the Python modules.
  */
 export const runtime = {
-  fetch: (input: string, init?: RequestInit): Promise<Response> => fetch(input, init),
+  fetch: (input: string, init?: RequestInit): Promise<Response> =>
+    fetch(input, init),
   sleep: (ms: number): Promise<void> => Bun.sleep(ms),
   jsonRequest,
   downloadImage,
