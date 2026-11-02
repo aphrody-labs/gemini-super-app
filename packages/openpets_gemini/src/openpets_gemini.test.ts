@@ -4,7 +4,9 @@ import {
   GeminiPetStateManager,
   LeaseManager,
   MOCHI_EMOTE_CATALOGUE,
+  OPENPETS_3D_WGPU_SHADER_WGSL,
   awardMochiBondXp,
+  convertPngToGlb,
   createVelocityTracker,
   generateGeminiPetSvgSpritesheet,
   getCodexV2GazeSpritePosition,
@@ -107,5 +109,33 @@ describe("@gemini-live/openpets-gemini", () => {
     );
     expect(pocketed.mochiPocket.length).toBe(1);
     expect(pocketed.mochiPocket[0]?.title).toBe("Mochi Cross-Platform Repo");
+  });
+
+  test("extrudes 2D PNG sprites (Mochi & OpenPets) into binary glTF 2.0 .glb with wgpu WGSL shader", async () => {
+    expect(OPENPETS_3D_WGPU_SHADER_WGSL).toContain("@vertex");
+    expect(OPENPETS_3D_WGPU_SHADER_WGSL).toContain(
+      "textureSample(pet_texture, pet_sampler",
+    );
+
+    const mochiPngPath = `${import.meta.dir}/../../../vendor/mochi-desktop/assets/mochi/master/mochi_default.png`;
+    const pngBytes = await Bun.file(mochiPngPath).bytes();
+    const { width, height, mesh, glbBytes } = convertPngToGlb(pngBytes, {
+      depth: 0.16,
+      alphaThreshold: 24,
+      sampleStep: 8,
+    });
+    expect(width).toBe(256);
+    expect(height).toBe(256);
+    expect(mesh.voxelCount).toBeGreaterThan(50);
+    expect(mesh.triangleCount).toBeGreaterThan(100);
+
+    const dv = new DataView(
+      glbBytes.buffer,
+      glbBytes.byteOffset,
+      glbBytes.byteLength,
+    );
+    expect(dv.getUint32(0, true)).toBe(0x46546c67); // "glTF"
+    expect(dv.getUint32(4, true)).toBe(2);
+    expect(dv.getUint32(8, true)).toBe(glbBytes.byteLength);
   });
 });

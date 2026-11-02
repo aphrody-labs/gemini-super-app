@@ -438,8 +438,15 @@ export class DurableGeminiCookieManager {
     if (this.vault) return this.vault;
     const file = Bun.file(this.vaultJsonPath);
     if (await file.exists()) {
-      this.vault = (await file.json()) as GeminiSessionVault;
-      return this.vault;
+      try {
+        const text = await file.text();
+        if (text.trim().length > 2) {
+          this.vault = JSON.parse(text) as GeminiSessionVault;
+          return this.vault;
+        }
+      } catch {
+        return null;
+      }
     }
     return null;
   }

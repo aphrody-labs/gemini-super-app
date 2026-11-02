@@ -1467,3 +1467,630 @@ export function generateGeminiPetSvgSpritesheet(): string {
   ${cells.join("\n  ")}
 </svg>`;
 }
+
+// ── 8. OpenPets 3D Plugin Engine (gfx-rs/wgpu WGSL + 2D PNG -> Binary glTF 2.0 GLB) ─
+
+export const OPENPETS_3D_WGPU_SHADER_WGSL = `
+struct CameraUniform {
+    view_proj: mat4x4<f32>,
+    model: mat4x4<f32>,
+    light_dir: vec4<f32>,
+};
+
+@group(0) @binding(0)
+var<uniform> camera: CameraUniform;
+@group(0) @binding(1)
+var pet_texture: texture_2d<f32>;
+@group(0) @binding(2)
+var pet_sampler: sampler;
+
+struct VertexInput {
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+    @location(2) uv: vec2<f32>,
+    @location(3) color: vec4<f32>,
+};
+
+struct VertexOutput {
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) world_normal: vec3<f32>,
+    @location(1) uv: vec2<f32>,
+    @location(2) color: vec4<f32>,
+};
+
+@vertex
+fn main_vs(in: VertexInput) -> VertexOutput {
+    var out: VertexOutput;
+    let world_pos = camera.model * vec4<f32>(in.position, 1.0);
+    out.clip_position = camera.view_proj * world_pos;
+    out.world_normal = normalize((camera.model * vec4<f32>(in.normal, 0.0)).xyz);
+    out.uv = in.uv;
+    out.color = in.color;
+    return out;
+}
+
+@fragment
+fn main_fs(in: VertexOutput) -> @location(0) vec4<f32> {
+    let tex = textureSample(pet_texture, pet_sampler, in.uv) * in.color;
+    if (tex.a < 0.05) {
+        discard;
+    }
+    let l = normalize(camera.light_dir.xyz);
+    let ndotl = max(dot(normalize(in.world_normal), l), 0.0);
+    let lighting = 0.42 + 0.58 * ndotl;
+    return vec4<f32>(tex.rgb * lighting, tex.a);
+}
+`.trim();
+
+export interface OpenPets3dExtrudeConfig {
+  depth?: number;
+  alphaThreshold?: number;
+  sampleStep?: number;
+}
+
+export interface OpenPets3dMesh {
+  positions: Float32Array;
+  normals: Float32Array;
+  uvs: Float32Array;
+  colors: Float32Array;
+  indices: Uint32Array;
+  vertexCount: number;
+  triangleCount: number;
+  voxelCount: number;
+}
+
+/**
+ * Decodes an 8-bit RGBA or 4-bit/8-bit paletted PNG (`PLTE` + `tRNS`) into a raw RGBA `Uint8Array`
+ * using `Bun.inflateSync()` for fast in-process PNG-to-3D extrusion.
+ */
+export function decodePngToRgbaSync(pngBytes: Uint8Array): {
+  width: number;
+  height: number;
+  rgba: Uint8Array;
+} {
+  const view = new DataView(
+    pngBytes.buffer,
+    pngBytes.byteOffset,
+    pngBytes.byteLength,
+  );
+  if (pngBytes.byteLength < 33 || view.getUint32(0, false) !== 0x89504e47) {
+    throw new Error("Invalid PNG signature");
+  }
+
+  let width = 0;
+  let height = 0;
+  let bitDepth = 8;
+  let colorType = 6;
+  const idatParts: Uint8Array[] = [];
+  let plte: Uint8Array | null = null;
+  let trns: Uint8Array | null = null;
+
+  let offset = 8;
+  while (offset + 8 <= pngBytes.byteLength) {
+    const length = view.getUint32(offset, false);
+    const type = String.fromCharCode(
+      pngBytes[offset + 4] ?? 0,
+      pngBytes[offset + 5] ?? 0,
+      pngBytes[offset + 6] ?? 0,
+      pngBytes[offset + 7] ?? 0,
+    );
+    const chunkStart = offset + 8;
+    const chunkEnd = chunkStart + length;
+    if (chunkEnd > pngBytes.byteLength) break;
+    const chunk = pngBytes.subarray(chunkStart, chunkEnd);
+
+    if (type === "IHDR") {
+      width = view.getUint32(chunkStart, false);
+      height = view.getUint32(chunkStart + 4, false);
+      bitDepth = pngBytes[chunkStart + 8] ?? 8;
+      colorType = pngBytes[chunkStart + 9] ?? 6;
+    } else if (type === "PLTE") {
+      plte = chunk;
+    } else if (type === "tRNS") {
+      trns = chunk;
+    } else if (type === "IDAT") {
+      idatParts.push(chunk);
+    } else if (type === "IEND") {
+      break;
+    }
+    offset = chunkEnd + 4;
+  }
+
+  let totalIdat = 0;
+  for (const part of idatParts) totalIdat += part.byteLength;
+  const compressed = new Uint8Array(totalIdat);
+  let writePos = 0;
+  for (const part of idatParts) {
+    compressed.set(part, writePos);
+    writePos += part.byteLength;
+  }
+
+  // Strip 2-byte zlib header and 4-byte Adler32 trailer for raw DEFLATE inflateSync
+  const rawDeflate = compressed.subarray(
+    2,
+    Math.max(2, compressed.byteLength - 4),
+  );
+  const raw = Bun.inflateSync(rawDeflate);
+
+  const bpp =
+    colorType === 6 ? 4 : colorType === 2 ? 3 : colorType === 4 ? 2 : 1;
+  const rowBytes =
+    colorType === 3 && bitDepth === 4 ? Math.ceil(width / 2) : width * bpp;
+
+  const paeth = (a: number, b: number, c: number) => {
+    const p = a + b - c;
+    const pa = Math.abs(p - a);
+    const pb = Math.abs(p - b);
+    const pc = Math.abs(p - c);
+    if (pa <= pb && pa <= pc) return a;
+    if (pb <= pc) return b;
+    return c;
+  };
+
+  const recon = new Uint8Array(height * rowBytes);
+  let srcOffset = 0;
+  for (let y = 0; y < height; y++) {
+    const filter = raw[srcOffset++] ?? 0;
+    const rowStart = y * rowBytes;
+    const prevStart = (y - 1) * rowBytes;
+    for (let x = 0; x < rowBytes; x++) {
+      const byte = raw[srcOffset++] ?? 0;
+      const a = x >= bpp ? (recon[rowStart + x - bpp] ?? 0) : 0;
+      const b = y > 0 ? (recon[prevStart + x] ?? 0) : 0;
+      const c = y > 0 && x >= bpp ? (recon[prevStart + x - bpp] ?? 0) : 0;
+      let val = byte;
+      if (filter === 1) val = (byte + a) & 0xff;
+      else if (filter === 2) val = (byte + b) & 0xff;
+      else if (filter === 3) val = (byte + ((a + b) >> 1)) & 0xff;
+      else if (filter === 4) val = (byte + paeth(a, b, c)) & 0xff;
+      recon[rowStart + x] = val;
+    }
+  }
+
+  const rgba = new Uint8Array(width * height * 4);
+  if (colorType === 6 && bitDepth === 8) {
+    rgba.set(recon.subarray(0, rgba.byteLength));
+  } else if (colorType === 2 && bitDepth === 8) {
+    for (let i = 0; i < width * height; i++) {
+      rgba[i * 4] = recon[i * 3] ?? 0;
+      rgba[i * 4 + 1] = recon[i * 3 + 1] ?? 0;
+      rgba[i * 4 + 2] = recon[i * 3 + 2] ?? 0;
+      rgba[i * 4 + 3] = 255;
+    }
+  } else if (colorType === 3 && plte) {
+    for (let y = 0; y < height; y++) {
+      const rStart = y * rowBytes;
+      for (let x = 0; x < width; x++) {
+        let idx = 0;
+        if (bitDepth === 8) {
+          idx = recon[rStart + x] ?? 0;
+        } else if (bitDepth === 4) {
+          const byte = recon[rStart + (x >> 1)] ?? 0;
+          idx = (x & 1) === 0 ? (byte >> 4) & 0x0f : byte & 0x0f;
+        }
+        const out = (y * width + x) * 4;
+        rgba[out] = plte[idx * 3] ?? 0;
+        rgba[out + 1] = plte[idx * 3 + 1] ?? 0;
+        rgba[out + 2] = plte[idx * 3 + 2] ?? 0;
+        rgba[out + 3] =
+          trns && idx < trns.byteLength ? (trns[idx] ?? 255) : 255;
+      }
+    }
+  }
+
+  return { width, height, rgba };
+}
+
+/**
+ * Converts a 2D RGBA image buffer into an extruded 3D voxel/relief mesh (`POSITION`, `NORMAL`, `TEXCOORD_0`, `COLOR_0`, `indices`)
+ * compatible with `gfx-rs/wgpu` and glTF 2.0 `.glb`.
+ */
+export function extrudeRgbaTo3dMesh(
+  rgba: Uint8Array,
+  width: number,
+  height: number,
+  config: OpenPets3dExtrudeConfig = {},
+): OpenPets3dMesh {
+  const step = Math.max(1, Math.floor(config.sampleStep ?? 4));
+  const alphaThreshold = config.alphaThreshold ?? 24;
+  const halfZ = Math.max(0.02, config.depth ?? 0.14) * 0.5;
+
+  const gridW = Math.ceil(width / step);
+  const gridH = Math.ceil(height / step);
+
+  const sampleCell = (
+    gx: number,
+    gy: number,
+  ): [number, number, number, number] | null => {
+    if (gx < 0 || gy < 0 || gx >= gridW || gy >= gridH) return null;
+    const px = Math.min(width - 1, gx * step + Math.floor(step / 2));
+    const py = Math.min(height - 1, gy * step + Math.floor(step / 2));
+    const idx = (py * width + px) * 4;
+    const a = rgba[idx + 3] ?? 0;
+    if (a < alphaThreshold) return null;
+    return [
+      (rgba[idx] ?? 0) / 255,
+      (rgba[idx + 1] ?? 0) / 255,
+      (rgba[idx + 2] ?? 0) / 255,
+      a / 255,
+    ];
+  };
+
+  const posList: number[] = [];
+  const normList: number[] = [];
+  const uvList: number[] = [];
+  const colList: number[] = [];
+  const idxList: number[] = [];
+  let voxelCount = 0;
+
+  const pushQuad = (
+    v0: [number, number, number],
+    v1: [number, number, number],
+    v2: [number, number, number],
+    v3: [number, number, number],
+    n: [number, number, number],
+    uv0: [number, number],
+    uv1: [number, number],
+    uv2: [number, number],
+    uv3: [number, number],
+    c: [number, number, number, number],
+  ) => {
+    const base = posList.length / 3;
+    posList.push(...v0, ...v1, ...v2, ...v3);
+    normList.push(...n, ...n, ...n, ...n);
+    uvList.push(...uv0, ...uv1, ...uv2, ...uv3);
+    colList.push(...c, ...c, ...c, ...c);
+    idxList.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  };
+
+  const maxDim = Math.max(1, gridW, gridH);
+  const cell = 1.0 / maxDim;
+
+  for (let gy = 0; gy < gridH; gy++) {
+    for (let gx = 0; gx < gridW; gx++) {
+      const color = sampleCell(gx, gy);
+      if (!color) continue;
+      voxelCount++;
+
+      const x0 = (gx - gridW * 0.5) * cell;
+      const x1 = x0 + cell;
+      const y1 = (gridH * 0.5 - gy) * cell;
+      const y0 = y1 - cell;
+
+      const u0 = gx / gridW;
+      const u1 = (gx + 1) / gridW;
+      const v0 = gy / gridH;
+      const v1 = (gy + 1) / gridH;
+
+      // Front (+Z)
+      pushQuad(
+        [x0, y0, halfZ],
+        [x1, y0, halfZ],
+        [x1, y1, halfZ],
+        [x0, y1, halfZ],
+        [0, 0, 1],
+        [u0, v1],
+        [u1, v1],
+        [u1, v0],
+        [u0, v0],
+        color,
+      );
+      // Back (-Z)
+      pushQuad(
+        [x1, y0, -halfZ],
+        [x0, y0, -halfZ],
+        [x0, y1, -halfZ],
+        [x1, y1, -halfZ],
+        [0, 0, -1],
+        [u1, v1],
+        [u0, v1],
+        [u0, v0],
+        [u1, v0],
+        color,
+      );
+      // Left (-X)
+      if (!sampleCell(gx - 1, gy)) {
+        pushQuad(
+          [x0, y0, -halfZ],
+          [x0, y0, halfZ],
+          [x0, y1, halfZ],
+          [x0, y1, -halfZ],
+          [-1, 0, 0],
+          [u0, v1],
+          [u0, v1],
+          [u0, v0],
+          [u0, v0],
+          color,
+        );
+      }
+      // Right (+X)
+      if (!sampleCell(gx + 1, gy)) {
+        pushQuad(
+          [x1, y0, halfZ],
+          [x1, y0, -halfZ],
+          [x1, y1, -halfZ],
+          [x1, y1, halfZ],
+          [1, 0, 0],
+          [u1, v1],
+          [u1, v1],
+          [u1, v0],
+          [u1, v0],
+          color,
+        );
+      }
+      // Top (+Y)
+      if (!sampleCell(gx, gy - 1)) {
+        pushQuad(
+          [x0, y1, halfZ],
+          [x1, y1, halfZ],
+          [x1, y1, -halfZ],
+          [x0, y1, -halfZ],
+          [0, 1, 0],
+          [u0, v0],
+          [u1, v0],
+          [u1, v0],
+          [u0, v0],
+          color,
+        );
+      }
+      // Bottom (-Y)
+      if (!sampleCell(gx, gy + 1)) {
+        pushQuad(
+          [x0, y0, -halfZ],
+          [x1, y0, -halfZ],
+          [x1, y0, halfZ],
+          [x0, y0, halfZ],
+          [0, -1, 0],
+          [u0, v1],
+          [u1, v1],
+          [u1, v1],
+          [u0, v1],
+          color,
+        );
+      }
+    }
+  }
+
+  return {
+    positions: new Float32Array(posList),
+    normals: new Float32Array(normList),
+    uvs: new Float32Array(uvList),
+    colors: new Float32Array(colList),
+    indices: new Uint32Array(idxList),
+    vertexCount: posList.length / 3,
+    triangleCount: idxList.length / 3,
+    voxelCount,
+  };
+}
+
+/**
+ * Packages an `OpenPets3dMesh` and optional PNG texture bytes into a binary **glTF 2.0 `.glb`** (`Uint8Array`).
+ * Follows `@gltf-transform/core` / Khronos glTF 2.0 binary container layout (`0x46546C67`).
+ */
+export function exportMeshToGlbBytes(
+  mesh: OpenPets3dMesh,
+  pngBytes?: Uint8Array,
+): Uint8Array {
+  const pad4 = (len: number) => (4 - (len % 4)) % 4;
+
+  const idxBytes = new Uint8Array(
+    mesh.indices.buffer,
+    mesh.indices.byteOffset,
+    mesh.indices.byteLength,
+  );
+  const posBytes = new Uint8Array(
+    mesh.positions.buffer,
+    mesh.positions.byteOffset,
+    mesh.positions.byteLength,
+  );
+  const normBytes = new Uint8Array(
+    mesh.normals.buffer,
+    mesh.normals.byteOffset,
+    mesh.normals.byteLength,
+  );
+  const uvBytes = new Uint8Array(
+    mesh.uvs.buffer,
+    mesh.uvs.byteOffset,
+    mesh.uvs.byteLength,
+  );
+  const colBytes = new Uint8Array(
+    mesh.colors.buffer,
+    mesh.colors.byteOffset,
+    mesh.colors.byteLength,
+  );
+
+  const minPos: [number, number, number] = [Infinity, Infinity, Infinity];
+  const maxPos: [number, number, number] = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < mesh.positions.length; i += 3) {
+    const x = mesh.positions[i] ?? 0;
+    const y = mesh.positions[i + 1] ?? 0;
+    const z = mesh.positions[i + 2] ?? 0;
+    if (x < minPos[0]) minPos[0] = x;
+    if (y < minPos[1]) minPos[1] = y;
+    if (z < minPos[2]) minPos[2] = z;
+    if (x > maxPos[0]) maxPos[0] = x;
+    if (y > maxPos[1]) maxPos[1] = y;
+    if (z > maxPos[2]) maxPos[2] = z;
+  }
+  if (mesh.positions.length === 0) {
+    minPos[0] = minPos[1] = minPos[2] = 0;
+    maxPos[0] = maxPos[1] = maxPos[2] = 0;
+  }
+
+  const chunks: Uint8Array[] = [];
+  const bufferViews: Array<Record<string, unknown>> = [];
+  let binOffset = 0;
+
+  const appendBin = (data: Uint8Array, target?: number) => {
+    const offset = binOffset;
+    const length = data.byteLength;
+    chunks.push(data);
+    const pad = pad4(length);
+    if (pad > 0) chunks.push(new Uint8Array(pad));
+    binOffset += length + pad;
+    const view: Record<string, unknown> = {
+      buffer: 0,
+      byteOffset: offset,
+      byteLength: length,
+    };
+    if (target !== undefined) view.target = target;
+    bufferViews.push(view);
+  };
+
+  appendBin(idxBytes, 34963); // 0: ELEMENT_ARRAY_BUFFER
+  appendBin(posBytes, 34962); // 1: ARRAY_BUFFER (POSITION)
+  appendBin(normBytes, 34962); // 2: ARRAY_BUFFER (NORMAL)
+  appendBin(uvBytes, 34962); // 3: ARRAY_BUFFER (TEXCOORD_0)
+  appendBin(colBytes, 34962); // 4: ARRAY_BUFFER (COLOR_0)
+
+  const gltfJson: Record<string, unknown> = {
+    asset: {
+      version: "2.0",
+      generator: "OpenPets-3D-Plugin (Bun v1.4.5 + gfx-rs/wgpu)",
+    },
+    scene: 0,
+    scenes: [{ nodes: [0] }],
+    nodes: [{ name: "OpenPets3DCompanion", mesh: 0 }],
+    meshes: [
+      {
+        name: "ExtrudedSpriteMesh",
+        primitives: [
+          {
+            attributes: {
+              POSITION: 1,
+              NORMAL: 2,
+              TEXCOORD_0: 3,
+              COLOR_0: 4,
+            },
+            indices: 0,
+            material: 0,
+          },
+        ],
+      },
+    ],
+    accessors: [
+      {
+        bufferView: 0,
+        componentType: 5125,
+        count: mesh.indices.length,
+        type: "SCALAR",
+      },
+      {
+        bufferView: 1,
+        componentType: 5126,
+        count: mesh.vertexCount,
+        type: "VEC3",
+        min: minPos,
+        max: maxPos,
+      },
+      {
+        bufferView: 2,
+        componentType: 5126,
+        count: mesh.vertexCount,
+        type: "VEC3",
+      },
+      {
+        bufferView: 3,
+        componentType: 5126,
+        count: mesh.vertexCount,
+        type: "VEC2",
+      },
+      {
+        bufferView: 4,
+        componentType: 5126,
+        count: mesh.vertexCount,
+        type: "VEC4",
+      },
+    ],
+  };
+
+  if (pngBytes && pngBytes.byteLength > 0) {
+    appendBin(pngBytes);
+    gltfJson.images = [{ bufferView: 5, mimeType: "image/png" }];
+    gltfJson.samplers = [
+      { magFilter: 9728, minFilter: 9728, wrapS: 33071, wrapT: 33071 },
+    ];
+    gltfJson.textures = [{ sampler: 0, source: 0 }];
+    gltfJson.materials = [
+      {
+        name: "OpenPetsPixelMaterial",
+        alphaMode: "MASK",
+        alphaCutoff: 0.05,
+        doubleSided: true,
+        pbrMetallicRoughness: {
+          baseColorTexture: { index: 0 },
+          metallicFactor: 0.08,
+          roughnessFactor: 0.62,
+        },
+      },
+    ];
+  } else {
+    gltfJson.materials = [
+      {
+        name: "OpenPetsVertexColorMaterial",
+        doubleSided: true,
+        pbrMetallicRoughness: {
+          metallicFactor: 0.08,
+          roughnessFactor: 0.62,
+        },
+      },
+    ];
+  }
+
+  gltfJson.bufferViews = bufferViews;
+  gltfJson.buffers = [{ byteLength: binOffset }];
+
+  const rawJsonBytes = new TextEncoder().encode(JSON.stringify(gltfJson));
+  const jsonPad = pad4(rawJsonBytes.byteLength);
+  const jsonChunk = new Uint8Array(rawJsonBytes.byteLength + jsonPad);
+  jsonChunk.set(rawJsonBytes, 0);
+  for (let i = rawJsonBytes.byteLength; i < jsonChunk.byteLength; i++) {
+    jsonChunk[i] = 0x20; // space padding
+  }
+
+  const totalLength = 12 + 8 + jsonChunk.byteLength + 8 + binOffset;
+  const glb = new Uint8Array(totalLength);
+  const dv = new DataView(glb.buffer);
+
+  // Header: magic "glTF", version 2, totalLength
+  dv.setUint32(0, 0x46546c67, true);
+  dv.setUint32(4, 2, true);
+  dv.setUint32(8, totalLength, true);
+
+  // Chunk 0: JSON
+  dv.setUint32(12, jsonChunk.byteLength, true);
+  dv.setUint32(16, 0x4e4f534a, true);
+  glb.set(jsonChunk, 20);
+
+  // Chunk 1: BIN
+  const binChunkHeaderOffset = 20 + jsonChunk.byteLength;
+  dv.setUint32(binChunkHeaderOffset, binOffset, true);
+  dv.setUint32(binChunkHeaderOffset + 4, 0x004e4942, true);
+
+  let writeOffset = binChunkHeaderOffset + 8;
+  for (const part of chunks) {
+    glb.set(part, writeOffset);
+    writeOffset += part.byteLength;
+  }
+
+  return glb;
+}
+
+/**
+ * High-level 1-call helper: decodes a 2D PNG sprite (`Uint8Array`), extrudes it into a 3D voxel/relief mesh,
+ * and returns both the mesh stats and the binary `.glb` buffer.
+ */
+export function convertPngToGlb(
+  pngBytes: Uint8Array,
+  config: OpenPets3dExtrudeConfig = {},
+): {
+  width: number;
+  height: number;
+  mesh: OpenPets3dMesh;
+  glbBytes: Uint8Array;
+} {
+  const { width, height, rgba } = decodePngToRgbaSync(pngBytes);
+  const mesh = extrudeRgbaTo3dMesh(rgba, width, height, config);
+  const glbBytes = exportMeshToGlbBytes(mesh, pngBytes);
+  return { width, height, mesh, glbBytes };
+}

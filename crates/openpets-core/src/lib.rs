@@ -731,9 +731,530 @@ impl Default for MochiFocusPlan {
     }
 }
 
+// ---------------------------------------------------------------------------
+// 6. OpenPets 3D Plugin Engine (gfx-rs/wgpu WGSL + 2D PNG -> Binary glTF 2.0 GLB)
+// ---------------------------------------------------------------------------
+
+pub const GLTF_MAGIC: u32 = 0x46546C67; // "glTF"
+pub const GLTF_VERSION: u32 = 2;
+pub const GLTF_CHUNK_JSON: u32 = 0x4E4F534A; // "JSON"
+pub const GLTF_CHUNK_BIN: u32 = 0x004E4942; // "BIN\0"
+
+/// Canonical WGSL shader for `gfx-rs/wgpu` 3D extruded sprite/voxel rendering.
+/// Follows official `wgpu` patterns (`@group(0) @binding(0)` camera uniform,
+/// `@group(0) @binding(1)` `texture_2d<f32>`, `@group(0) @binding(2)` `sampler`).
+pub const OPENPETS_3D_WGPU_SHADER_WGSL: &str = r#"
+struct CameraUniform {
+    view_proj: mat4x4<f32>,
+    model: mat4x4<f32>,
+    light_dir: vec4<f32>,
+};
+
+@group(0) @binding(0)
+var<uniform> camera: CameraUniform;
+@group(0) @binding(1)
+var pet_texture: texture_2d<f32>;
+@group(0) @binding(2)
+var pet_sampler: sampler;
+
+struct VertexInput {
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+    @location(2) uv: vec2<f32>,
+    @location(3) color: vec4<f32>,
+};
+
+struct VertexOutput {
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) world_normal: vec3<f32>,
+    @location(1) uv: vec2<f32>,
+    @location(2) color: vec4<f32>,
+};
+
+@vertex
+fn main_vs(in: VertexInput) -> VertexOutput {
+    var out: VertexOutput;
+    let world_pos = camera.model * vec4<f32>(in.position, 1.0);
+    out.clip_position = camera.view_proj * world_pos;
+    out.world_normal = normalize((camera.model * vec4<f32>(in.normal, 0.0)).xyz);
+    out.uv = in.uv;
+    out.color = in.color;
+    return out;
+}
+
+@fragment
+fn main_fs(in: VertexOutput) -> @location(0) vec4<f32> {
+    let tex = textureSample(pet_texture, pet_sampler, in.uv) * in.color;
+    if (tex.a < 0.05) {
+        discard;
+    }
+    let l = normalize(camera.light_dir.xyz);
+    let ndotl = max(dot(normalize(in.world_normal), l), 0.0);
+    let lighting = 0.42 + 0.58 * ndotl;
+    return vec4<f32>(tex.rgb * lighting, tex.a);
+}
+"#;
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenPets3dExtrudeConfig {
+    pub depth: f32,
+    pub alpha_threshold: u8,
+    pub sample_step: u32,
+}
+
+impl Default for OpenPets3dExtrudeConfig {
+    fn default() -> Self {
+        Self {
+            depth: 0.14,
+            alpha_threshold: 24,
+            sample_step: 4,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenPets3dMesh {
+    pub positions: Vec<[f32; 3]>,
+    pub normals: Vec<[f32; 3]>,
+    pub uvs: Vec<[f32; 2]>,
+    pub colors: Vec<[f32; 4]>,
+    pub indices: Vec<u32>,
+    pub voxel_count: usize,
+}
+
+#[allow(clippy::too_many_arguments)]
+fn push_quad(
+    positions: &mut Vec<[f32; 3]>,
+    normals: &mut Vec<[f32; 3]>,
+    uvs: &mut Vec<[f32; 2]>,
+    colors: &mut Vec<[f32; 4]>,
+    indices: &mut Vec<u32>,
+    v0: [f32; 3],
+    v1: [f32; 3],
+    v2: [f32; 3],
+    v3: [f32; 3],
+    normal: [f32; 3],
+    uv0: [f32; 2],
+    uv1: [f32; 2],
+    uv2: [f32; 2],
+    uv3: [f32; 2],
+    color: [f32; 4],
+) {
+    let base = positions.len() as u32;
+    positions.extend_from_slice(&[v0, v1, v2, v3]);
+    normals.extend_from_slice(&[normal, normal, normal, normal]);
+    uvs.extend_from_slice(&[uv0, uv1, uv2, uv3]);
+    colors.extend_from_slice(&[color, color, color, color]);
+    indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
+}
+
+/// Converts a 2D RGBA image buffer (`width * height * 4`) into an extruded 3D voxel/relief mesh
+/// with exposed perimeter walls (`+Z`, `-Z`, `+X`, `-X`, `+Y`, `-Y`), UV coordinates, and vertex colors.
+pub fn extrude_rgba_to_3d_mesh(
+    rgba: &[u8],
+    width: u32,
+    height: u32,
+    config: &OpenPets3dExtrudeConfig,
+) -> OpenPets3dMesh {
+    let step = config.sample_step.max(1);
+    let grid_w = width.div_ceil(step);
+    let grid_h = height.div_ceil(step);
+    let half_z = (config.depth.max(0.02)) * 0.5;
+
+    let is_solid = |gx: i32, gy: i32| -> Option<[f32; 4]> {
+        if gx < 0 || gy < 0 || gx >= grid_w as i32 || gy >= grid_h as i32 {
+            return None;
+        }
+        let px = ((gx as u32) * step + step / 2).min(width.saturating_sub(1));
+        let py = ((gy as u32) * step + step / 2).min(height.saturating_sub(1));
+        let idx = ((py * width + px) * 4) as usize;
+        if idx + 3 >= rgba.len() {
+            return None;
+        }
+        let a = rgba[idx + 3];
+        if a < config.alpha_threshold {
+            return None;
+        }
+        Some([
+            rgba[idx] as f32 / 255.0,
+            rgba[idx + 1] as f32 / 255.0,
+            rgba[idx + 2] as f32 / 255.0,
+            a as f32 / 255.0,
+        ])
+    };
+
+    let mut positions = Vec::new();
+    let mut normals = Vec::new();
+    let mut uvs = Vec::new();
+    let mut colors = Vec::new();
+    let mut indices = Vec::new();
+    let mut voxel_count = 0usize;
+
+    let max_dim = grid_w.max(grid_h).max(1) as f32;
+    let cell = 1.0 / max_dim;
+
+    for gy in 0..(grid_h as i32) {
+        for gx in 0..(grid_w as i32) {
+            let Some(color) = is_solid(gx, gy) else {
+                continue;
+            };
+            voxel_count += 1;
+
+            let x0 = (gx as f32 - grid_w as f32 * 0.5) * cell;
+            let x1 = x0 + cell;
+            let y1 = (grid_h as f32 * 0.5 - gy as f32) * cell;
+            let y0 = y1 - cell;
+
+            let u0 = gx as f32 / grid_w.max(1) as f32;
+            let u1 = (gx + 1) as f32 / grid_w.max(1) as f32;
+            let v0 = gy as f32 / grid_h.max(1) as f32;
+            let v1 = (gy + 1) as f32 / grid_h.max(1) as f32;
+
+            // Front (+Z)
+            push_quad(
+                &mut positions,
+                &mut normals,
+                &mut uvs,
+                &mut colors,
+                &mut indices,
+                [x0, y0, half_z],
+                [x1, y0, half_z],
+                [x1, y1, half_z],
+                [x0, y1, half_z],
+                [0.0, 0.0, 1.0],
+                [u0, v1],
+                [u1, v1],
+                [u1, v0],
+                [u0, v0],
+                color,
+            );
+            // Back (-Z)
+            push_quad(
+                &mut positions,
+                &mut normals,
+                &mut uvs,
+                &mut colors,
+                &mut indices,
+                [x1, y0, -half_z],
+                [x0, y0, -half_z],
+                [x0, y1, -half_z],
+                [x1, y1, -half_z],
+                [0.0, 0.0, -1.0],
+                [u1, v1],
+                [u0, v1],
+                [u0, v0],
+                [u1, v0],
+                color,
+            );
+
+            // Left (-X)
+            if is_solid(gx - 1, gy).is_none() {
+                push_quad(
+                    &mut positions,
+                    &mut normals,
+                    &mut uvs,
+                    &mut colors,
+                    &mut indices,
+                    [x0, y0, -half_z],
+                    [x0, y0, half_z],
+                    [x0, y1, half_z],
+                    [x0, y1, -half_z],
+                    [-1.0, 0.0, 0.0],
+                    [u0, v1],
+                    [u0, v1],
+                    [u0, v0],
+                    [u0, v0],
+                    color,
+                );
+            }
+            // Right (+X)
+            if is_solid(gx + 1, gy).is_none() {
+                push_quad(
+                    &mut positions,
+                    &mut normals,
+                    &mut uvs,
+                    &mut colors,
+                    &mut indices,
+                    [x1, y0, half_z],
+                    [x1, y0, -half_z],
+                    [x1, y1, -half_z],
+                    [x1, y1, half_z],
+                    [1.0, 0.0, 0.0],
+                    [u1, v1],
+                    [u1, v1],
+                    [u1, v0],
+                    [u1, v0],
+                    color,
+                );
+            }
+            // Top (+Y -> gy - 1)
+            if is_solid(gx, gy - 1).is_none() {
+                push_quad(
+                    &mut positions,
+                    &mut normals,
+                    &mut uvs,
+                    &mut colors,
+                    &mut indices,
+                    [x0, y1, half_z],
+                    [x1, y1, half_z],
+                    [x1, y1, -half_z],
+                    [x0, y1, -half_z],
+                    [0.0, 1.0, 0.0],
+                    [u0, v0],
+                    [u1, v0],
+                    [u1, v0],
+                    [u0, v0],
+                    color,
+                );
+            }
+            // Bottom (-Y -> gy + 1)
+            if is_solid(gx, gy + 1).is_none() {
+                push_quad(
+                    &mut positions,
+                    &mut normals,
+                    &mut uvs,
+                    &mut colors,
+                    &mut indices,
+                    [x0, y0, -half_z],
+                    [x1, y0, -half_z],
+                    [x1, y0, half_z],
+                    [x0, y0, half_z],
+                    [0.0, -1.0, 0.0],
+                    [u0, v1],
+                    [u1, v1],
+                    [u1, v1],
+                    [u0, v1],
+                    color,
+                );
+            }
+        }
+    }
+
+    OpenPets3dMesh {
+        positions,
+        normals,
+        uvs,
+        colors,
+        indices,
+        voxel_count,
+    }
+}
+
+/// Serializes an `OpenPets3dMesh` and optional embedded PNG texture bytes into a standards-compliant
+/// binary **glTF 2.0 `.glb`** container (`0x46546C67` header + JSON chunk + BIN chunk).
+pub fn export_mesh_to_glb(mesh: &OpenPets3dMesh, png_bytes: Option<&[u8]>) -> Vec<u8> {
+    let mut bin_chunk = Vec::<u8>::new();
+    let pad4 = |buf: &mut Vec<u8>, pad_byte: u8| {
+        while !buf.len().is_multiple_of(4) {
+            buf.push(pad_byte);
+        }
+    };
+
+    // 0. Indices (u32 SCALAR)
+    let indices_offset = bin_chunk.len();
+    for &idx in &mesh.indices {
+        bin_chunk.extend_from_slice(&idx.to_le_bytes());
+    }
+    let indices_len = bin_chunk.len() - indices_offset;
+    pad4(&mut bin_chunk, 0);
+
+    // 1. Positions (f32 VEC3) + min/max bounds
+    let pos_offset = bin_chunk.len();
+    let mut min_pos = [f32::MAX, f32::MAX, f32::MAX];
+    let mut max_pos = [f32::MIN, f32::MIN, f32::MIN];
+    for p in &mesh.positions {
+        for i in 0..3 {
+            min_pos[i] = min_pos[i].min(p[i]);
+            max_pos[i] = max_pos[i].max(p[i]);
+            bin_chunk.extend_from_slice(&p[i].to_le_bytes());
+        }
+    }
+    if mesh.positions.is_empty() {
+        min_pos = [0.0, 0.0, 0.0];
+        max_pos = [0.0, 0.0, 0.0];
+    }
+    let pos_len = bin_chunk.len() - pos_offset;
+    pad4(&mut bin_chunk, 0);
+
+    // 2. Normals (f32 VEC3)
+    let norm_offset = bin_chunk.len();
+    for n in &mesh.normals {
+        for c in n {
+            bin_chunk.extend_from_slice(&c.to_le_bytes());
+        }
+    }
+    let norm_len = bin_chunk.len() - norm_offset;
+    pad4(&mut bin_chunk, 0);
+
+    // 3. UVs (f32 VEC2)
+    let uv_offset = bin_chunk.len();
+    for uv in &mesh.uvs {
+        for c in uv {
+            bin_chunk.extend_from_slice(&c.to_le_bytes());
+        }
+    }
+    let uv_len = bin_chunk.len() - uv_offset;
+    pad4(&mut bin_chunk, 0);
+
+    // 4. Colors (f32 VEC4)
+    let col_offset = bin_chunk.len();
+    for col in &mesh.colors {
+        for c in col {
+            bin_chunk.extend_from_slice(&c.to_le_bytes());
+        }
+    }
+    let col_len = bin_chunk.len() - col_offset;
+    pad4(&mut bin_chunk, 0);
+
+    // 5. Optional PNG image bufferView
+    let mut buffer_views = vec![
+        serde_json::json!({ "buffer": 0, "byteOffset": indices_offset, "byteLength": indices_len, "target": 34963 }),
+        serde_json::json!({ "buffer": 0, "byteOffset": pos_offset, "byteLength": pos_len, "target": 34962 }),
+        serde_json::json!({ "buffer": 0, "byteOffset": norm_offset, "byteLength": norm_len, "target": 34962 }),
+        serde_json::json!({ "buffer": 0, "byteOffset": uv_offset, "byteLength": uv_len, "target": 34962 }),
+        serde_json::json!({ "buffer": 0, "byteOffset": col_offset, "byteLength": col_len, "target": 34962 }),
+    ];
+
+    let mut gltf_json = serde_json::json!({
+        "asset": {
+            "version": "2.0",
+            "generator": "OpenPets-3D-Plugin (gfx-rs/wgpu + PNG-to-GLB)"
+        },
+        "scene": 0,
+        "scenes": [{ "nodes": [0] }],
+        "nodes": [{ "name": "OpenPets3DCompanion", "mesh": 0 }],
+        "meshes": [{
+            "name": "ExtrudedSpriteMesh",
+            "primitives": [{
+                "attributes": {
+                    "POSITION": 1,
+                    "NORMAL": 2,
+                    "TEXCOORD_0": 3,
+                    "COLOR_0": 4
+                },
+                "indices": 0,
+                "material": 0
+            }]
+        }],
+        "accessors": [
+            { "bufferView": 0, "componentType": 5125, "count": mesh.indices.len(), "type": "SCALAR" },
+            { "bufferView": 1, "componentType": 5126, "count": mesh.positions.len(), "type": "VEC3", "min": min_pos, "max": max_pos },
+            { "bufferView": 2, "componentType": 5126, "count": mesh.normals.len(), "type": "VEC3" },
+            { "bufferView": 3, "componentType": 5126, "count": mesh.uvs.len(), "type": "VEC2" },
+            { "bufferView": 4, "componentType": 5126, "count": mesh.colors.len(), "type": "VEC4" }
+        ]
+    });
+
+    if let Some(png) = png_bytes.filter(|b| !b.is_empty()) {
+        let img_offset = bin_chunk.len();
+        bin_chunk.extend_from_slice(png);
+        let img_len = png.len();
+        pad4(&mut bin_chunk, 0);
+        buffer_views.push(serde_json::json!({
+            "buffer": 0,
+            "byteOffset": img_offset,
+            "byteLength": img_len
+        }));
+        gltf_json["images"] = serde_json::json!([{
+            "bufferView": 5,
+            "mimeType": "image/png"
+        }]);
+        gltf_json["samplers"] = serde_json::json!([{
+            "magFilter": 9728,
+            "minFilter": 9728,
+            "wrapS": 33071,
+            "wrapT": 33071
+        }]);
+        gltf_json["textures"] = serde_json::json!([{
+            "sampler": 0,
+            "source": 0
+        }]);
+        gltf_json["materials"] = serde_json::json!([{
+            "name": "OpenPetsPixelMaterial",
+            "alphaMode": "MASK",
+            "alphaCutoff": 0.05,
+            "doubleSided": true,
+            "pbrMetallicRoughness": {
+                "baseColorTexture": { "index": 0 },
+                "metallicFactor": 0.08,
+                "roughnessFactor": 0.62
+            }
+        }]);
+    } else {
+        gltf_json["materials"] = serde_json::json!([{
+            "name": "OpenPetsVertexColorMaterial",
+            "doubleSided": true,
+            "pbrMetallicRoughness": {
+                "metallicFactor": 0.08,
+                "roughnessFactor": 0.62
+            }
+        }]);
+    }
+
+    gltf_json["bufferViews"] = serde_json::Value::Array(buffer_views);
+    gltf_json["buffers"] = serde_json::json!([{ "byteLength": bin_chunk.len() }]);
+
+    let mut json_bytes = serde_json::to_vec(&gltf_json).unwrap_or_default();
+    pad4(&mut json_bytes, 0x20); // JSON chunk padded with spaces (0x20)
+
+    let total_len = 12 + 8 + json_bytes.len() + 8 + bin_chunk.len();
+    let mut glb = Vec::with_capacity(total_len);
+    glb.extend_from_slice(&GLTF_MAGIC.to_le_bytes());
+    glb.extend_from_slice(&GLTF_VERSION.to_le_bytes());
+    glb.extend_from_slice(&(total_len as u32).to_le_bytes());
+
+    glb.extend_from_slice(&(json_bytes.len() as u32).to_le_bytes());
+    glb.extend_from_slice(&GLTF_CHUNK_JSON.to_le_bytes());
+    glb.extend_from_slice(&json_bytes);
+
+    glb.extend_from_slice(&(bin_chunk.len() as u32).to_le_bytes());
+    glb.extend_from_slice(&GLTF_CHUNK_BIN.to_le_bytes());
+    glb.extend_from_slice(&bin_chunk);
+    glb
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_openpets_3d_plugin_extrude_and_glb_export() {
+        assert!(OPENPETS_3D_WGPU_SHADER_WGSL.contains("@vertex"));
+        assert!(OPENPETS_3D_WGPU_SHADER_WGSL.contains("textureSample(pet_texture, pet_sampler"));
+
+        // 4x4 RGBA sprite with a 2x2 opaque center
+        let mut rgba = vec![0u8; 4 * 4 * 4];
+        for y in 1..3 {
+            for x in 1..3 {
+                let idx = (y * 4 + x) * 4;
+                rgba[idx] = 78;
+                rgba[idx + 1] = 205;
+                rgba[idx + 2] = 120;
+                rgba[idx + 3] = 255;
+            }
+        }
+        let cfg = OpenPets3dExtrudeConfig {
+            depth: 0.16,
+            alpha_threshold: 20,
+            sample_step: 1,
+        };
+        let mesh = extrude_rgba_to_3d_mesh(&rgba, 4, 4, &cfg);
+        assert_eq!(mesh.voxel_count, 4);
+        assert!(!mesh.positions.is_empty());
+        assert_eq!(mesh.positions.len(), mesh.normals.len());
+        assert_eq!(mesh.positions.len(), mesh.uvs.len());
+
+        let fake_png = b"\x89PNG\r\n\x1a\n";
+        let glb = export_mesh_to_glb(&mesh, Some(fake_png));
+        assert!(glb.len() > 64);
+        assert_eq!(&glb[0..4], b"glTF");
+        let version = u32::from_le_bytes([glb[4], glb[5], glb[6], glb[7]]);
+        let declared_len = u32::from_le_bytes([glb[8], glb[9], glb[10], glb[11]]) as usize;
+        assert_eq!(version, 2);
+        assert_eq!(declared_len, glb.len());
+    }
 
     #[test]
     fn test_mochi_bond_progression_and_emotes() {

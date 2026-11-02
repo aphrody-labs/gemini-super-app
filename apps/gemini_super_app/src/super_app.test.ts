@@ -159,6 +159,28 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     expect(mochiEmote.ok).toBe(true);
     expect(mochiEmote.pet.mochiAnimation).toBe("emote_mochi_exe");
 
+    // 10. OpenPets 3D Plugin: 2D PNG -> 3D Voxel Mesh & Binary glTF 2.0 .GLB + gfx-rs/wgpu WGSL
+    const glbRes = await fetch(
+      `${baseUrl}/api/pet/3d/glb?sprite=mochi/master/mochi_default.png&depth=0.16&step=8`,
+    );
+    expect(glbRes.status).toBe(200);
+    const glbJson = (await glbRes.json()) as {
+      ok: boolean;
+      width: number;
+      height: number;
+      voxelCount: number;
+      triangleCount: number;
+      glbByteLength: number;
+      wgpuShaderWgsl: string;
+    };
+    expect(glbJson.ok).toBe(true);
+    expect(glbJson.width).toBe(256);
+    expect(glbJson.height).toBe(256);
+    expect(glbJson.voxelCount).toBeGreaterThan(50);
+    expect(glbJson.triangleCount).toBeGreaterThan(100);
+    expect(glbJson.glbByteLength).toBeGreaterThan(1000);
+    expect(glbJson.wgpuShaderWgsl).toContain("@vertex");
+
     const petFeedRes = await fetch(`${baseUrl}/api/pet/action`, {
       method: "POST",
       headers: { "content-type": "application/json" },

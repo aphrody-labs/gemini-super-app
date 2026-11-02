@@ -31,6 +31,8 @@ import {
   GEMINI_PET_CHARACTERS,
   GeminiPetStateManager,
   MOCHI_EMOTE_CATALOGUE,
+  OPENPETS_3D_WGPU_SHADER_WGSL,
+  convertPngToGlb,
   generateGeminiPetSvgSpritesheet,
   isAllowedReaction,
   type MochiPocketKind,
@@ -303,6 +305,52 @@ export function startGeminiSuperAppServer(
             pet: persistPetSnapshot(),
             characters: GEMINI_PET_CHARACTERS,
             mochiEmotes: MOCHI_EMOTE_CATALOGUE,
+          });
+        },
+      },
+      "/api/pet/3d/glb": {
+        GET: async (req: Request) => {
+          const url = new URL(req.url);
+          const spriteParam =
+            url.searchParams.get("sprite") ?? "mochi/master/mochi_default.png";
+          const depth = Number(url.searchParams.get("depth") ?? 0.16);
+          const sampleStep = Number(url.searchParams.get("step") ?? 6);
+          const format = url.searchParams.get("format") ?? "json";
+
+          const resolvedPath =
+            spriteParam === "hoodie-cat"
+              ? `${openPetsAssetsDir}/default-pet-thumbnail.png`
+              : `${mochiAssetsDir}/${spriteParam.replace(/\.\./g, "").replace(/^\/+/, "")}`;
+
+          const pngBytes = await Bun.file(resolvedPath).bytes();
+          const { width, height, mesh, glbBytes } = convertPngToGlb(pngBytes, {
+            depth,
+            alphaThreshold: 24,
+            sampleStep,
+          });
+
+          if (format === "binary") {
+            const safeBytes = new Uint8Array(glbBytes);
+            return new Response(safeBytes.buffer, {
+              headers: {
+                "content-type": "model/gltf-binary",
+                "content-disposition":
+                  'attachment; filename="openpets-companion-3d.glb"',
+              },
+            });
+          }
+
+          return Response.json({
+            ok: true,
+            sprite: spriteParam,
+            width,
+            height,
+            voxelCount: mesh.voxelCount,
+            vertexCount: mesh.vertexCount,
+            triangleCount: mesh.triangleCount,
+            glbByteLength: glbBytes.byteLength,
+            glbBase64: Buffer.from(glbBytes).toString("base64"),
+            wgpuShaderWgsl: OPENPETS_3D_WGPU_SHADER_WGSL,
           });
         },
       },
