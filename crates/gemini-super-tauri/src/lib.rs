@@ -37,6 +37,12 @@ use std::path::{Path, PathBuf};
 use voice_dsp::{compute_spectrum_32, SpectrumFrame};
 use voicebox_audio::{default_gemini_voice_profiles, encode_wav_pcm16_mono, VoiceProfile};
 
+pub mod wallpaper_win32;
+pub use wallpaper_win32::{
+    apply_or_inspect_windows_wallpaper, generate_gemini_live_wallpaper_bmp,
+    optimize_windows_process_qos, WindowsWallpaperStatus,
+};
+
 pub const TAURI_V3_ALPHA_VERSION: &str = "3.0.0-alpha.5";
 pub const SUPER_APP_ID: &str = "com.google.antigravity.gemini-super-app";
 pub const GEMINI_WINDOWS_LEGACY_APP_ID: &str = "com.google.gemini.windows";

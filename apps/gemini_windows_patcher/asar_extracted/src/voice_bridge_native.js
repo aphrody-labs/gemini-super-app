@@ -125,39 +125,28 @@ function ensureVoiceHubBackendRunning() {
         (err) => {
           if (!err) return;
 
-          const bunExe = "C:\\Users\\aphro\\.bun\\bin\\bun.exe";
-          const supervisorScript =
-            "C:\\Users\\aphro\\google\\scripts\\gemini_24_7_supervisor.ts";
+          const supervisorBin =
+            "C:\\Users\\aphro\\google\\dist\\bin\\gemini-supervisor-24x7.exe";
           const conhost = "C:\\WINDOWS\\System32\\conhost.exe";
 
-          if (
-            fs.existsSync(conhost) &&
-            fs.existsSync(bunExe) &&
-            fs.existsSync(supervisorScript)
-          ) {
+          if (fs.existsSync(conhost) && fs.existsSync(supervisorBin)) {
             try {
-              const child = cp.spawn(
-                conhost,
-                ["--headless", bunExe, "run", supervisorScript],
-                {
-                  cwd: "C:\\Users\\aphro\\google",
-                  detached: true,
-                  stdio: "ignore",
-                  windowsHide: true,
-                },
-              );
+              const child = cp.spawn(conhost, ["--headless", supervisorBin], {
+                cwd: "C:\\Users\\aphro\\google",
+                detached: true,
+                stdio: "ignore",
+                windowsHide: true,
+              });
               child.unref();
               return;
             } catch {}
           }
 
-          const pywExe =
-            "C:\\Users\\aphro\\google\\.venv\\Scripts\\pythonw.exe";
-          const serverScript =
-            "C:\\Users\\aphro\\google\\backend\\voice_bridge_server.py";
-          if (fs.existsSync(pywExe) && fs.existsSync(serverScript)) {
+          const uvBridgeBin =
+            "C:\\Users\\aphro\\google\\.venv\\Scripts\\gemini-voice-bridge-w.exe";
+          if (fs.existsSync(uvBridgeBin)) {
             try {
-              const child = cp.spawn(pywExe, [serverScript], {
+              const child = cp.spawn(uvBridgeBin, [], {
                 cwd: "C:\\Users\\aphro\\google",
                 detached: true,
                 stdio: "ignore",

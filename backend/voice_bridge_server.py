@@ -41,6 +41,20 @@ if _ENV_FILE.exists():
             if _k and _k not in _os_early.environ:
                 _os_early.environ[_k] = _v
 
+# Register NVIDIA CUDA 12 (cuBLAS, cuDNN, NVRTC) DLL directories on Windows for RTX 4070 GPU inference
+_NVIDIA_SITE_DIR = _REPO_ROOT / ".venv" / "Lib" / "site-packages" / "nvidia"
+if _NVIDIA_SITE_DIR.exists():
+    for _bin_dir in _NVIDIA_SITE_DIR.glob("*/bin"):
+        if _bin_dir.is_dir():
+            _bin_str = str(_bin_dir)
+            if _bin_str not in _os_early.environ.get("PATH", ""):
+                _os_early.environ["PATH"] = f"{_bin_str};{_os_early.environ.get('PATH', '')}"
+            if hasattr(_os_early, "add_dll_directory"):
+                try:
+                    _os_early.add_dll_directory(_bin_str)
+                except Exception:
+                    pass
+
 import asyncio
 import base64
 import io
@@ -183,12 +197,14 @@ class ConversationTurn:
 
 
 class WhisperSTTEngine:
-    """Local high-speed Speech-to-Text engine powered by faster-whisper + Silero VAD."""
+    """Local high-speed Speech-to-Text engine powered by faster-whisper (CUDA fp16 / int8) + Silero VAD."""
 
     def __init__(self, preferred_model: str = "large-v3-turbo") -> None:
         self.preferred_model = preferred_model
         self._model: Any | None = None
         self._loaded_model_name: str = "unloaded"
+        self.device_used: str = "cuda"
+        self.compute_type_used: str = "float16"
         self._lock = asyncio.Lock()
 
     async def ensure_loaded(self) -> bool:
@@ -203,9 +219,43 @@ class WhisperSTTEngine:
             return await loop.run_in_executor(None, self._load_sync)
 
     def _load_sync(self) -> bool:
-        # Try fast quantized models in order of availability/speed on CPU/GPU
+        has_cuda = False
+        try:
+            import ctranslate2
+
+            has_cuda = ctranslate2.get_cuda_device_count() > 0
+        except Exception:
+            has_cuda = False
+
         candidates = ["base", "tiny", self.preferred_model]
         for candidate in candidates:
+            if has_cuda:
+                try:
+                    logger.info(
+                        "Initializing faster-whisper model (%s) on NVIDIA GPU (CUDA float16)...",
+                        candidate,
+                    )
+                    self._model = WhisperModel(
+                        candidate,
+                        device="cuda",
+                        compute_type="float16",
+                    )
+                    self._loaded_model_name = candidate
+                    self.device_used = "cuda:0 (NVIDIA GeForce RTX 4070)"
+                    self.compute_type_used = "float16"
+                    logger.info(
+                        "faster-whisper model '%s' ready on GPU (%s, %s).",
+                        candidate,
+                        self.device_used,
+                        self.compute_type_used,
+                    )
+                    return True
+                except Exception as gpu_exc:
+                    logger.warning(
+                        "CUDA float16 init notice for '%s' (%s), falling back to CPU int8...",
+                        candidate,
+                        gpu_exc,
+                    )
             try:
                 logger.info("Initializing faster-whisper model (%s, int8)...", candidate)
                 self._model = WhisperModel(
@@ -215,7 +265,9 @@ class WhisperSTTEngine:
                     cpu_threads=4,
                 )
                 self._loaded_model_name = candidate
-                logger.info("faster-whisper model '%s' ready.", candidate)
+                self.device_used = "cpu"
+                self.compute_type_used = "int8"
+                logger.info("faster-whisper model '%s' ready on CPU.", candidate)
                 return True
             except Exception as exc:
                 logger.warning("Could not load whisper model '%s': %s", candidate, exc)

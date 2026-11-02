@@ -506,5 +506,44 @@ describe("One Big Gemini Super App (@gemini-live/super-app)", () => {
     expect(clockTurnJson.pcContextAttached).toContain(
       "clock:realtime_datetime",
     );
+
+    // 8. Verify Extracted Real "Gemini in Chrome" (Glic) WebUI (/glic, /api/chrome/glic) & WebMCP + Built-in AI runtime (/webmcp_chrome_ai.js)
+    const glicApiRes = await fetch(`${baseUrl}/api/chrome/glic`);
+    expect(glicApiRes.status).toBe(200);
+    const glicApiJson = (await glicApiRes.json()) as {
+      ok: boolean;
+      webMcpStandard: string;
+      imperativeTools: string[];
+      declarativeFormTool: string;
+      builtinAiApis: string[];
+      glicExtraction: {
+        ok: boolean;
+        chromeVersion: string;
+        extractedCount: number;
+      };
+    };
+    expect(glicApiJson.ok).toBe(true);
+    expect(glicApiJson.webMcpStandard).toContain("document.modelContext");
+    expect(glicApiJson.imperativeTools).toContain(
+      "get_realtime_clock_and_date",
+    );
+    expect(glicApiJson.declarativeFormTool).toBe("send_voice_prompt_to_gemini");
+    expect(glicApiJson.builtinAiApis).toContain("LanguageModel");
+    expect(glicApiJson.glicExtraction.ok).toBe(true);
+    expect(glicApiJson.glicExtraction.extractedCount).toBeGreaterThanOrEqual(
+      48,
+    );
+
+    const glicWebUiRes = await fetch(`${baseUrl}/glic`);
+    expect(glicWebUiRes.status).toBe(200);
+    const glicWebUiHtml = await glicWebUiRes.text();
+    expect(glicWebUiHtml).toContain("<title>Gemini in Chrome</title>");
+    expect(glicWebUiHtml).toContain("glic-app-container");
+
+    const webmcpJsRes = await fetch(`${baseUrl}/webmcp_chrome_ai.js`);
+    expect(webmcpJsRes.status).toBe(200);
+    const webmcpJsText = await webmcpJsRes.text();
+    expect(webmcpJsText).toContain("document.modelContext");
+    expect(webmcpJsText).toContain("LanguageModel.availability");
   }, 25000);
 });

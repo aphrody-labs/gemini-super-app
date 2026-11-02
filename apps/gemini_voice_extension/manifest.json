@@ -65,7 +65,7 @@
         "https://aistudio.google.com/*",
         "https://antigravity.google.com/*"
       ],
-      "js": ["content.js"],
+      "js": ["webmcp_chrome_ai.js", "content.js"],
       "run_at": "document_idle"
     }
   ]

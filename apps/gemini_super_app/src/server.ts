@@ -194,14 +194,19 @@ export function startGeminiSuperAppServer(
     cookieManager.startAutoRefreshDaemon(540_000);
   });
   const studioProject = createStudioProject("Gemini Super App Master Session");
-  const indexHtmlPath = `${import.meta.dir}/index.html`;
-  const windowsTauriHtmlPath = `${import.meta.dir}/windows_tauri.html`;
-  const geminiPetHtmlPath = `${import.meta.dir}/gemini_pet.html`;
-  const geminiAppHtmlPath = `${import.meta.dir}/gemini_app.html`;
-  const chromeHomeHtmlPath = `${import.meta.dir}/../../gemini_voice_extension/newtab/newtab.html`;
-  const chromeHomeJsPath = `${import.meta.dir}/../../gemini_voice_extension/newtab/newtab.js`;
-  const openPetsAssetsDir = `${import.meta.dir}/../../../vendor/openpets/apps/desktop/assets`;
-  const mochiAssetsDir = `${import.meta.dir}/../../../vendor/mochi-desktop/assets`;
+  const repoRootDir = "C:/Users/aphro/google";
+  const srcDir = import.meta.dir.includes("~BUN")
+    ? `${repoRootDir}/apps/gemini_super_app/src`
+    : import.meta.dir;
+  const indexHtmlPath = `${srcDir}/index.html`;
+  const windowsTauriHtmlPath = `${srcDir}/windows_tauri.html`;
+  const geminiPetHtmlPath = `${srcDir}/gemini_pet.html`;
+  const geminiAppHtmlPath = `${srcDir}/gemini_app.html`;
+  const wallpaperHtmlPath = `${srcDir}/wallpaper.html`;
+  const chromeHomeHtmlPath = `${repoRootDir}/apps/gemini_voice_extension/newtab/newtab.html`;
+  const chromeHomeJsPath = `${repoRootDir}/apps/gemini_voice_extension/newtab/newtab.js`;
+  const openPetsAssetsDir = `${repoRootDir}/vendor/openpets/apps/desktop/assets`;
+  const mochiAssetsDir = `${repoRootDir}/vendor/mochi-desktop/assets`;
   const petManager = new GeminiPetStateManager();
   const cachedGeminiPetSvg = generateGeminiPetSvgSpritesheet();
   const agySession = new PermanentAntigravitySessionManager(db);
@@ -247,6 +252,74 @@ export function startGeminiSuperAppServer(
           headers: { "content-type": "text/html; charset=utf-8" },
         });
       },
+      "/wallpaper": async () => {
+        const html = await Bun.file(wallpaperHtmlPath).text();
+        return new Response(html, {
+          headers: { "content-type": "text/html; charset=utf-8" },
+        });
+      },
+      "/api/wallpaper/status": async () => {
+        let tauriWallpaper: Record<string, unknown> = {
+          status: "fallback",
+          os_platform: "windows-11-win32-dwm-workerw",
+          screen_width: 1920,
+          screen_height: 1080,
+          gpu: {
+            gpu_detected: true,
+            name: "NVIDIA GeForce RTX 4070",
+            architecture: "NVIDIA Ada Lovelace (Compute 8.9)",
+            vram_total_mib: 12282,
+          },
+        };
+        try {
+          const r = await fetch("http://127.0.0.1:8788/api/tauri/wallpaper", {
+            signal: AbortSignal.timeout(1800),
+          });
+          if (r.ok) {
+            tauriWallpaper = (await r.json()) as Record<string, unknown>;
+          }
+        } catch {}
+
+        let voiceState: Record<string, unknown> = {
+          state: "IDLE",
+          is_live_active: false,
+        };
+        try {
+          const vr = await fetch("http://127.0.0.1:8765/api/status", {
+            signal: AbortSignal.timeout(1500),
+          });
+          if (vr.ok) {
+            voiceState = (await vr.json()) as Record<string, unknown>;
+          }
+        } catch {}
+
+        return Response.json({
+          status: "ok",
+          wallpaper: tauriWallpaper,
+          voice: voiceState,
+        });
+      },
+      "/api/wallpaper/apply": {
+        POST: async () => {
+          let tauriWallpaper: Record<string, unknown> = {};
+          try {
+            const r = await fetch(
+              "http://127.0.0.1:8788/api/tauri/wallpaper/apply",
+              {
+                method: "POST",
+                signal: AbortSignal.timeout(4500),
+              },
+            );
+            if (r.ok) {
+              tauriWallpaper = (await r.json()) as Record<string, unknown>;
+            }
+          } catch {}
+          return Response.json({
+            status: "ok",
+            wallpaper: tauriWallpaper,
+          });
+        },
+      },
       "/app": async () => {
         const html = await Bun.file(geminiAppHtmlPath).text();
         return new Response(html, {
@@ -270,6 +343,103 @@ export function startGeminiSuperAppServer(
         return new Response(js, {
           headers: { "content-type": "application/javascript; charset=utf-8" },
         });
+      },
+      "/webmcp_chrome_ai.js": async () => {
+        const webmcpJsPath = `${repoRootDir}/apps/gemini_voice_extension/webmcp_chrome_ai.js`;
+        const js = await Bun.file(webmcpJsPath).text();
+        return new Response(js, {
+          headers: { "content-type": "application/javascript; charset=utf-8" },
+        });
+      },
+      "/glic": async () => {
+        const glicHtmlPath = `${import.meta.dir}/../../../dist/gemini-in-chrome/webui/glic.html`;
+        const file = Bun.file(glicHtmlPath);
+        if (!(await file.exists())) {
+          return new Response("Gemini in Chrome (Glic) not extracted yet", {
+            status: 404,
+          });
+        }
+        const rawHtml = await file.text();
+        const hydratedHtml = rawHtml
+          .replace(
+            /href="chrome:\/\/resources\/[^"]+"/g,
+            'href="/glic/glic.css"',
+          )
+          .replace(/href="chrome:\/\/theme\/[^"]+"/g, 'href="/glic/glic.css"')
+          .replace('href="glic.css"', 'href="/glic/glic.css"')
+          .replace('src="glic.js"', 'src="/webmcp_chrome_ai.js"')
+          .replace(/src="glic_logo\.svg"/g, 'src="/glic/glic_logo.svg"')
+          .replace(
+            '<div id="glic-app-container" hidden>',
+            '<div id="glic-app-container">',
+          )
+          .replace(
+            '<section hidden class="panel" id="guestPanel">',
+            '<section class="panel show-header" id="guestPanel">',
+          )
+          .replace(
+            '<div id="webviewContainer"></div>',
+            '<div id="webviewContainer"><iframe src="/voice" title="Gemini in Chrome Live Host" style="width:100%;height:100%;border:0;"></iframe></div>',
+          );
+        return new Response(hydratedHtml, {
+          headers: { "content-type": "text/html; charset=utf-8" },
+        });
+      },
+      "/glic/:asset": async (req: Request & { params: { asset: string } }) => {
+        const rawAsset = req.params.asset ?? "glic_logo.svg";
+        const safeAsset = rawAsset.replace(/[^a-zA-Z0-9._-]/g, "");
+        const assetPath = `${import.meta.dir}/../../../dist/gemini-in-chrome/webui/${safeAsset}`;
+        const f = Bun.file(assetPath);
+        if (!(await f.exists())) {
+          return new Response("Not Found", { status: 404 });
+        }
+        const contentType = safeAsset.endsWith(".svg")
+          ? "image/svg+xml"
+          : safeAsset.endsWith(".css")
+            ? "text/css; charset=utf-8"
+            : safeAsset.endsWith(".html")
+              ? "text/html; charset=utf-8"
+              : "application/javascript; charset=utf-8";
+        return new Response(await f.bytes(), {
+          headers: { "content-type": contentType },
+        });
+      },
+      "/api/chrome/glic": {
+        GET: async () => {
+          const manifestPath = `${import.meta.dir}/../../../dist/gemini-in-chrome/gemini-in-chrome-manifest.json`;
+          const mf = Bun.file(manifestPath);
+          const manifest = (await mf.exists())
+            ? ((await mf.json()) as Record<string, unknown>)
+            : { ok: false };
+          return Response.json(
+            {
+              ok: true,
+              feature: "Gemini in Chrome (Glic) + WebMCP + Built-in AI",
+              webMcpStandard:
+                "document.modelContext.registerTool (Chromium 150+)",
+              imperativeTools: [
+                "get_realtime_clock_and_date",
+                "speak_with_gemini_live",
+                "read_pc_filesystem",
+                "execute_pc_command",
+                "run_chrome_builtin_ai",
+                "inspect_gemini_in_chrome_glic",
+              ],
+              declarativeFormTool: "send_voice_prompt_to_gemini",
+              builtinAiApis: [
+                "LanguageModel",
+                "Summarizer",
+                "Translator",
+                "LanguageDetector",
+                "Writer",
+                "Rewriter",
+                "Proofreader",
+              ],
+              glicExtraction: manifest,
+            },
+            { headers: CORS_HEADERS },
+          );
+        },
       },
       "/api/audio/hardware": {
         GET: async () => {

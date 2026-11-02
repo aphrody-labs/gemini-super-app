@@ -18,7 +18,10 @@ dependencies = [
   "google-genai>=2.34.0",
   "huggingface-hub>=2.4.0",
   "numpy>=2.5.4",
+  "nvidia-cublas-cu12>=12.9.2.10",
+  "nvidia-cudnn-cu12>=9.27.0.42",
   "onnxruntime>=1.31.1",
+  "onnxruntime-directml>=1.24.4",
   "pydantic>=2.14.2",
   "sounddevice>=0.5.6",
   "tokenizers>=0.23.3",
@@ -41,6 +44,7 @@ packages = ["backend", "scripts"]
 [tool.uv]
 managed = true
 package = true
+required-environments = ["sys_platform == 'win32' and platform_machine == 'AMD64'"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

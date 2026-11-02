@@ -18,8 +18,10 @@ use axum::{
 };
 use base64::Engine as _;
 use gemini_super_tauri::{
-    ipc_compute_orb_spectrum, ipc_execute_immersive_voice_to_voice, ipc_generate_pet_3d_glb,
+    apply_or_inspect_windows_wallpaper, ipc_compute_orb_spectrum,
+    ipc_execute_immersive_voice_to_voice, ipc_generate_pet_3d_glb, optimize_windows_process_qos,
     resolve_gemini_api_key, GeminiSuperAppSnapshot, ImmersiveVoiceTurnResult,
+    WindowsWallpaperStatus,
 };
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -117,12 +119,31 @@ async fn handle_pet_3d_glb() -> impl IntoResponse {
     )
 }
 
+async fn handle_wallpaper_status(
+    State(state): State<Arc<TauriHostState>>,
+) -> Json<WindowsWallpaperStatus> {
+    Json(apply_or_inspect_windows_wallpaper(&state.repo_root, false, false))
+}
+
+async fn handle_wallpaper_apply(
+    State(state): State<Arc<TauriHostState>>,
+) -> Json<WindowsWallpaperStatus> {
+    Json(apply_or_inspect_windows_wallpaper(&state.repo_root, true, true))
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let _ = optimize_windows_process_qos();
     let _ = rustls::crypto::ring::default_provider().install_default();
     let args: Vec<String> = std::env::args().collect();
     let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let api_key = resolve_gemini_api_key(&repo_root).unwrap_or_default();
+
+    if args.iter().any(|a| a == "--apply-wallpaper") {
+        let wp = apply_or_inspect_windows_wallpaper(&repo_root, true, true);
+        println!("{}", serde_json::to_string_pretty(&wp)?);
+        return Ok(());
+    }
 
     if args.iter().any(|a| a == "--snapshot") {
         let snap = GeminiSuperAppSnapshot::build(&repo_root);
@@ -147,6 +168,9 @@ async fn main() -> anyhow::Result<()> {
         return Ok(());
     }
 
+    // Apply permanent Gemini Live Windows Desktop Wallpaper & WorkerW layer on daemon startup
+    let _ = apply_or_inspect_windows_wallpaper(&repo_root, true, true);
+
     let port: u16 = std::env::var("TAURI_V3_PORT")
         .ok()
         .and_then(|s| s.parse().ok())
@@ -157,6 +181,8 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/tauri/snapshot", get(handle_snapshot))
         .route("/api/tauri/pet", get(handle_pet_state))
         .route("/api/tauri/pet/3d.glb", get(handle_pet_3d_glb))
+        .route("/api/tauri/wallpaper", get(handle_wallpaper_status))
+        .route("/api/tauri/wallpaper/apply", post(handle_wallpaper_apply))
         .route("/api/tauri/voice-to-voice", post(handle_voice_to_voice))
         .route("/api/tauri/spectrum", post(handle_spectrum))
         .with_state(state);

@@ -389,6 +389,38 @@
           transition: none;
         }
       }
+
+      /* Declarative WebMCP Agentic Form pseudo-classes (Chromium 146+) */
+      form:tool-form-active {
+        outline: 2px solid var(--md-sys-color-primary);
+        outline-offset: 3px;
+        border-radius: 12px;
+      }
+
+      button:tool-submit-active {
+        outline: 2px solid var(--md-sys-color-primary);
+        background-color: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary);
+      }
+
+      .sr-webmcp-form {
+        position: fixed;
+        bottom: 8px;
+        right: 8px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .sr-webmcp-form:tool-form-active {
+        width: auto;
+        height: auto;
+        opacity: 1;
+        padding: 6px 10px;
+        background-color: var(--md-sys-color-surface-container);
+      }
     </style>
   </head>
   <body>
@@ -743,6 +775,25 @@
       </div>
     </dialog>
 
+    <!-- Declarative WebMCP Tool Form for Browser AI Agents (Chromium 146+) -->
+    <form
+      id="webmcp-voice-form"
+      class="sr-webmcp-form"
+      toolname="send_voice_prompt_to_gemini"
+      tooldescription="Dispatch a voice or text instruction to the full-duplex Gemini Live Voice Hub and receive the spoken response"
+      toolautosubmit
+    >
+      <input
+        type="text"
+        name="prompt"
+        required
+        aria-label="Prompt Gemini Live"
+        toolparamdescription="Instruction or question to send to the Gemini Live Voice Hub"
+      />
+      <button type="submit" class="cfg-btn">Envoyer</button>
+    </form>
+
+    <script src="../webmcp_chrome_ai.js"></script>
     <script src="newtab.js"></script>
   </body>
 </html>

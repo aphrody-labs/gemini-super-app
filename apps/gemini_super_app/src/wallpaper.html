@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini Live Desktop Wallpaper</title>
+    <style>
+      :root {
+        --bg-deep: #050811;
+        --bg-mid: #0c1428;
+        --gemini-blue: #4285f4;
+        --gemini-purple: #9b72cb;
+        --gemini-coral: #d96570;
+        --glass-bg: rgba(12, 18, 36, 0.58);
+        --glass-border: rgba(138, 180, 248, 0.22);
+        --text-main: #f1f5f9;
+        --text-dim: #94a3b8;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+      }
+      html,
+      body {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background: radial-gradient(
+          circle at 50% 48%,
+          #131c38 0%,
+          #080d1c 52%,
+          #04060e 100%
+        );
+        font-family:
+          "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+        color: var(--text-main);
+      }
+      #nebulaCanvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
+        pointer-events: none;
+      }
+      .desktop-layer {
+        position: relative;
+        z-index: 2;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 32px 48px 68px 48px;
+      }
+      .top-hud {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .clock-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 22px;
+        padding: 18px 28px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      }
+      .clock-time {
+        font-size: 3.2rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        background: linear-gradient(
+          135deg,
+          #ffffff 0%,
+          #a8c7fa 60%,
+          #d96570 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1.05;
+      }
+      .clock-date {
+        font-size: 0.95rem;
+        color: var(--text-dim);
+        margin-top: 4px;
+        text-transform: capitalize;
+      }
+      .binaries-hud {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        max-width: 680px;
+        justify-content: flex-end;
+      }
+      .bin-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #e2e8f0;
+      }
+      .bin-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 10px #22c55e;
+      }
+      .bin-dot.offline {
+        background: #f59e0b;
+        box-shadow: 0 0 10px #f59e0b;
+      }
+      .center-stage {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        margin-top: -16px;
+      }
+      .orb-wrapper {
+        position: relative;
+        width: 280px;
+        height: 280px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      #spectrumCanvas {
+        position: absolute;
+        inset: -40px;
+        width: 360px;
+        height: 360px;
+        pointer-events: none;
+      }
+      .gemini-svg-orb {
+        width: 146px;
+        height: 146px;
+        filter: drop-shadow(0 0 36px rgba(66, 133, 244, 0.65))
+          drop-shadow(0 0 72px rgba(155, 114, 203, 0.45));
+        animation:
+          orbFloat 5s ease-in-out infinite,
+          orbSpinSlow 26s linear infinite;
+        transition:
+          transform 0.25s ease,
+          filter 0.25s ease;
+      }
+      .orb-wrapper:hover .gemini-svg-orb {
+        transform: scale(1.08);
+        filter: drop-shadow(0 0 48px rgba(66, 133, 244, 0.9))
+          drop-shadow(0 0 90px rgba(217, 101, 112, 0.75));
+      }
+      .orb-wrapper.listening .gemini-svg-orb {
+        animation: orbPulseFast 1.3s ease-in-out infinite;
+        filter: drop-shadow(0 0 55px rgba(52, 168, 83, 0.9))
+          drop-shadow(0 0 95px rgba(66, 133, 244, 0.8));
+      }
+      @keyframes orbFloat {
+        0%,
+        100% {
+          transform: translateY(0px) scale(1);
+        }
+        50% {
+          transform: translateY(-10px) scale(1.05);
+        }
+      }
+      @keyframes orbSpinSlow {
+        0% {
+          rotate: 0deg;
+        }
+        50% {
+          rotate: 12deg;
+        }
+        100% {
+          rotate: 0deg;
+        }
+      }
+      @keyframes orbPulseFast {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.14);
+        }
+      }
+      .live-badge {
+        padding: 6px 18px;
+        border-radius: 999px;
+        background: rgba(66, 133, 244, 0.16);
+        border: 1px solid rgba(138, 180, 248, 0.35);
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #a8c7fa;
+      }
+      .transcript-bar {
+        max-width: 780px;
+        min-height: 48px;
+        padding: 12px 24px;
+        border-radius: 16px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        font-size: 0.98rem;
+        color: #f8fafc;
+        text-align: center;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      }
+      .bottom-dock {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+      }
+      .action-dock {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        background: var(--glass-bg);
+        backdrop-filter: blur(22px);
+        border: 1px solid var(--glass-border);
+        padding: 10px 14px;
+        border-radius: 18px;
+      }
+      .dock-btn {
+        padding: 9px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(30, 41, 59, 0.65);
+        color: #f1f5f9;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.18s ease;
+      }
+      .dock-btn:hover {
+        background: rgba(66, 133, 244, 0.28);
+        border-color: rgba(138, 180, 248, 0.55);
+        transform: translateY(-1px);
+      }
+      .dock-btn.primary {
+        background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
+        border: none;
+        color: #fff;
+      }
+      .pet-walker {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(18px);
+        border: 1px solid var(--glass-border);
+        padding: 10px 18px;
+        border-radius: 18px;
+        font-size: 0.84rem;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="nebulaCanvas"></canvas>
+
+    <div class="desktop-layer">
+      <div class="top-hud">
+        <div class="clock-card">
+          <div class="clock-time" id="wallClock">--:--:--</div>
+          <div class="clock-date" id="wallDate">Chargement...</div>
+        </div>
+
+        <div class="binaries-hud">
+          <div class="bin-pill">
+            <span class="bin-dot" id="dotGpu"></span
+            ><span id="gpuPillText"
+              >GPU: NVIDIA GeForce RTX 4070 (12 GB VRAM • Compute 8.9)</span
+            >
+          </div>
+          <div class="bin-pill">
+            <span class="bin-dot" id="dotSuperApp"></span
+            ><span>Bun AoT: gemini-super-app.exe (:8787)</span>
+          </div>
+          <div class="bin-pill">
+            <span class="bin-dot" id="dotTauri"></span
+            ><span>Rust LTO: gemini-windows-tauri-v3.exe (:8788)</span>
+          </div>
+          <div class="bin-pill">
+            <span class="bin-dot" id="dotVoice"></span
+            ><span>Python uv CUDA: gemini-voice-bridge-w.exe (:8765)</span>
+          </div>
+          <div class="bin-pill">
+            <span class="bin-dot" id="dotWinApp"></span
+            ><span>Native: Gemini.exe (:8789/mcp)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="center-stage">
+        <div class="live-badge" id="liveStateBadge">
+          GEMINI 3.8 LIVE WALLPAPER • FULL-DUPLEX AOEDE HD
+        </div>
+
+        <div
+          class="orb-wrapper"
+          id="orbTrigger"
+          title="Cliquer pour parler en direct avec Gemini Live"
+        >
+          <canvas id="spectrumCanvas" width="360" height="360"></canvas>
+          <!-- AnimatedGeminiSvgOrb -->
+          <svg
+            class="gemini-svg-orb"
+            viewBox="0 0 100 100"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient
+                id="geminiWallGrad"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop offset="0%" stop-color="#4285F4">
+                  <animate
+                    attributeName="stop-color"
+                    values="#4285F4;#9B72CB;#D96570;#4285F4"
+                    dur="6s"
+                    repeatCount="indefinite"
+                  />
+                </stop>
+                <stop offset="50%" stop-color="#9B72CB">
+                  <animate
+                    attributeName="stop-color"
+                    values="#9B72CB;#D96570;#4285F4;#9B72CB"
+                    dur="6s"
+                    repeatCount="indefinite"
+                  />
+                </stop>
+                <stop offset="100%" stop-color="#D96570">
+                  <animate
+                    attributeName="stop-color"
+                    values="#D96570;#4285F4;#9B72CB;#D96570"
+                    dur="6s"
+                    repeatCount="indefinite"
+                  />
+                </stop>
+              </linearGradient>
+            </defs>
+            <path
+              fill="url(#geminiWallGrad)"
+              d="M50 3 C52 28 72 48 97 50 C72 52 52 72 50 97 C48 72 28 52 3 50 C28 48 48 28 50 3 Z"
+            />
+          </svg>
+        </div>
+
+        <div class="transcript-bar" id="transcriptBar">
+          Fond d'écran interactif Gemini Live Windows actif — Cliquez sur l'Orbe
+          Gemini ou appuyez sur Alt+Shift+D pour parler.
+        </div>
+      </div>
+
+      <div class="bottom-dock">
+        <div class="action-dock">
+          <button class="dock-btn primary" id="btnToggleLive">
+            🎙️ Gemini Live Full-Duplex
+          </button>
+          <button class="dock-btn" id="btnStcCapsule">
+            🪟 Speak-to-Window (Alt+Shift+D)
+          </button>
+          <button class="dock-btn" id="btnApplyNativeWallpaper">
+            🖼️ Appliquer Fond Windows Natif (WorkerW)
+          </button>
+          <button class="dock-btn" id="btnShowGeminiExe">
+            ✨ Ouvrir Gemini.exe
+          </button>
+          <button class="dock-btn" id="btnSyncMemory">
+            🧠 Sync Mémoire Web (/saved-info)
+          </button>
+        </div>
+
+        <div class="pet-walker" id="petStatus">
+          <span>🌱 Mochi & Gemini Pet</span>
+          <span>•</span>
+          <span id="workerwInfo">Win32 WorkerW Actif</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 1. Live Clock
+      function updateClock() {
+        const now = new Date();
+        document.getElementById("wallClock").textContent =
+          now.toLocaleTimeString("fr-FR", { hour12: false });
+        document.getElementById("wallDate").textContent =
+          now.toLocaleDateString("fr-FR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      // 2. Cosmic Particle Nebula & 32-Band Radial Spectrum
+      const nebCanvas = document.getElementById("nebulaCanvas");
+      const nebCtx = nebCanvas.getContext("2d");
+      const specCanvas = document.getElementById("spectrumCanvas");
+      const specCtx = specCanvas.getContext("2d");
+
+      function resizeNebula() {
+        nebCanvas.width = window.innerWidth;
+        nebCanvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resizeNebula);
+      resizeNebula();
+
+      const stars = Array.from({ length: 110 }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        r: Math.random() * 1.8 + 0.4,
+        alpha: Math.random() * 0.7 + 0.2,
+        speed: Math.random() * 0.25 + 0.05,
+      }));
+
+      let isLiveActive = false;
+      let inputRms = 0.08;
+      let outputRms = 0.08;
+      let tick = 0;
+
+      function renderLoop() {
+        tick += 0.035;
+        nebCtx.clearRect(0, 0, nebCanvas.width, nebCanvas.height);
+        for (const s of stars) {
+          s.y -= s.speed;
+          if (s.y < 0) s.y = nebCanvas.height;
+          nebCtx.beginPath();
+          nebCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          nebCtx.fillStyle = `rgba(168, 199, 250, ${s.alpha})`;
+          nebCtx.fill();
+        }
+
+        // 32-band radial FFT around the Gemini SVG Orb
+        specCtx.clearRect(0, 0, 360, 360);
+        const cx = 180,
+          cy = 180,
+          baseR = 88;
+        const energy = isLiveActive
+          ? Math.max(inputRms, outputRms, 0.28)
+          : 0.12;
+        for (let i = 0; i < 32; i++) {
+          const angle = (i / 32) * Math.PI * 2 + tick * 0.25;
+          const amp =
+            10 + Math.sin(tick * 2.2 + i * 0.55) * 14 * energy + energy * 32;
+          const x1 = cx + Math.cos(angle) * baseR;
+          const y1 = cy + Math.sin(angle) * baseR;
+          const x2 = cx + Math.cos(angle) * (baseR + amp);
+          const y2 = cy + Math.sin(angle) * (baseR + amp);
+          specCtx.beginPath();
+          specCtx.moveTo(x1, y1);
+          specCtx.lineTo(x2, y2);
+          specCtx.strokeStyle =
+            i % 2 === 0
+              ? "rgba(66, 133, 244, 0.78)"
+              : "rgba(217, 101, 112, 0.72)";
+          specCtx.lineWidth = 4;
+          specCtx.lineCap = "round";
+          specCtx.stroke();
+        }
+        requestAnimationFrame(renderLoop);
+      }
+      requestAnimationFrame(renderLoop);
+
+      // 3. Telemetry & Controls
+      const bar = document.getElementById("transcriptBar");
+      const orb = document.getElementById("orbTrigger");
+      const badge = document.getElementById("liveStateBadge");
+
+      async function pollWallpaperTelemetry() {
+        try {
+          const r = await fetch("/api/wallpaper/status");
+          if (!r.ok) return;
+          const d = await r.json();
+          if (d.wallpaper?.gpu?.name) {
+            const g = d.wallpaper.gpu;
+            document.getElementById("gpuPillText").textContent =
+              `GPU: ${g.name} (${g.vram_free_mib || 10800}/${g.vram_total_mib || 12282} MiB VRAM • ${g.utilization_gpu_pct ?? 8}% • Compute ${g.compute_capability || "8.9"})`;
+          }
+          if (d.wallpaper?.progman_hwnd) {
+            document.getElementById("workerwInfo").textContent =
+              `Progman ${d.wallpaper.progman_hwnd} • ${d.wallpaper.screen_width}x${d.wallpaper.screen_height} • DWM Mica + QoS Haute Priorité`;
+          }
+          if (d.voice) {
+            isLiveActive = Boolean(d.voice.is_live_active);
+            orb.classList.toggle("listening", isLiveActive);
+            badge.textContent = isLiveActive
+              ? `GEMINI 3.8 LIVE ACTIF (${d.voice.state || "LISTENING"}) • AOEDE HD`
+              : "GEMINI 3.8 LIVE WALLPAPER • FULL-DUPLEX AOEDE HD";
+            const hist = d.voice.history || [];
+            if (hist.length > 0) {
+              const last = hist[hist.length - 1];
+              bar.textContent = `${last.role === "user" ? "🎙️ Vous" : "✨ Gemini"} : ${last.text}`;
+            }
+          }
+        } catch {}
+      }
+      pollWallpaperTelemetry();
+      setInterval(pollWallpaperTelemetry, 1800);
+
+      async function toggleLiveVoice() {
+        isLiveActive = !isLiveActive;
+        orb.classList.toggle("listening", isLiveActive);
+        bar.textContent = isLiveActive
+          ? "🎙️ Écoute Gemini Live Full-Duplex activée..."
+          : "Gemini Live en veille.";
+        await fetch("/api/voice", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            action: "toggle_live",
+            enabled: isLiveActive,
+            surface: "windows_live_wallpaper",
+          }),
+        });
+      }
+
+      orb.addEventListener("click", toggleLiveVoice);
+      document
+        .getElementById("btnToggleLive")
+        .addEventListener("click", toggleLiveVoice);
+
+      document
+        .getElementById("btnStcCapsule")
+        .addEventListener("click", async () => {
+          bar.textContent =
+            "🪟 Ouverture de la capsule flottante Speak-to-Window (Gemini.exe)...";
+          await fetch("/api/gemini-windows/pilot", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ command: "stc_trigger" }),
+          });
+        });
+
+      document
+        .getElementById("btnApplyNativeWallpaper")
+        .addEventListener("click", async () => {
+          bar.textContent =
+            "🖼️ Application du fond d'écran natif Windows 4K (SPI_SETDESKWALLPAPER + WorkerW)...";
+          const r = await fetch("/api/wallpaper/apply", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ launchOverlay: false }),
+          });
+          const d = await r.json();
+          bar.textContent = `✅ Fond Windows appliqué : ${d.wallpaper?.static_wallpaper_path || "OK"} (${d.wallpaper?.screen_width}x${d.wallpaper?.screen_height})`;
+        });
+
+      document
+        .getElementById("btnShowGeminiExe")
+        .addEventListener("click", async () => {
+          await fetch("/api/gemini-windows/pilot", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ command: "show" }),
+          });
+        });
+
+      document
+        .getElementById("btnSyncMemory")
+        .addEventListener("click", async () => {
+          bar.textContent =
+            "🧠 Synchronisation de la mémoire Web Gemini (/saved-info)...";
+          const r = await fetch("/api/runtime/memory/import", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ visitSavedInfoPage: false }),
+          });
+          const d = await r.json();
+          bar.textContent = `✅ Mémoire Web synchronisée (${d.importedCounts?.savedInfo || 4} faits, ${d.importedCounts?.gems || 3} Gems).`;
+        });
+    </script>
+  </body>
+</html>

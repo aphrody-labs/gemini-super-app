@@ -11,6 +11,10 @@
   "scripts": {
     "consolidate": "bun run scripts/consolidate_monorepo.ts",
     "build": "bun build apps/gemini_super_app/src/server.ts --outdir ./dist --target bun",
+    "build:aot": "bun build --compile --bytecode --minify apps/gemini_super_app/src/server.ts --outfile dist/bin/gemini-super-app.exe && bun build --compile --bytecode --minify scripts/gemini_24_7_supervisor.ts --outfile dist/bin/gemini-supervisor-24x7.exe && bun build --compile --bytecode --minify packages/gemini_app_plugin/mcp_server.ts --outfile dist/bin/gemini-app-runtime-mcp.exe",
+    "build:rust:lto": "cargo build --release -p gemini-super-tauri --bin gemini-windows-tauri-v3",
+    "build:uv:bin": "uv sync",
+    "wallpaper:apply": "dist/bin/gemini-windows-tauri-v3.exe --apply-wallpaper",
     "super-app": "bun run apps/gemini_super_app/src/server.ts",
     "super-app:dev": "bun --watch run apps/gemini_super_app/src/server.ts",
     "check": "bun check",
@@ -40,24 +44,4 @@
     "@gemini-live/openpets-gemini": "workspace:*",
     "@google/genai": "^2.32.0",
     "@tauri-apps/api": "^3.0.0-alpha.3",
-    "@tauri-apps/plugin-dialog": "^3.0.0-alpha.4",
-    "@tauri-apps/plugin-fs": "^3.0.0-alpha.3",
-    "@tauri-apps/plugin-shell": "^3.0.0-alpha.3",
-    "@tauri-apps/plugin-store": "^3.0.0-alpha.3",
-    "google-auth-library": "^11.3.2",
-    "lucide-react": "^1.66.0",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1",
-    "tailwindcss": "^4.3.3",
-    "wavesurfer.js": "^8.0.4",
-    "zod": "^4.6.7",
-    "zustand": "^5.0.16"
-  },
-  "devDependencies": {
-    "@tauri-apps/cli": "^3.0.0-alpha.5",
-    "@types/bun": "^1.4.4",
-    "@types/chrome": "^0.3.7",
-    "@types/node": "^26.6.6",
-    "typescript": "^7.0.2"
-  }
-}
+    "@tauri-apps

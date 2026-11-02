@@ -37,10 +37,11 @@ export interface SupervisorStatusReport {
   >;
 }
 
-const REPO_ROOT = path.resolve(import.meta.dir, "..");
+const REPO_ROOT = "C:\\Users\\aphro\\google";
+const DIST_BIN_DIR = path.join(REPO_ROOT, "dist", "bin");
 const STATUS_FILE = path.join(REPO_ROOT, "config", "service_24_7_status.json");
 const LOCK_FILE = path.join(REPO_ROOT, "config", "gemini_supervisor.lock");
-const BUN_EXE = process.execPath;
+const BUN_EXE = "C:\\Users\\aphro\\.bun\\bin\\bun.exe";
 const LOCAL_APPDATA =
   process.env.LOCALAPPDATA ?? "C:\\Users\\aphro\\AppData\\Local";
 
@@ -103,8 +104,32 @@ process.on("SIGTERM", () => {
   process.exit(0);
 });
 
+function resolveSuperAppBinary(): string[] {
+  const aotBin = path.join(DIST_BIN_DIR, "gemini-super-app.exe");
+  try {
+    if (fs.existsSync(aotBin) && fs.statSync(aotBin).size > 0) {
+      return [aotBin];
+    }
+  } catch {}
+  return [
+    BUN_EXE,
+    "run",
+    path.join(REPO_ROOT, "apps/gemini_super_app/src/server.ts"),
+  ];
+}
+
 function resolveTauriBinary(): string {
   const candidates = [
+    path.join(DIST_BIN_DIR, "gemini-windows-tauri-v3.exe"),
+    path.join(REPO_ROOT, "target", "release", "gemini-windows-tauri-v3.exe"),
+    path.join(
+      LOCAL_APPDATA,
+      "Aphrody",
+      "cache",
+      "cargo-target",
+      "release",
+      "gemini-windows-tauri-v3.exe",
+    ),
     path.join(
       LOCAL_APPDATA,
       "Aphrody",
@@ -117,10 +142,28 @@ function resolveTauriBinary(): string {
   ];
   for (const c of candidates) {
     try {
-      if (Bun.file(c).size > 0) return c;
+      if (fs.existsSync(c) && fs.statSync(c).size > 0) return c;
     } catch {}
   }
   return candidates[0] ?? "";
+}
+
+function resolveVoiceBridgeBinary(): string[] {
+  const uvBins = [
+    path.join(REPO_ROOT, ".venv", "Scripts", "gemini-voice-bridge-w.exe"),
+    path.join(DIST_BIN_DIR, "gemini-voice-bridge-w.exe"),
+    path.join(REPO_ROOT, ".venv", "Scripts", "gemini-voice-bridge.exe"),
+  ];
+  for (const b of uvBins) {
+    try {
+      if (fs.existsSync(b) && fs.statSync(b).size > 0) {
+        return [b];
+      }
+    } catch {}
+  }
+  const pythonwExe = path.join(REPO_ROOT, ".venv", "Scripts", "pythonw.exe");
+  const scriptPath = path.join(REPO_ROOT, "backend", "voice_bridge_server.py");
+  return [pythonwExe, scriptPath];
 }
 
 export async function probeHttpHealth(
@@ -201,23 +244,18 @@ export async function ensureAll24x7ServicesPass(
     },
   };
 
-  // 1. Check Super App (:8787)
+  // 1. Check Super App (:8787 — Bun AoT Binary gemini-super-app.exe)
   let superAppOk = await probeHttpHealth(services.super_app.healthEndpoint);
   if (!superAppOk) {
-    const pid = spawnHeadlessService(
-      [
-        BUN_EXE,
-        "run",
-        path.join(REPO_ROOT, "apps/gemini_super_app/src/server.ts"),
-      ],
-      { SUPER_APP_PORT: "8787" },
-    );
+    const pid = spawnHeadlessService(resolveSuperAppBinary(), {
+      SUPER_APP_PORT: "8787",
+    });
     services.super_app.pid = pid;
     services.super_app.restartCount += 1;
     services.super_app.lastStartedAt = new Date().toISOString();
   }
 
-  // 2. Check Native Tauri v3 (:8788)
+  // 2. Check Native Tauri v3 (:8788 — Rust LTO Binary gemini-windows-tauri-v3.exe)
   let tauriOk = await probeHttpHealth(services.tauri_v3.healthEndpoint);
   if (!tauriOk) {
     const tauriBin = resolveTauriBinary();
@@ -227,19 +265,10 @@ export async function ensureAll24x7ServicesPass(
     services.tauri_v3.lastStartedAt = new Date().toISOString();
   }
 
-  // 3. Check Python Voice Bridge (:8765)
+  // 3. Check Python Voice Bridge (:8765 — uv CUDA Binary gemini-voice-bridge-w.exe)
   let voiceOk = await probeHttpHealth(services.voice_bridge.healthEndpoint);
   if (!voiceOk) {
-    const pythonwExe = path.join(REPO_ROOT, ".venv", "Scripts", "pythonw.exe");
-    const pyExe = path.join(REPO_ROOT, ".venv", "Scripts", "python.exe");
-    const scriptPath = path.join(
-      REPO_ROOT,
-      "backend",
-      "voice_bridge_server.py",
-    );
-
-    const exeToUse = (await Bun.file(pythonwExe).exists()) ? pythonwExe : pyExe;
-    const pid = spawnHeadlessService([exeToUse, scriptPath]);
+    const pid = spawnHeadlessService(resolveVoiceBridgeBinary());
     services.voice_bridge.pid = pid;
     services.voice_bridge.restartCount += 1;
     services.voice_bridge.lastStartedAt = new Date().toISOString();
