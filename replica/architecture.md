@@ -1,59 +1,25 @@
-# Replica Architecture: Google Gemini Web App Clone (`/app`)
+# Architecture de l'espace de travail
 
-## 1. Stack Selection
+`apps/gemini_super_app/src/server.ts` sert `workspace.html` sur `/` et `/app`, et `workspace.js` sur `/workspace.js`. L'interface utilise les routes `/api/app/conversations` pour créer, ouvrir, lister, renommer, épingler et supprimer des discussions ; la recherche interroge les titres et le contenu des messages enregistrés côté serveur, sans distinction de casse et avec normalisation Unicode. La route de messages envoie l'historique à Gemini via `@google/genai` et enregistre la réponse et le message utilisateur dans une transaction SQLite après une réponse valide.
 
-- **Runtime & HTTP Server**: Upstream Bun v1.4.5 (`Bun.serve()` fullstack router + WebSockets)
-- **Database**: `bun:sqlite` in WAL mode (`conversations`, `messages`, `attachments`, `citations`)
-- **AI Engine**: `@google/genai` SDK (`gemini-3.8-flash`, `gemini-4-argon`, `gemini-3.8-live`, `gemini-3.8-flash-tts`)
-- **Styling**: Semantic CSS Custom Properties (`replica/design/tokens.css`) with Light/Dark theme parity and 100% WCAG 2.2 AA/AAA contrast compliance
+Le processus principal utilise `gemini-super-app.sqlite` dans son répertoire de lancement, ou le chemin fourni par `SUPER_APP_DB_PATH`. Les tests qui appellent `startGeminiSuperAppServer` utilisent par défaut une base en mémoire. Les discussions existantes ne sont pas supprimées lors d'une mise à jour.
 
----
+Le modèle peut être saisi dans l'interface. Sa disponibilité dépend de la configuration et du fournisseur. La clé est lue côté serveur depuis `GEMINI_API_KEY` ou `GOOGLE_API_KEY`. Les images PNG, JPEG, WebP et PDF sont envoyés à Gemini et conservés dans SQLite pour les tours suivants (trois fichiers et 4 Mo au total par message). La suppression d'une discussion supprime aussi ses fichiers. Les réponses Markdown sont converties en éléments de page sans insérer de HTML brut ; les citations ne sont pas encore intégrées.
 
-## 2. Database Schema (SQLite WAL)
+La section YouTube Music Desktop communique avec son serveur compagnon local sur le port 9863. L'association demande de comparer un code et de confirmer dans la fenêtre du lecteur ; le jeton est conservé dans le coffre du système si celui-ci est disponible, sinon en mémoire pour la session. `YTM_COMPANION_TOKEN` reste une option de configuration. Les commandes sont transmises au lecteur et l'état doit être actualisé séparément. L'association avec un lecteur réel reste à qualifier.
 
-```sql
-CREATE TABLE IF NOT EXISTS app_conversations (
-  id TEXT PRIMARY KEY,
-  title TEXT NOT NULL,
-  model_id TEXT NOT NULL DEFAULT 'gemini-3.8-flash',
-  is_pinned INTEGER NOT NULL DEFAULT 0,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
+Le studio MusicGen lance `backend/musicgen_generate.py` via `bun uv` et utilise AudioCraft et des poids déjà disponibles localement. Le téléchargement des poids est désactivé pendant le job. Le serveur valide le WAV PCM produit avant de le rendre disponible et tente de supprimer les sorties incomplètes. Il signale explicitement l'absence de `bun uv` et limite chaque génération à dix minutes. Les résultats WAV sont temporaires et les jobs ne survivent pas au redémarrage du serveur. Le Bun actuellement installé ne fournit pas `bun uv` ; l'environnement AudioCraft, le GPU et le succès d'une génération restent à qualifier sur la machine.
 
-CREATE TABLE IF NOT EXISTS app_messages (
-  id TEXT PRIMARY KEY,
-  conversation_id TEXT NOT NULL,
-  role TEXT NOT NULL CHECK(role IN ('user', 'assistant', 'system')),
-  content TEXT NOT NULL,
-  thought_process TEXT,
-  citations_json TEXT NOT NULL DEFAULT '[]',
-  attachments_json TEXT NOT NULL DEFAULT '[]',
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (conversation_id) REFERENCES app_conversations(id) ON DELETE CASCADE
-);
-```
+L'analyse audio accepte un WAV RIFF PCM 16 bits mono ou stéréo jusqu'à 16 Mo. Elle calcule la durée, le RMS, la crête et une enveloppe à partir du contenu transmis, sans enregistrer le fichier. Les autres formats et l'analyse fréquentielle restent à intégrer.
 
----
+Les réponses vocales utilisent le binaire `voice-dsp` pour calculer 32 bandes FFT. `bun run build:dsp` le compile et le place dans `dist/bin`, où l'application le trouve automatiquement. `VOICE_DSP_PROFILE=release` sélectionne le profil release ; `VOICE_DSP_BIN` ou le `PATH` permettent de choisir un autre binaire. Sans binaire, le spectre est absent ; aucune bande synthétique ne le remplace.
 
-## 3. API Routes (`apps/gemini_super_app/src/server.ts`)
+Le serveur recherche les ressources depuis son répertoire d'entrée, son répertoire de lancement ou celui de l'exécutable. `SUPER_APP_ROOT` permet de désigner explicitement la racine qui contient `apps/gemini_super_app/src/workspace.html`. Le build Bun est vérifié avec ces ressources sur disque ; il ne constitue pas encore une distribution autonome complète.
 
-| Method   | Path                                  | Description                                                                                                             |
-| :------- | :------------------------------------ | :---------------------------------------------------------------------------------------------------------------------- |
-| `GET`    | `/app`                                | Serves the clean-room Gemini Web App UI (`S01`–`S05`)                                                                   |
-| `GET`    | `/api/app/conversations`              | Lists conversations ordered by `is_pinned DESC, updated_at DESC`                                                        |
-| `POST`   | `/api/app/conversations`              | Creates a new conversation session                                                                                      |
-| `GET`    | `/api/app/conversations/:id`          | Returns conversation metadata and full message thread                                                                   |
-| `POST`   | `/api/app/conversations/:id/messages` | Appends user message, invokes Gemini model (`gemini-3.8-flash` / `gemini-4-argon`), persists and returns assistant turn |
-| `PATCH`  | `/api/app/conversations/:id`          | Updates `title` or `is_pinned` status                                                                                   |
-| `DELETE` | `/api/app/conversations/:id`          | Deletes a conversation and its messages                                                                                 |
+Le serveur écoute uniquement sur `127.0.0.1`. Les appels API et WebSocket provenant d'une page externe sont refusés par défaut. Pour une intégration navigateur de confiance, `SUPER_APP_ALLOWED_ORIGINS` accepte des origines exactes séparées par des virgules, par exemple `https://gemini.google.com,https://aistudio.google.com`. Cette autorisation donne accès aux API locales, y compris les commandes PC : ne déclarer que des origines pleinement fiables. Les processus locaux peuvent toujours appeler le serveur ; ce contrôle ne constitue pas une authentification des applications locales. Certaines routes ne fournissent pas encore les en-têtes CORS nécessaires à une intégration externe.
 
----
+Le fond d'écran utilise le service natif local sur le port 8788. Si celui-ci est absent, son état est indisponible ; la commande d'application ne réussit que lorsque le service confirme `static_wallpaper_applied`. La télémétrie NVIDIA provient de `nvidia-smi` lorsqu'il répond ; elle ne prouve pas la disponibilité des backends graphiques ou des fournisseurs ML. L'application réelle du fond d'écran reste à qualifier avec le service natif actif.
 
-## 4. Build Order (Vertical Slice First)
+La commande vocale du fond d'écran dépend du service vocal sur le port 8765. Sans ce service, l'API renvoie une erreur et ne prétend ni activer l'écoute ni transcrire l'audio ; l'interface attend la confirmation du service avant de changer d'état. Avant l'activation depuis cette surface, le serveur vérifie également que le service signale un flux microphone matériel actif. Cela ne prouve pas que le son capturé est intelligible ni qu'un tour vocal a abouti.
 
-1. **Shell & Tokens**: Wire `tokens.css` variables, responsive layout (`390px` mobile to `1440px` desktop), collapsible sidebar rail, and top bar with model switcher.
-2. **Vertical Slice**: `S01` Zero State -> submit prompt in `S04` Omni Dock -> transition to `S02` Active Thread -> persist in SQLite via `/api/app/conversations/:id/messages` -> render markdown + thought accordion + citations.
-3. **S03 Sidebar**: Group conversations (`Pinned`, `Today`, `Previous 7 days`), pin/unpin, delete, search filter, and new chat reset.
-4. **S04 Multimodal Dock**: File attachment chips, auto-growing textarea, keyboard shortcuts (`Enter` to send, `Shift+Enter` newline).
-5. **S05 Live Voice Overlay**: Full-duplex SVG Gemini Orb with 32-band radial FFT visualizer, live captions, mute/unmute, and connection to `:8765` Voice Hub.
+La télémétrie du fond d'écran utilise `/api/voice/telemetry`. La lecture `/api/status` ne consomme plus non plus les commandes ; le pont Gemini Windows les retire explicitement par `POST /api/pilot/commands/take`. Le service vocal et le pont Windows doivent être mis à jour ensemble : un ancien pont ne consommera pas cette nouvelle file. Le retrait reste sans accusé de réception : une interruption après retrait peut perdre des commandes. Le service vocal doit être redémarré sur la version qui expose ces routes ; un ancien service apparaît comme indisponible sur la surface de fond d'écran.

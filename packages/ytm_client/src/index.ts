@@ -76,7 +76,7 @@ export class YtmCompanionClient {
     this.pairing = true;
     this.pendingCode = undefined;
     try {
-      const result = await this.authRequest("/auth/requestcode", { appId: "gemini-super-app", appName: "Gemini Super App", appVersion: "1.0.0" }, 5000);
+      const result = await this.authRequest("/auth/requestcode", { appId: "gemini-super-app", appName: "Gemini Super App", appVersion: "1.0.0" }, 15000);
       if (typeof result.code !== "string" || !/^\d{4}$/.test(result.code)) throw new YtmCompanionError("Code d'association invalide.", 502);
       this.pendingCode = { code: result.code, expiresAt: Date.now() + 55_000 };
       return result.code;

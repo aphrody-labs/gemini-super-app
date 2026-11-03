@@ -695,17 +695,19 @@ function startDirectNativeControlServer() {
 function startStatusPollingAndPilotLoop() {
   let lastHistoryId = null;
   let tick = 0;
+  let polling = false;
 
   setInterval(async () => {
+    if (polling) return;
+    polling = true;
+    try {
     tick++;
     const status = await httpGetJson("/api/status", 1500);
     if (!status || status.status !== "ok") return;
 
-    if (
-      Array.isArray(status.pending_pilot_commands) &&
-      status.pending_pilot_commands.length > 0
-    ) {
-      for (const cmdObj of status.pending_pilot_commands) {
+    if (status.pending_pilot_count > 0) {
+      const pending = await httpPostJson("/api/pilot/commands/take", {}, 1500);
+      for (const cmdObj of pending?.commands || []) {
         await executeLocalPilotCommand(cmdObj);
       }
     }
@@ -741,6 +743,7 @@ function startStatusPollingAndPilotLoop() {
         });
       }
     }
+    } finally { polling = false; }
   }, 600);
 }
 

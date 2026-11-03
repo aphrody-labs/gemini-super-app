@@ -1701,9 +1701,18 @@ class VoiceHubServer:
         }
 
     # HTTP & WebSocket Handlers
+    async def handle_voice_telemetry(self, request: web.Request) -> web.Response:
+        """Return voice state without consuming pending Windows pilot commands."""
+        return web.json_response(
+            {
+                "state": self.interaction_state,
+                "is_live_active": self.is_live_active,
+                "history": [asdict(t) for t in self.history[-20:]],
+            },
+            headers=self._cors_headers(),
+        )
+
     async def handle_status(self, request: web.Request) -> web.Response:
-        pending_copy = list(self.pending_pilot_commands)
-        self.pending_pilot_commands.clear()
         return web.json_response(
             {
                 "status": "ok",
@@ -1724,12 +1733,17 @@ class VoiceHubServer:
                 },
                 "ws_url": f"ws://{HTTP_WS_HOST}:{HTTP_WS_PORT}/ws/voice",
                 "gemini_windows_state": getattr(self, "gemini_windows_state", {}),
-                "pending_pilot_commands": pending_copy,
+                "pending_pilot_count": len(self.pending_pilot_commands),
                 "history_count": len(self.history),
                 "history": [asdict(t) for t in self.history[-20:]],
             },
             headers=self._cors_headers(),
         )
+
+    async def handle_take_pilot_commands(self, request: web.Request) -> web.Response:
+        commands = list(self.pending_pilot_commands)
+        self.pending_pilot_commands.clear()
+        return web.json_response({"commands": commands}, headers=self._cors_headers())
 
     async def handle_gemini_windows_status(self, request: web.Request) -> web.Response:
         res = await self.pilot_gemini_windows_app({"command": "status", "launch": False})
@@ -2311,6 +2325,8 @@ def create_app() -> tuple[web.Application, VoiceHubServer]:
     app = web.Application()
     app["hub"] = hub
     app.router.add_get("/api/status", hub.handle_status)
+    app.router.add_get("/api/voice/telemetry", hub.handle_voice_telemetry)
+    app.router.add_post("/api/pilot/commands/take", hub.handle_take_pilot_commands)
     app.router.add_get("/api/audio/hardware", hub.handle_hardware_audio)
     app.router.add_post("/api/audio/hardware", hub.handle_hardware_audio)
     app.router.add_options("/api/audio/hardware", hub.handle_options)

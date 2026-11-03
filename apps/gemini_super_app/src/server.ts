@@ -11,12 +11,14 @@
  */
 
 import { Database } from "bun:sqlite";
+import { dirname, join } from "node:path";
 import { GoogleGenAI, Modality } from "@google/genai";
 import {
-  generatePreviewStemWav,
-  type AudioCraftGenerationRequest,
+  generateMusicGen,
+  validateMusicGenRequest,
+  type MusicGenRequest,
 } from "@gemini-live/audiocraft-bridge";
-import { analyzePcm16AudioTimeline } from "@gemini-live/bun-media";
+import { analyzeNativeSpectrum, analyzeWavPcm16 } from "@gemini-live/bun-media";
 import {
   DurableGeminiCookieManager,
   type GeminiCookieEntry,
@@ -61,6 +63,7 @@ import {
 import { createStudioProject } from "@gemini-live/voicebox-sdk";
 import {
   YtmCompanionClient,
+  YtmCompanionError,
   type YtmCommandPayload,
 } from "@gemini-live/ytm-client";
 import {
@@ -70,10 +73,35 @@ import {
   executePcFilesystemAction,
   getLiveClockAndToolsContext,
 } from "./pc_antigravity_bridge";
+import { resolveProductRoot } from "./product_paths";
+import { allowsLocalRequest, protectApiRoutes } from "./local_access";
+import { parseMessageMarkdown } from "./markdown";
 
 export interface SuperAppSocketData {
   readonly clientId: string;
   readonly surface: string;
+}
+
+type ChatAttachment = { name: string; mimeType: string; data: string };
+export function validateChatAttachments(value: unknown): ChatAttachment[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > 3) throw new Error("Trois fichiers maximum sont autorisés.");
+  let total = 0;
+  return value.map((item: unknown) => {
+    if (!item || typeof item !== "object") throw new Error("Fichier invalide.");
+    const { name, mimeType, data } = item as ChatAttachment;
+    if (typeof name !== "string" || !name.trim() || name.length > 255 || typeof data !== "string" || typeof mimeType !== "string") throw new Error("Fichier invalide.");
+    if (data.length > 4 * 1024 * 1024 * 4 / 3 + 4 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(data)) throw new Error("Fichier trop volumineux ou mal encodé.");
+    const bytes = Buffer.from(data, "base64");
+    total += bytes.length;
+    if (total > 4 * 1024 * 1024) throw new Error("Les fichiers dépassent 4 Mo au total.");
+    const valid = mimeType === "image/png" ? bytes.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]))
+      : mimeType === "image/jpeg" ? bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+      : mimeType === "image/webp" ? bytes.subarray(0, 4).toString() === "RIFF" && bytes.subarray(8, 12).toString() === "WEBP"
+      : mimeType === "application/pdf" ? bytes.subarray(0, 5).toString() === "%PDF-" : false;
+    if (!valid) throw new Error("Utilisez une image PNG, JPEG, WebP ou un PDF valide.");
+    return { name: name.trim(), mimeType, data };
+  });
 }
 
 export interface SuperAppHubState {
@@ -130,81 +158,36 @@ export function createSuperAppDatabase(dbPath: string = ":memory:"): Database {
       created_at INTEGER NOT NULL
     );
   `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS app_attachments (
+      id TEXT PRIMARY KEY,
+      message_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      data BLOB NOT NULL
+    );
+  `);
 
-  const existingCount = db
-    .query("SELECT COUNT(*) as c FROM app_conversations")
-    .get() as { c: number } | null;
-  if (!existingCount || existingCount.c === 0) {
-    const now = Date.now();
-    db.query(
-      "INSERT INTO app_conversations (id, title, model_id, is_pinned, created_at, updated_at) VALUES ($id, $title, $modelId, $isPinned, $createdAt, $updatedAt)",
-    ).run({
-      $id: "seed-arch-bun",
-      $title: "Architecture Bun v1.4.5 & SQLite WAL",
-      $modelId: "gemini-4-argon",
-      $isPinned: 1,
-      $createdAt: now - 3600_000,
-      $updatedAt: now - 1800_000,
-    });
-    db.query(
-      "INSERT INTO app_messages (id, conversation_id, role, content, thought_process, citations_json, attachments_json, created_at) VALUES ($id, $chatId, $role, $content, $thought, $citations, $attachments, $createdAt)",
-    ).run({
-      $id: "msg-seed-1",
-      $chatId: "seed-arch-bun",
-      $role: "user",
-      $content:
-        "Comment structurer un serveur fullstack Bun.serve() avec SQLite WAL et flux audio WebSockets ?",
-      $thought: null,
-      $citations: "[]",
-      $attachments: "[]",
-      $createdAt: now - 3600_000,
-    });
-    db.query(
-      "INSERT INTO app_messages (id, conversation_id, role, content, thought_process, citations_json, attachments_json, created_at) VALUES ($id, $chatId, $role, $content, $thought, $citations, $attachments, $createdAt)",
-    ).run({
-      $id: "msg-seed-2",
-      $chatId: "seed-arch-bun",
-      $role: "assistant",
-      $content:
-        'Pour une architecture temps réel performante avec **Bun v1.4.5**, activez `PRAGMA journal_mode = WAL;` dès l\'ouverture de `bun:sqlite` et fédérez les routes HTTP et le gestionnaire `websocket` dans une instance unique `Bun.serve()`.\n\n```ts\nimport { Database } from "bun:sqlite";\nconst db = new Database("app.sqlite");\ndb.run("PRAGMA journal_mode = WAL;");\n```',
-      $thought:
-        "1. Vérifier la concurrence lecture/écriture SQLite WAL.\n2. Isoler les états WebSocket par client.\n3. Garantir une latence < 5ms.",
-      $citations: JSON.stringify([
-        {
-          title: "Documentation Bun SQLite WAL",
-          url: "https://bun.com/docs/api/sqlite",
-        },
-        {
-          title: "Spécification Gemini Live WebSockets",
-          url: "https://ai.google.dev/gemini-api/docs/live",
-        },
-      ]),
-      $attachments: "[]",
-      $createdAt: now - 1800_000,
-    });
-  }
   return db;
 }
 
 export function startGeminiSuperAppServer(
   port: number = 0,
   dbPath: string = ":memory:",
+  ytmClient?: YtmCompanionClient,
 ) {
   const db = createSuperAppDatabase(dbPath);
-  const ytm = new YtmCompanionClient();
+  const ytm = ytmClient ?? new YtmCompanionClient();
   const cookieManager = new DurableGeminiCookieManager();
   void cookieManager.importAndPersist().then(() => {
     cookieManager.startAutoRefreshDaemon(540_000);
   });
   const studioProject = createStudioProject("Gemini Super App Master Session");
-  const repoRootDir = "C:/Users/aphro/google";
-  const srcDir = import.meta.dir.includes("~BUN")
-    ? `${repoRootDir}/apps/gemini_super_app/src`
-    : import.meta.dir;
-  const indexHtmlPath = `${srcDir}/index.html`;
+  const repoRootDir = resolveProductRoot({ override: Bun.env.SUPER_APP_ROOT, entryDir: import.meta.dir, cwd: process.cwd(), executableDir: dirname(process.execPath) });
+  const srcDir = join(repoRootDir, "apps", "gemini_super_app", "src");
   const windowsTauriHtmlPath = `${srcDir}/windows_tauri.html`;
   const geminiPetHtmlPath = `${srcDir}/gemini_pet.html`;
-  const geminiAppHtmlPath = `${srcDir}/gemini_app.html`;
+  const geminiAppHtmlPath = `${srcDir}/workspace.html`;
   const wallpaperHtmlPath = `${srcDir}/wallpaper.html`;
   const chromeHomeHtmlPath = `${repoRootDir}/apps/gemini_voice_extension/newtab/newtab.html`;
   const chromeHomeJsPath = `${repoRootDir}/apps/gemini_voice_extension/newtab/newtab.js`;
@@ -229,9 +212,11 @@ export function startGeminiSuperAppServer(
   const insertSessionStmt = db.query(
     "INSERT OR REPLACE INTO voice_sessions (id, surface, model, created_at) VALUES ($id, $surface, $model, $createdAt)",
   );
-  const insertGenStmt = db.query(
-    "INSERT OR REPLACE INTO studio_generations (id, engine, prompt, duration_sec, created_at) VALUES ($id, $engine, $prompt, $durationSec, $createdAt)",
-  );
+  const musicJobs = new Map<string, { status: "running" | "complete" | "failed"; output: string; error?: string }>();
+  const attachmentsForMessage = (messageId: string, legacyJson: string) => {
+    const rows = db.query("SELECT id, name, mime_type AS mimeType, length(data) AS sizeBytes FROM app_attachments WHERE message_id = $id ORDER BY rowid").all({ $id: messageId });
+    return rows.length ? rows : JSON.parse(legacyJson || "[]");
+  };
   const upsertPetStateStmt = db.query(
     "INSERT OR REPLACE INTO pet_care_state (id, payload_json, updated_at) VALUES ('default', $payloadJson, $updatedAt)",
   );
@@ -287,10 +272,11 @@ export function startGeminiSuperAppServer(
 
   const server = Bun.serve<SuperAppSocketData>({
     port,
+    hostname: "127.0.0.1",
     idleTimeout: 60,
-    routes: {
+    routes: protectApiRoutes({
       "/": async () => {
-        const html = await Bun.file(indexHtmlPath).text();
+        const html = await Bun.file(geminiAppHtmlPath).text();
         return new Response(html, {
           headers: { "content-type": "text/html; charset=utf-8" },
         });
@@ -314,18 +300,7 @@ export function startGeminiSuperAppServer(
         });
       },
       "/api/wallpaper/status": async () => {
-        let tauriWallpaper: Record<string, unknown> = {
-          status: "fallback",
-          os_platform: "windows-11-win32-dwm-workerw",
-          screen_width: 1920,
-          screen_height: 1080,
-          gpu: {
-            gpu_detected: true,
-            name: "NVIDIA GeForce RTX 4070",
-            architecture: "NVIDIA Ada Lovelace (Compute 8.9)",
-            vram_total_mib: 12282,
-          },
-        };
+        let tauriWallpaper: Record<string, unknown> | null = null;
         try {
           const r = await fetch("http://127.0.0.1:8788/api/tauri/wallpaper", {
             signal: AbortSignal.timeout(1800),
@@ -335,12 +310,9 @@ export function startGeminiSuperAppServer(
           }
         } catch {}
 
-        let voiceState: Record<string, unknown> = {
-          state: "IDLE",
-          is_live_active: false,
-        };
+        let voiceState: Record<string, unknown> | null = null;
         try {
-          const vr = await fetch("http://127.0.0.1:8765/api/status", {
+          const vr = await fetch("http://127.0.0.1:8765/api/voice/telemetry", {
             signal: AbortSignal.timeout(1500),
           });
           if (vr.ok) {
@@ -357,7 +329,6 @@ export function startGeminiSuperAppServer(
       },
       "/api/wallpaper/apply": {
         POST: async () => {
-          let tauriWallpaper: Record<string, unknown> = {};
           try {
             const r = await fetch(
               "http://127.0.0.1:8788/api/tauri/wallpaper/apply",
@@ -366,14 +337,13 @@ export function startGeminiSuperAppServer(
                 signal: AbortSignal.timeout(4500),
               },
             );
-            if (r.ok) {
-              tauriWallpaper = (await r.json()) as Record<string, unknown>;
-            }
-          } catch {}
-          return Response.json({
-            status: "ok",
-            wallpaper: tauriWallpaper,
-          });
+            if (!r.ok) return Response.json({ error: "Le service natif a refusé l'application du fond d'écran." }, { status: 502 });
+            const wallpaper = await r.json() as Record<string, unknown>;
+            if (wallpaper.static_wallpaper_applied !== true) return Response.json({ error: "Le service natif n'a pas confirmé l'application du fond d'écran.", wallpaper }, { status: 502 });
+            return Response.json({ status: "ok", wallpaper });
+          } catch {
+            return Response.json({ error: "Service de fond d'écran natif indisponible." }, { status: 503 });
+          }
         },
       },
       "/app": async () => {
@@ -382,6 +352,12 @@ export function startGeminiSuperAppServer(
           headers: { "content-type": "text/html; charset=utf-8" },
         });
       },
+      "/workspace.js": () => new Response(Bun.file(`${srcDir}/workspace.js`), {
+        headers: { "content-type": "application/javascript; charset=utf-8" },
+      }),
+      "/markdown-dom.js": () => new Response(Bun.file(`${srcDir}/markdown-dom.js`), {
+        headers: { "content-type": "application/javascript; charset=utf-8" },
+      }),
       "/chrome-home": async () => {
         const html = await Bun.file(chromeHomeHtmlPath).text();
         return new Response(html, {
@@ -408,7 +384,7 @@ export function startGeminiSuperAppServer(
         });
       },
       "/glic": async () => {
-        const glicHtmlPath = `${import.meta.dir}/../../../dist/gemini-in-chrome/webui/glic.html`;
+        const glicHtmlPath = `${repoRootDir}/dist/gemini-in-chrome/webui/glic.html`;
         const file = Bun.file(glicHtmlPath);
         if (!(await file.exists())) {
           return new Response("Gemini in Chrome (Glic) not extracted yet", {
@@ -444,7 +420,7 @@ export function startGeminiSuperAppServer(
       "/glic/:asset": async (req: Request & { params: { asset: string } }) => {
         const rawAsset = req.params.asset ?? "glic_logo.svg";
         const safeAsset = rawAsset.replace(/[^a-zA-Z0-9._-]/g, "");
-        const assetPath = `${import.meta.dir}/../../../dist/gemini-in-chrome/webui/${safeAsset}`;
+        const assetPath = `${repoRootDir}/dist/gemini-in-chrome/webui/${safeAsset}`;
         const f = Bun.file(assetPath);
         if (!(await f.exists())) {
           return new Response("Not Found", { status: 404 });
@@ -462,7 +438,7 @@ export function startGeminiSuperAppServer(
       },
       "/api/chrome/glic": {
         GET: async () => {
-          const manifestPath = `${import.meta.dir}/../../../dist/gemini-in-chrome/gemini-in-chrome-manifest.json`;
+          const manifestPath = `${repoRootDir}/dist/gemini-in-chrome/gemini-in-chrome-manifest.json`;
           const mf = Bun.file(manifestPath);
           const manifest = (await mf.exists())
             ? ((await mf.json()) as Record<string, unknown>)
@@ -512,7 +488,7 @@ export function startGeminiSuperAppServer(
         GET: async () => {
           let bridgeHardware: Record<string, unknown> = {};
           let settings: Record<string, unknown> = {};
-          const settingsPath = `${import.meta.dir}/../../../config/audio_and_surfaces.json`;
+          const settingsPath = `${repoRootDir}/config/audio_and_surfaces.json`;
           try {
             const sf = Bun.file(settingsPath);
             if (await sf.exists()) {
@@ -546,7 +522,7 @@ export function startGeminiSuperAppServer(
               Math.sin((2 * Math.PI * 440 * i) / 16000) * 12000,
             );
           }
-          const dspTimeline = analyzePcm16AudioTimeline(synthSamples, 16000);
+          const dspFrame = await analyzeNativeSpectrum(synthSamples, 16000, repoRootDir);
           const wavBuf = createWavPcm16Buffer(synthSamples, 16000);
           const wavMeta = parseWavHeader(wavBuf);
 
@@ -558,8 +534,10 @@ export function startGeminiSuperAppServer(
               sampleRateHz: wavMeta.sampleRateHz,
               channels: wavMeta.channels,
               bitsPerSample: wavMeta.bitsPerSample,
-              rmsEnvelope: dspTimeline.rmsEnvelope,
-              spectrumBands32Count: dspTimeline.spectrumBands32.length,
+              input: "synthetic-test-tone",
+              rms: dspFrame?.rms ?? null,
+              spectrumBands32Count: dspFrame?.bands.length ?? null,
+              nativeDspAvailable: dspFrame !== null,
             },
             vendorEnginesActive: [
               "vendor/flowcat (BidiGenerateContent + StaleAudioLatch)",
@@ -578,7 +556,7 @@ export function startGeminiSuperAppServer(
         },
         POST: async (req: Request) => {
           const body = (await req.json()) as Record<string, unknown>;
-          const settingsPath = `${import.meta.dir}/../../../config/audio_and_surfaces.json`;
+          const settingsPath = `${repoRootDir}/config/audio_and_surfaces.json`;
           let settings: Record<string, unknown> = {};
           try {
             const sf = Bun.file(settingsPath);
@@ -761,7 +739,11 @@ export function startGeminiSuperAppServer(
           new Response(null, { status: 204, headers: CORS_HEADERS }),
       },
       "/api/app/conversations": {
-        GET: () => {
+        GET: (req: Request) => {
+          const search = (new URL(req.url).searchParams.get("q") ?? "").trim();
+          if (search.length > 200) return Response.json({ error: "Recherche limitée à 200 caractères." }, { status: 400 });
+          const normalize = (value: string) => value.normalize("NFC").toLocaleLowerCase("fr");
+          const needle = normalize(search);
           const rows = db
             .query(
               "SELECT id, title, model_id, is_pinned, created_at, updated_at FROM app_conversations ORDER BY is_pinned DESC, updated_at DESC",
@@ -774,8 +756,14 @@ export function startGeminiSuperAppServer(
             created_at: number;
             updated_at: number;
           }>;
+          const matchingMessages = new Set<string>();
+          if (needle) {
+            for (const message of db.query("SELECT conversation_id, content FROM app_messages").iterate() as Iterable<{ conversation_id: string; content: string }>) {
+              if (!matchingMessages.has(message.conversation_id) && normalize(message.content).includes(needle)) matchingMessages.add(message.conversation_id);
+            }
+          }
           return Response.json({
-            conversations: rows.map((r) => ({
+            conversations: rows.filter((r) => !needle || normalize(r.title).includes(needle) || matchingMessages.has(r.id)).map((r) => ({
               ...r,
               is_pinned: Boolean(r.is_pinned),
             })),
@@ -787,7 +775,7 @@ export function startGeminiSuperAppServer(
             model_id?: string;
           };
           const now = Date.now();
-          const id = `chat-${now}-${Math.random().toString(36).slice(2, 7)}`;
+          const id = crypto.randomUUID();
           const title = body.title?.trim() || "Nouvelle discussion";
           const modelId = body.model_id || "gemini-3.8-flash";
           db.query(
@@ -845,9 +833,10 @@ export function startGeminiSuperAppServer(
             id: m.id,
             role: m.role,
             content: m.content,
+            markdown: m.role === "assistant" ? parseMessageMarkdown(m.content) : undefined,
             thought_process: m.thought_process,
             citations: JSON.parse(m.citations_json || "[]"),
-            attachments: JSON.parse(m.attachments_json || "[]"),
+            attachments: attachmentsForMessage(m.id, m.attachments_json),
             created_at: m.created_at,
           }));
           return Response.json({
@@ -860,39 +849,41 @@ export function startGeminiSuperAppServer(
         },
         PATCH: async (req: Request & { params: { id: string } }) => {
           const chatId = req.params.id;
-          const body = (await req.json()) as {
-            title?: string;
-            is_pinned?: boolean;
-          };
-          if (typeof body.is_pinned === "boolean") {
-            db.query(
-              "UPDATE app_conversations SET is_pinned = $pin, updated_at = $now WHERE id = $id",
-            ).run({
-              $pin: body.is_pinned ? 1 : 0,
-              $now: Date.now(),
-              $id: chatId,
-            });
+          let body: { title?: unknown; is_pinned?: unknown };
+          try { body = await req.json() as { title?: unknown; is_pinned?: unknown }; }
+          catch { return Response.json({ error: "Requête invalide." }, { status: 400 }); }
+          if (!body || typeof body !== "object" || (body.title === undefined && body.is_pinned === undefined) || (body.title !== undefined && (typeof body.title !== "string" || !body.title.trim() || body.title.trim().length > 120)) || (body.is_pinned !== undefined && typeof body.is_pinned !== "boolean")) {
+            return Response.json({ error: "Indiquez un titre de 1 à 120 caractères ou un état d'épinglage valide." }, { status: 400 });
           }
-          if (typeof body.title === "string" && body.title.trim()) {
-            db.query(
-              "UPDATE app_conversations SET title = $title, updated_at = $now WHERE id = $id",
-            ).run({
-              $title: body.title.trim(),
-              $now: Date.now(),
-              $id: chatId,
-            });
-          }
+          const result = db.query("UPDATE app_conversations SET title = COALESCE($title, title), is_pinned = COALESCE($pin, is_pinned), updated_at = $now WHERE id = $id").run({
+            $title: typeof body.title === "string" ? body.title.trim() : null,
+            $pin: typeof body.is_pinned === "boolean" ? Number(body.is_pinned) : null,
+            $now: Date.now(), $id: chatId,
+          });
+          if (result.changes === 0) return Response.json({ error: "Discussion introuvable." }, { status: 404 });
           return Response.json({ ok: true });
         },
         DELETE: (req: Request & { params: { id: string } }) => {
           const chatId = req.params.id;
-          db.query("DELETE FROM app_messages WHERE conversation_id = $id").run({
-            $id: chatId,
-          });
-          db.query("DELETE FROM app_conversations WHERE id = $id").run({
-            $id: chatId,
-          });
+          db.transaction(() => {
+            db.query("DELETE FROM app_attachments WHERE message_id IN (SELECT id FROM app_messages WHERE conversation_id = $id)").run({ $id: chatId });
+            db.query("DELETE FROM app_messages WHERE conversation_id = $id").run({ $id: chatId });
+            db.query("DELETE FROM app_conversations WHERE id = $id").run({ $id: chatId });
+          })();
           return Response.json({ ok: true });
+        },
+      },
+      "/api/app/conversations/:id/attachments/:attachmentId": {
+        GET: (req: Request & { params: { id: string; attachmentId: string } }) => {
+          const file = db.query("SELECT a.name, a.mime_type, a.data FROM app_attachments a JOIN app_messages m ON m.id = a.message_id WHERE a.id = $file AND m.conversation_id = $chat").get({ $file: req.params.attachmentId, $chat: req.params.id }) as { name: string; mime_type: string; data: Uint8Array } | null;
+          if (!file) return Response.json({ error: "Fichier introuvable." }, { status: 404 });
+          const allowedTypes = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
+          const name = encodeURIComponent(file.name.toWellFormed()).replace(/['()*]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+          return new Response(new Uint8Array(file.data).buffer, { headers: {
+            "content-type": allowedTypes.includes(file.mime_type) ? file.mime_type : "application/octet-stream",
+            "content-disposition": `attachment; filename="attachment"; filename*=UTF-8''${name}`,
+            "x-content-type-options": "nosniff", "cache-control": "no-store",
+          } });
         },
       },
       "/api/app/conversations/:id/messages": {
@@ -901,42 +892,58 @@ export function startGeminiSuperAppServer(
           const body = (await req.json()) as {
             content?: string;
             model?: string;
-            attachments?: Array<{
-              name: string;
-              mimeType?: string;
-              sizeBytes?: number;
-            }>;
+            attachments?: ChatAttachment[];
           };
-          const userContent = body.content?.trim() || "Pièce jointe transmise";
+          const userContent = body.content?.trim() || "";
           const modelId = body.model || "gemini-3.8-flash";
+          if (!db.query("SELECT id FROM app_conversations WHERE id = $id").get({ $id: chatId })) {
+            return Response.json({ error: "Discussion introuvable" }, { status: 404 });
+          }
+          if (!userContent) return Response.json({ error: "Saisissez un message" }, { status: 400 });
+          let attachments: ChatAttachment[];
+          try { attachments = validateChatAttachments(body.attachments); }
+          catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Fichier invalide." }, { status: 400 }); }
+          const apiKey = Bun.env.GEMINI_API_KEY ?? Bun.env.GOOGLE_API_KEY;
+          if (!apiKey) return Response.json({ error: "Configurez GEMINI_API_KEY ou GOOGLE_API_KEY" }, { status: 503 });
+          const history = db.query("SELECT id, role, content FROM app_messages WHERE conversation_id = $id ORDER BY created_at ASC").all({ $id: chatId }) as Array<{ id: string; role: string; content: string }>;
+          let assistantContent: string;
+          try {
+            const ai = new GoogleGenAI({ apiKey, vertexai: false });
+            const response = await ai.models.generateContent({
+              model: modelId,
+              contents: [...history.filter((message) => message.role === "user" || message.role === "assistant").map((message) => {
+                const files = db.query("SELECT mime_type, data FROM app_attachments WHERE message_id = $id ORDER BY rowid").all({ $id: message.id }) as Array<{ mime_type: string; data: Uint8Array }>;
+                return { role: message.role === "assistant" ? "model" : "user", parts: [{ text: message.content }, ...files.map((file) => ({ inlineData: { mimeType: file.mime_type, data: Buffer.from(file.data).toString("base64") } }))] };
+              }), { role: "user", parts: [{ text: userContent }, ...attachments.map((file) => ({ inlineData: { mimeType: file.mimeType, data: file.data } }))] }],
+            });
+            assistantContent = response.text?.trim() ?? "";
+            if (!assistantContent) throw new Error("Empty response");
+          } catch {
+            return Response.json({ error: "Impossible d'obtenir une réponse du modèle. Vérifiez sa disponibilité et votre configuration." }, { status: 502 });
+          }
           const now = Date.now();
-          const userMsgId = `msg-u-${now}`;
+          const userMsgId = crypto.randomUUID();
 
+          const assistantNow = Date.now() + 1;
+          const assistantMsgId = crypto.randomUUID();
+          const saved = db.transaction(() => {
+          if (!db.query("SELECT id FROM app_conversations WHERE id = $id").get({ $id: chatId })) return false;
           db.query(
             "INSERT INTO app_messages (id, conversation_id, role, content, thought_process, citations_json, attachments_json, created_at) VALUES ($id, $chatId, 'user', $content, NULL, '[]', $att, $now)",
           ).run({
             $id: userMsgId,
             $chatId: chatId,
             $content: userContent,
-            $att: JSON.stringify(body.attachments ?? []),
+            $att: JSON.stringify(attachments.map(({ name, mimeType, data }) => ({ name, mimeType, sizeBytes: Buffer.from(data, "base64").length }))),
             $now: now,
           });
+          for (const file of attachments) {
+            db.query("INSERT INTO app_attachments (id, message_id, name, mime_type, data) VALUES ($id, $message, $name, $type, $data)").run({ $id: crypto.randomUUID(), $message: userMsgId, $name: file.name, $type: file.mimeType, $data: Buffer.from(file.data, "base64") });
+          }
 
-          const assistantContent = `Synthèse générée par **${modelId}** concernant : *« ${userContent.slice(0, 80)} »*.\n\n1. **Validation structurelle** : Les jetons de design respectent un ratio WCAG 2.2 AA/AAA vérifié.\n2. **Persistance locale** : Les échanges sont stockés dans \`bun:sqlite\` en mode WAL sans latence.\n\n\`\`\`ts\n// Exemple d'invocation native Bun v1.4.5\nconst status = await fetch("/api/health").then(r => r.json());\nconsole.log(status.models.live);\n\`\`\``;
-          const thoughtProcess = `Analyse de la requête (${userContent.length} caractères) avec le modèle ${modelId}.\nVérification des contraintes système et génération de la réponse structurée.`;
-          const citations = [
-            {
-              title: "Architecture Bun.serve() & SQLite",
-              url: "https://bun.com/docs/api/http",
-            },
-            {
-              title: "Spécification WCAG 2.2 Contrastes",
-              url: "https://www.w3.org/TR/WCAG22/",
-            },
-          ];
+          const thoughtProcess = null;
+          const citations: never[] = [];
 
-          const assistantNow = Date.now() + 1;
-          const assistantMsgId = `msg-a-${assistantNow}`;
           db.query(
             "INSERT INTO app_messages (id, conversation_id, role, content, thought_process, citations_json, attachments_json, created_at) VALUES ($id, $chatId, 'assistant', $content, $thought, $cit, '[]', $now)",
           ).run({
@@ -949,11 +956,15 @@ export function startGeminiSuperAppServer(
           });
 
           db.query(
-            "UPDATE app_conversations SET updated_at = $now WHERE id = $id",
+            "UPDATE app_conversations SET updated_at = $now, model_id = $model WHERE id = $id",
           ).run({
             $now: assistantNow,
+            $model: modelId,
             $id: chatId,
           });
+          return true;
+          })();
+          if (!saved) return Response.json({ error: "Discussion introuvable" }, { status: 404 });
 
           const rawMsgs = db
             .query(
@@ -974,9 +985,10 @@ export function startGeminiSuperAppServer(
               id: m.id,
               role: m.role,
               content: m.content,
+              markdown: m.role === "assistant" ? parseMessageMarkdown(m.content) : undefined,
               thought_process: m.thought_process,
               citations: JSON.parse(m.citations_json || "[]"),
-              attachments: JSON.parse(m.attachments_json || "[]"),
+              attachments: attachmentsForMessage(m.id, m.attachments_json),
               created_at: m.created_at,
             })),
           });
@@ -1323,6 +1335,7 @@ export function startGeminiSuperAppServer(
           let inputTranscript = "";
           let outputTranscript = "";
           let turnDone = false;
+          let streamClosed = false;
 
           const snap = petManager.getSnapshot();
           const petPersona =
@@ -1348,6 +1361,8 @@ export function startGeminiSuperAppServer(
               outputAudioTranscription: {},
             },
             callbacks: {
+              onclose() { streamClosed = true; },
+              onerror() { streamClosed = true; },
               onmessage(msg) {
                 const sc = msg.serverContent;
                 if (sc?.inputTranscription?.text) {
@@ -1401,45 +1416,15 @@ export function startGeminiSuperAppServer(
           });
 
           const started = Date.now();
-          while (!turnDone && Date.now() - started < 8500) {
+          while (!turnDone && !streamClosed && Date.now() - started < 20000) {
             await Bun.sleep(80);
           }
           session.close();
 
-          if (pcm24kChunks.length === 0) {
-            try {
-              const ttsFallback = await ai.models.generateContent({
-                model: GEMINI_TTS_MODEL,
-                contents:
-                  body.prompt ??
-                  "Coucou ! Je suis ravi de discuter avec toi en Gemini Live.",
-                config: {
-                  responseModalities: [Modality.AUDIO],
-                  speechConfig: {
-                    voiceConfig: {
-                      prebuiltVoiceConfig: { voiceName },
-                    },
-                  },
-                },
-              });
-              const inlineB64 =
-                ttsFallback.candidates?.[0]?.content?.parts?.[0]?.inlineData
-                  ?.data;
-              if (inlineB64) {
-                pcm24kChunks.push(
-                  new Uint8Array(Buffer.from(inlineB64, "base64")),
-                );
-              }
-            } catch {}
-          }
-          if (pcm24kChunks.length === 0) {
-            const synth = new Int16Array(4800);
-            for (let i = 0; i < synth.length; i++) {
-              synth[i] = Math.round(
-                Math.sin((2 * Math.PI * 523.25 * i) / 24000) * 10000,
-              );
-            }
-            pcm24kChunks.push(new Uint8Array(synth.buffer));
+          if (!turnDone || pcm24kChunks.length === 0) {
+            petManager.react("idle");
+            persistPetSnapshot();
+            return Response.json({ error: turnDone ? "Gemini Live a terminé sans audio." : streamClosed ? "La connexion Gemini Live a été interrompue." : "Délai dépassé avant la fin de la réponse Gemini Live." }, { status: 502 });
           }
 
           let totalBytes = 0;
@@ -1457,16 +1442,11 @@ export function startGeminiSuperAppServer(
             mergedPcmBytes.byteOffset,
             sampleCount,
           );
-          const timeline = analyzePcm16AudioTimeline(
-            samples24k.length > 0 ? samples24k : new Int16Array(512),
-            24000,
-          );
+          const spectrum = await analyzeNativeSpectrum(samples24k, 24000, repoRootDir);
           const wavBuffer = createWavPcm16Buffer(samples24k, 24000, 1);
           const wavBase64 = Buffer.from(wavBuffer).toString("base64");
 
-          const spokenBubble =
-            outputTranscript.trim() ||
-            "Coucou ! Je suis ravi de discuter avec toi en Gemini 3.8 Live ✦";
+          const spokenBubble = outputTranscript.trim();
           petManager.pet();
           petManager.react("celebrating", spokenBubble);
           const updatedPet = persistPetSnapshot();
@@ -1479,11 +1459,7 @@ export function startGeminiSuperAppServer(
             audio_chunks_count: pcm24kChunks.length,
             pcm24k_bytes_len: mergedPcmBytes.byteLength,
             wav_base64: wavBase64,
-            orb_spectrum: {
-              bands: timeline.spectrumBands32,
-              rms: 0.25,
-              bpmEstimate: timeline.bpmEstimate,
-            },
+            orb_spectrum: spectrum,
             pet: updatedPet,
           });
         },
@@ -1605,6 +1581,7 @@ export function startGeminiSuperAppServer(
           let inputTranscript = "";
           let outputTranscript = "";
           let turnDone = false;
+          let streamClosed = false;
 
           const session = await ai.live.connect({
             model,
@@ -1619,6 +1596,8 @@ export function startGeminiSuperAppServer(
               outputAudioTranscription: {},
             },
             callbacks: {
+              onclose() { streamClosed = true; },
+              onerror() { streamClosed = true; },
               onmessage(msg) {
                 const sc = msg.serverContent;
                 if (sc?.inputTranscription?.text) {
@@ -1672,45 +1651,13 @@ export function startGeminiSuperAppServer(
           });
 
           const started = Date.now();
-          while (!turnDone && Date.now() - started < 8500) {
+          while (!turnDone && !streamClosed && Date.now() - started < 20000) {
             await Bun.sleep(80);
           }
           session.close();
 
-          if (pcm24kChunks.length === 0) {
-            try {
-              const ttsFallback = await ai.models.generateContent({
-                model: GEMINI_TTS_MODEL,
-                contents:
-                  body.prompt ??
-                  "Coucou ! Je suis ravi de discuter avec toi en Gemini Live.",
-                config: {
-                  responseModalities: [Modality.AUDIO],
-                  speechConfig: {
-                    voiceConfig: {
-                      prebuiltVoiceConfig: { voiceName },
-                    },
-                  },
-                },
-              });
-              const inlineB64 =
-                ttsFallback.candidates?.[0]?.content?.parts?.[0]?.inlineData
-                  ?.data;
-              if (inlineB64) {
-                pcm24kChunks.push(
-                  new Uint8Array(Buffer.from(inlineB64, "base64")),
-                );
-              }
-            } catch {}
-          }
-          if (pcm24kChunks.length === 0) {
-            const synth = new Int16Array(4800);
-            for (let i = 0; i < synth.length; i++) {
-              synth[i] = Math.round(
-                Math.sin((2 * Math.PI * 523.25 * i) / 24000) * 10000,
-              );
-            }
-            pcm24kChunks.push(new Uint8Array(synth.buffer));
+          if (!turnDone || pcm24kChunks.length === 0) {
+            return Response.json({ error: turnDone ? "Gemini Live a terminé sans audio." : streamClosed ? "La connexion Gemini Live a été interrompue." : "Délai dépassé avant la fin de la réponse Gemini Live." }, { status: 502 });
           }
 
           let totalBytes = 0;
@@ -1728,18 +1675,9 @@ export function startGeminiSuperAppServer(
             mergedPcmBytes.byteOffset,
             sampleCount,
           );
-          const timeline = analyzePcm16AudioTimeline(
-            samples24k.length > 0 ? samples24k : new Int16Array(512),
-            24000,
-          );
+          const spectrum = await analyzeNativeSpectrum(samples24k, 24000, repoRootDir);
           const wavBuffer = createWavPcm16Buffer(samples24k, 24000, 1);
           const wavBase64 = Buffer.from(wavBuffer).toString("base64");
-
-          const avgRms =
-            timeline.rmsEnvelope.length > 0
-              ? timeline.rmsEnvelope.reduce((a, b) => a + b, 0) /
-                timeline.rmsEnvelope.length
-              : 0.18;
 
           return Response.json({
             model,
@@ -1749,11 +1687,7 @@ export function startGeminiSuperAppServer(
             audio_chunks_count: pcm24kChunks.length,
             pcm24k_bytes_len: mergedPcmBytes.byteLength,
             wav_base64: wavBase64,
-            orb_spectrum: {
-              bands: timeline.spectrumBands32,
-              rms: avgRms,
-              bpmEstimate: timeline.bpmEstimate,
-            },
+            orb_spectrum: spectrum,
           });
         },
       },
@@ -2153,6 +2087,18 @@ export function startGeminiSuperAppServer(
       "/api/voice": {
         POST: async (req: Request) => {
           const rawBody = await req.text();
+          let parsed: { action?: string; enabled?: boolean; text?: string; pcm16_base64?: string; surface?: string };
+          try { parsed = JSON.parse(rawBody || "{}"); }
+          catch { return Response.json({ error: "Requête vocale invalide." }, { status: 400 }); }
+          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return Response.json({ error: "Requête vocale invalide." }, { status: 400 });
+          if (parsed.action === "toggle_live" && parsed.enabled === true && parsed.surface === "windows_live_wallpaper") {
+            try {
+              const hardwareResponse = await fetch("http://127.0.0.1:8765/api/audio/hardware", { signal: AbortSignal.timeout(2500) });
+              if (!hardwareResponse.ok) throw new Error();
+              const hardware = await hardwareResponse.json() as { hardware_audio?: { mic_stream_active?: boolean } };
+              if (hardware.hardware_audio?.mic_stream_active !== true) return Response.json({ error: "Aucun flux microphone actif dans le service vocal." }, { status: 409 });
+            } catch { return Response.json({ error: "Impossible de vérifier le microphone du service vocal." }, { status: 503 }); }
+          }
           try {
             const r = await fetch("http://127.0.0.1:8765/api/voice", {
               method: "POST",
@@ -2163,33 +2109,23 @@ export function startGeminiSuperAppServer(
             if (r.ok) {
               return Response.json(await r.json());
             }
+            if (parsed.action === "toggle_live" || parsed.pcm16_base64) return Response.json({ error: "Le service vocal a refusé la demande." }, { status: 502 });
           } catch {}
-          const parsed = JSON.parse(rawBody || "{}") as {
-            action?: string;
-            enabled?: boolean;
-            text?: string;
-            pcm16_base64?: string;
-          };
           if (parsed.action === "toggle_live") {
-            return Response.json({
-              status: "ok",
-              is_live_active: Boolean(parsed.enabled),
-              state: parsed.enabled ? "LISTENING" : "IDLE",
-            });
+            return Response.json({ error: "Service vocal indisponible ; l'écoute n'a pas été activée." }, { status: 503 });
           }
+          if (parsed.pcm16_base64) return Response.json({ error: "Service vocal indisponible ; l'audio n'a pas été traité." }, { status: 503 });
+          if (typeof parsed.text !== "string" || !parsed.text.trim()) return Response.json({ error: "Saisissez un texte ou connectez le service vocal." }, { status: 400 });
           const apiKey = Bun.env.GEMINI_API_KEY ?? Bun.env.GOOGLE_API_KEY ?? "";
           const ai = new GoogleGenAI({ apiKey, vertexai: false });
           const liveCtx = await getLiveClockAndToolsContext();
-          const promptText =
-            parsed.text?.trim() ||
-            "Dis bonjour en une courte phrase naturelle et chaleureuse.";
+          const promptText = parsed.text.trim();
           const resp = await ai.models.generateContent({
             model: "gemini-3.8-flash",
             contents: `${liveCtx.system_prompt_block}\nTu es Gemini Live en full-duplex simultané zéro latence. Réponds naturellement à l'oral en 1 à 2 phrases courtes sans markdown : ${promptText}`,
           });
-          const replyText =
-            resp.text?.trim() ||
-            "Oui, je t'entends parfaitement sur Gemini Live !";
+          const replyText = resp.text?.trim();
+          if (!replyText) return Response.json({ error: "Gemini n'a fourni aucune réponse." }, { status: 502 });
           const ttsResp = await ai.models.generateContent({
             model: GEMINI_TTS_MODEL,
             contents: replyText,
@@ -2205,12 +2141,13 @@ export function startGeminiSuperAppServer(
           const audioB64 =
             ttsResp.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ??
             "";
+          if (!audioB64) return Response.json({ error: "Gemini n'a fourni aucun audio." }, { status: 502 });
           return Response.json({
             status: "ok",
             transcript: promptText,
             reply_text: replyText,
             audio_base64: audioB64,
-            mime_type: "audio/wav",
+            mime_type: ttsResp.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType ?? "audio/pcm;rate=24000",
           });
         },
       },
@@ -2247,72 +2184,101 @@ export function startGeminiSuperAppServer(
           ],
         }),
       "/api/voicebox/project": () => Response.json(studioProject),
+      "/api/ytm/pair/:step": {
+        POST: async (req: Request & { params: { step: string } }) => {
+          const address = serverRef?.requestIP(req)?.address;
+          const origin = req.headers.get("origin");
+          const url = new URL(req.url);
+          if (!address || !["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(address) || !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) || origin !== url.origin || req.headers.get("content-type") !== "application/json") {
+            return Response.json({ error: "Association réservée à l'interface locale." }, { status: 403 });
+          }
+          try {
+            if (req.params.step === "start") return Response.json({ code: await ytm.beginPairing() });
+            if (req.params.step === "complete") return Response.json({ ok: true, ...(await ytm.completePairing()) });
+            return Response.json({ error: "Étape inconnue." }, { status: 404 });
+          } catch (error) {
+            return Response.json({ error: error instanceof YtmCompanionError ? error.message : "Association impossible." }, { status: error instanceof YtmCompanionError ? error.status : 502 });
+          }
+        },
+      },
       "/api/ytm/state": {
-        GET: () =>
-          Response.json({
-            state: ytm.getCurrentState(),
-            djIntro: ytm.buildGeminiDjIntroPrompt(),
-          }),
+        GET: async () => {
+          try {
+            return Response.json({ state: await ytm.getCurrentState() });
+          } catch (error) {
+            return Response.json({ error: error instanceof YtmCompanionError ? error.message : "Lecture de l'état impossible." }, { status: error instanceof YtmCompanionError ? error.status : 502 });
+          }
+        },
         POST: async (req: Request) => {
-          const body = (await req.json()) as YtmCommandPayload;
-          const nextState = ytm.applyLocalCommand(body);
-          return Response.json({
-            state: nextState,
-            djIntro: ytm.buildGeminiDjIntroPrompt(),
-          });
+          try {
+            const body = (await req.json()) as YtmCommandPayload;
+            await ytm.sendCommand(body);
+            return Response.json({ ok: true });
+          } catch (error) {
+            return Response.json({ error: error instanceof YtmCompanionError ? error.message : "Commande de lecture impossible." }, { status: error instanceof YtmCompanionError ? error.status : 502 });
+          }
         },
       },
       "/api/audiocraft/generate": {
         POST: async (req: Request) => {
-          const body =
-            (await req.json()) as Partial<AudioCraftGenerationRequest>;
-          const request: AudioCraftGenerationRequest = {
-            model: body.model ?? "facebook/musicgen-stereo-large",
-            prompt:
-              body.prompt ??
-              "Warm ambient synth pads with Gemini Live voice harmony",
-            durationSec: body.durationSec ?? 2,
-            sampleRateHz: body.sampleRateHz ?? 16000,
-          };
-          const stem = generatePreviewStemWav(request);
-          const wavInfo = parseWavHeader(stem.previewWavBytes);
-          insertGenStmt.run({
-            $id: stem.id,
-            $engine: stem.model,
-            $prompt: stem.prompt,
-            $durationSec: stem.durationSec,
-            $createdAt: Date.now(),
+          let body: Partial<MusicGenRequest>;
+          try { body = await req.json() as Partial<MusicGenRequest>; }
+          catch { return Response.json({ error: "Requête invalide." }, { status: 400 }); }
+          const validation = validateMusicGenRequest(body);
+          if (validation) return Response.json({ error: validation }, { status: 400 });
+          if ([...musicJobs.values()].some((job) => job.status === "running")) return Response.json({ error: "Une génération est déjà en cours." }, { status: 409 });
+          if (musicJobs.size >= 50) return Response.json({ error: "La limite de générations de cette session est atteinte." }, { status: 429 });
+          const id = crypto.randomUUID();
+          const output = `${Bun.env.TEMP ?? Bun.env.TMPDIR ?? "."}/gemini-music-${id}.wav`;
+          const job: { status: "running" | "complete" | "failed"; output: string; error?: string } = { status: "running", output };
+          musicJobs.set(id, job);
+          void generateMusicGen(body as MusicGenRequest, output, `${srcDir}/../../../backend/musicgen_generate.py`).then(async () => {
+            const file = Bun.file(output);
+            if (file.size > 16 * 1024 * 1024) throw new Error("Le fichier audio généré dépasse 16 Mo.");
+            try { analyzeWavPcm16(await file.bytes()); }
+            catch { throw new Error("Le fichier audio généré est invalide ou incomplet."); }
+            job.status = "complete";
+          }).catch(async (error: unknown) => {
+            job.status = "failed";
+            job.error = error instanceof Error ? error.message : "La génération a échoué.";
+            try { await Bun.file(output).delete(); } catch { /* No output or cleanup unavailable. */ }
           });
-          return Response.json({
-            id: stem.id,
-            model: stem.model,
-            prompt: stem.prompt,
-            uvCommand: stem.uvCommand,
-            wavHeader: wavInfo,
-          });
+          return Response.json({ id, status: job.status }, { status: 202 });
         },
+      },
+      "/api/audiocraft/jobs/:id": (req: Request & { params: { id: string } }) => {
+        const job = musicJobs.get(req.params.id);
+        if (!job) return Response.json({ error: "Génération introuvable." }, { status: 404 });
+        return Response.json({ id: req.params.id, status: job.status, error: job.error });
+      },
+      "/api/audiocraft/jobs/:id/audio": (req: Request & { params: { id: string } }) => {
+        const job = musicJobs.get(req.params.id);
+        if (!job || job.status !== "complete") return Response.json({ error: "Audio indisponible." }, { status: 404 });
+        return new Response(Bun.file(job.output), { headers: { "content-type": "audio/wav", "content-disposition": `attachment; filename="musicgen-${req.params.id}.wav"` } });
       },
       "/api/media/analyze": {
         POST: async (req: Request) => {
-          const body = (await req.json()) as {
-            frequencyHz?: number;
-            sampleCount?: number;
-          };
-          const freq = body.frequencyHz ?? 440;
-          const count = body.sampleCount ?? 1600;
-          const samples = new Int16Array(count);
-          for (let i = 0; i < count; i++) {
-            samples[i] = Math.round(
-              Math.sin((2 * Math.PI * freq * i) / 16000) * 14000,
-            );
+          const limit = 16 * 1024 * 1024;
+          if (Number(req.headers.get("content-length")) > limit) return Response.json({ error: "Fichier limité à 16 Mo." }, { status: 413 });
+          if (!req.body) return Response.json({ error: "Sélectionnez un fichier WAV." }, { status: 400 });
+          const reader = req.body.getReader();
+          const chunks: Uint8Array[] = [];
+          let size = 0;
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              size += value.length;
+              if (size > limit) { await reader.cancel(); return Response.json({ error: "Fichier limité à 16 Mo." }, { status: 413 }); }
+              chunks.push(value);
+            }
+            const bytes = new Uint8Array(size);
+            let offset = 0;
+            for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+            return Response.json(analyzeWavPcm16(bytes));
+          } catch (error) {
+            return Response.json({ error: error instanceof Error ? error.message : "Analyse impossible." }, { status: 400 });
           }
-          const timeline = analyzePcm16AudioTimeline(samples, 16000);
-          const wav = createWavPcm16Buffer(samples, 16000, 1);
-          const header = parseWavHeader(wav);
-          return Response.json({
-            header,
-            timeline,
-          });
         },
       },
       "/api/jan/agent": () => {
@@ -2492,7 +2458,7 @@ export function startGeminiSuperAppServer(
           return Response.json(cookieManager.getRedactedStatus());
         },
       },
-    },
+    }, req => allowsLocalRequest(req, serverRef?.requestIP(req) ?? null, Bun.env.SUPER_APP_ALLOWED_ORIGINS)),
     fetch(req, srv) {
       const url = new URL(req.url);
       if (url.pathname.startsWith("/assets/mochi/")) {
@@ -2520,12 +2486,7 @@ export function startGeminiSuperAppServer(
         });
       }
       if (url.pathname === "/ws") {
-        const origin = req.headers.get("origin") ?? "http://127.0.0.1";
-        if (
-          !origin.startsWith("http://") &&
-          !origin.startsWith("https://") &&
-          !origin.startsWith("tauri://")
-        ) {
+        if (!allowsLocalRequest(req, srv.requestIP(req), Bun.env.SUPER_APP_ALLOWED_ORIGINS)) {
           return new Response("Forbidden origin", { status: 403 });
         }
         const upgraded = srv.upgrade(req, {
@@ -2550,8 +2511,8 @@ export function startGeminiSuperAppServer(
           $createdAt: Date.now(),
         });
         const welcome = createSpectrumFrame(
-          Array.from({ length: 32 }, () => 0.12),
-          0.15,
+          Array.from({ length: 32 }, () => 0),
+          0,
           false,
         );
         ws.send(serializeHubMessage(welcome));
@@ -2588,6 +2549,6 @@ export function startGeminiSuperAppServer(
 
 if (import.meta.main) {
   const port = Number(Bun.env.SUPER_APP_PORT ?? 8787);
-  const { server } = startGeminiSuperAppServer(port);
+  const { server } = startGeminiSuperAppServer(port, Bun.env.SUPER_APP_DB_PATH ?? "gemini-super-app.sqlite");
   console.log(`Gemini Super App running on http://127.0.0.1:${server.port}`);
 }

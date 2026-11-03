@@ -282,7 +282,7 @@
           <div class="bin-pill">
             <span class="bin-dot" id="dotGpu"></span
             ><span id="gpuPillText"
-              >GPU: NVIDIA GeForce RTX 4070 (12 GB VRAM • Compute 8.9)</span
+              >GPU : état indisponible</span
             >
           </div>
           <div class="bin-pill">
@@ -397,7 +397,7 @@
           ></canvas>
           <span id="wallPetLabel">🌱 Mochi & Gemini Pet</span>
           <span>•</span>
-          <span id="workerwInfo">Win32 WorkerW Actif</span>
+          <span id="workerwInfo">Service de fond d’écran : état inconnu</span>
         </div>
       </div>
     </div>
@@ -646,26 +646,30 @@
           if (d.pet) {
             applyWallPetState(d.pet, false);
           }
-          if (d.wallpaper?.gpu?.name) {
+          if (d.wallpaper?.gpu?.gpu_detected && d.wallpaper.gpu.name) {
             const g = d.wallpaper.gpu;
             document.getElementById("gpuPillText").textContent =
-              `GPU: ${g.name} (${g.vram_free_mib || 10800}/${g.vram_total_mib || 12282} MiB VRAM • ${g.utilization_gpu_pct ?? 8}% • Compute ${g.compute_capability || "8.9"})`;
-          }
+              `GPU : ${g.name} (${g.vram_free_mib}/${g.vram_total_mib} MiB VRAM • ${g.utilization_gpu_pct}% • Compute ${g.compute_capability})`;
+          } else document.getElementById("gpuPillText").textContent = "GPU : état indisponible";
           if (d.wallpaper?.progman_hwnd) {
             document.getElementById("workerwInfo").textContent =
-              `Progman ${d.wallpaper.progman_hwnd} • ${d.wallpaper.screen_width}x${d.wallpaper.screen_height} • DWM Mica + QoS Haute Priorité`;
-          }
+              `Progman ${d.wallpaper.progman_hwnd} • ${d.wallpaper.screen_width}x${d.wallpaper.screen_height}`;
+          } else document.getElementById("workerwInfo").textContent = "Service de fond d’écran : état indisponible";
           if (d.voice) {
             isLiveActive = Boolean(d.voice.is_live_active);
             orb.classList.toggle("listening", isLiveActive);
             badge.textContent = isLiveActive
-              ? `GEMINI 3.8 LIVE ACTIF (${d.voice.state || "LISTENING"}) • AOEDE HD`
-              : "GEMINI 3.8 LIVE WALLPAPER • FULL-DUPLEX AOEDE HD";
+              ? `Mode vocal actif (${d.voice.state || "état inconnu"})`
+              : "Mode vocal en veille";
             const hist = d.voice.history || [];
             if (hist.length > 0) {
               const last = hist[hist.length - 1];
               bar.textContent = `${last.role === "user" ? "🎙️ Vous" : "✨ Gemini"} : ${last.text}`;
             }
+          } else {
+            isLiveActive = false;
+            orb.classList.remove("listening");
+            badge.textContent = "Service vocal indisponible";
           }
         } catch {}
       }
@@ -673,20 +677,20 @@
       setInterval(pollWallpaperTelemetry, 1800);
 
       async function toggleLiveVoice() {
-        isLiveActive = !isLiveActive;
-        orb.classList.toggle("listening", isLiveActive);
-        bar.textContent = isLiveActive
-          ? "🎙️ Écoute Gemini Live Full-Duplex activée..."
-          : "Gemini Live en veille.";
-        await fetch("/api/voice", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            action: "toggle_live",
-            enabled: isLiveActive,
-            surface: "windows_live_wallpaper",
-          }),
-        });
+        const desired = !isLiveActive;
+        try {
+          const response = await fetch("/api/voice", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ action: "toggle_live", enabled: desired, surface: "windows_live_wallpaper" }),
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Commande vocale impossible.");
+          if (typeof result.is_live_active !== "boolean" || result.is_live_active !== desired) throw new Error("Le service vocal n'a pas confirmé la commande.");
+          isLiveActive = result.is_live_active;
+          orb.classList.toggle("listening", isLiveActive);
+          bar.textContent = isLiveActive ? "Mode vocal activé par le service." : "Mode vocal en veille.";
+        } catch (error) { bar.textContent = error.message || "Service vocal indisponible."; }
       }
 
       orb.addEventListener("click", toggleLiveVoice);
@@ -711,13 +715,12 @@
         .addEventListener("click", async () => {
           bar.textContent =
             "🖼️ Application du fond d'écran natif Windows 4K (SPI_SETDESKWALLPAPER + WorkerW)...";
-          const r = await fetch("/api/wallpaper/apply", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ launchOverlay: false }),
-          });
-          const d = await r.json();
-          bar.textContent = `✅ Fond Windows appliqué : ${d.wallpaper?.static_wallpaper_path || "OK"} (${d.wallpaper?.screen_width}x${d.wallpaper?.screen_height})`;
+          try {
+            const r = await fetch("/api/wallpaper/apply", { method: "POST" });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || "Application impossible.");
+            bar.textContent = `Fond Windows appliqué : ${d.wallpaper.static_wallpaper_path}`;
+          } catch (error) { bar.textContent = error.message || "Service de fond d’écran indisponible."; }
         });
 
       document

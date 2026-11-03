@@ -36,11 +36,10 @@ def test_synthesize_harmonic_wav_bytes_and_cli(capsys) -> None:
     assert len(wav) == 44 + (4000 * 2)
 
     rc = main(["--mode", "audiocraft", "--prompt", "Ambient aurora", "--duration", "0.25"])
-    assert rc == 0
+    assert rc == 2
     captured = capsys.readouterr().out.strip()
     data = json.loads(captured)
-    assert data["status"] == "ok"
-    assert data["wav_byte_length"] == 44 + (4000 * 2)
+    assert data["status"] == "error"
 
 
 def test_real_gemini_api_python_uv() -> None:

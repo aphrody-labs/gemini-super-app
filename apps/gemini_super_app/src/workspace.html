@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Gemini · Espace de travail</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; --bg: light-dark(#fff, #131314); --panel: light-dark(#f0f4f9, #1e1f20); --text: light-dark(#1f1f1f, #e3e3e3); --muted: light-dark(#48515c, #bcc4ce); --accent: light-dark(#0b57d0, #a8c7fa); --line: light-dark(#c4c7c5, #52575c); }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--text); background: var(--bg); }
+    button, textarea, input { font: inherit; color: inherit; }
+    button, a { cursor: pointer; }
+    button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .layout { display: grid; grid-template-columns: 260px minmax(0,1fr); min-height: 100dvh; }
+    aside { background: var(--panel); padding: 24px 16px; display: flex; flex-direction: column; gap: 20px; }
+    .brand { margin: 0; font-size: 1.15rem; font-weight: 700; }
+    .brand span { color: var(--accent); }
+    button, .link { border: 1px solid var(--line); background: transparent; border-radius: 12px; padding: 11px 14px; min-height: 44px; text-align: left; }
+    button:hover, .link:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+    button:disabled { opacity: .6; cursor: wait; }
+    .new { background: var(--bg); }
+    .nav-title { color: var(--muted); font-size: .85rem; margin: 0 4px 8px; }
+    .history-search { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 8px 10px; }
+    .history-status { color: var(--muted); font-size: .85rem; }
+    #conversations { display: flex; flex-direction: column; gap: 4px; overflow: auto; max-height: 48vh; }
+    .conversation { border-color: transparent; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .conversation[aria-current="true"] { border-color: var(--line); background: var(--bg); }
+    .links { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+    .music { border-top: 1px solid var(--line); padding-top: 12px; }
+    .music summary { cursor: pointer; padding: 8px 4px; font-weight: 600; }
+    .music p { color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+    .music-controls { display: flex; gap: 6px; flex-wrap: wrap; }
+    .music-controls button { padding: 8px 10px; }
+    .music textarea, .music select, .music input { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-bottom: 10px; }
+    .music audio { width: 100%; margin-top: 10px; }
+    .music form { padding: 0; margin: 0; }
+    .link { color: inherit; text-decoration: none; }
+    main { min-width: 0; display: flex; flex-direction: column; height: 100dvh; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px clamp(20px, 4vw, 48px); border-bottom: 1px solid var(--line); }
+    header h1 { font-size: 1rem; margin: 0; }
+    .header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    #renameForm { padding: 12px clamp(20px, 4vw, 48px); width: 100%; border-bottom: 1px solid var(--line); }
+    #renameForm input { min-height: 44px; max-width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--panel); }
+    #deleteConversation { color: var(--muted); }
+    .content { width: min(100%, 800px); margin: 0 auto; padding: 24px; overflow-y: auto; flex: 1; }
+    #zeroStateSection { margin: clamp(48px, 12vh, 120px) 0; }
+    #zeroStateSection h2 { font-size: clamp(2rem, 5vw, 3.25rem); letter-spacing: -.04em; margin: 0 0 12px; }
+    #zeroStateSection p, .hint { color: var(--muted); line-height: 1.5; }
+    #threadSection { display: flex; flex-direction: column; gap: 28px; }
+    .message { line-height: 1.65; overflow-wrap: anywhere; }
+    .message h2 { font-size: .9rem; margin: 0 0 8px; }
+    .message p { margin: 0; white-space: pre-wrap; }
+    .message.search-match { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 8px; }
+    .message .search-match-label { color: var(--accent); font-size: .8rem; font-weight: 600; margin-bottom: 8px; }
+    .markdown p { margin: 0 0 .8em; white-space: normal; }
+    .markdown pre { overflow: auto; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+    .markdown code { font-family: ui-monospace, monospace; font-size: .9em; }
+    .markdown blockquote { border-left: 3px solid var(--line); margin: 1em 0; padding-left: 16px; color: var(--muted); }
+    .markdown a { color: var(--accent); }
+    .table-scroll { overflow-x: auto; }
+    .markdown table { border-collapse: collapse; }
+    .markdown th, .markdown td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+    .user { background: var(--panel); border-radius: 18px; padding: 16px 20px; align-self: flex-end; max-width: 90%; }
+    form { width: min(100%, 800px); margin: 0 auto; padding: 12px 24px 24px; }
+    .composer { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 14px; }
+    .files { margin: 8px 0; }
+    .files input { max-width: 100%; }
+    .files p, .attachments { color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
+    .attachments { margin-top: 12px; }
+    .attachments ul { margin: 4px 0 0; padding-left: 20px; }
+    .attachments a { color: var(--accent); }
+    label { display: block; font-weight: 600; margin-bottom: 8px; }
+    textarea { display: block; width: 100%; resize: vertical; min-height: 76px; border: 0; background: transparent; }
+    .actions { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .model label { font-size: .8rem; color: var(--muted); }
+    .model input { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; max-width: 100%; }
+    .send { background: var(--accent); color: light-dark(#fff, #062e6f); border: 0; font-weight: 700; }
+    .send:hover { background: var(--accent); filter: brightness(.9); }
+    #status { min-height: 1.4em; color: var(--muted); margin: 8px 0 0; }
+    [hidden] { display: none !important; }
+    @media (max-width: 650px) { .layout { display: block; } aside { padding: 12px 16px; gap: 10px; } #conversations { flex-direction: row; max-height: none; } .conversation { flex: 0 0 auto; max-width: 200px; } .links { flex-direction: row; flex-wrap: wrap; } main { height: auto; min-height: 70dvh; } .content { min-height: 30vh; } header { padding: 14px 20px; } }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside aria-label="Navigation">
+      <p class="brand"><span>✦</span> Gemini</p>
+      <button class="new" id="newConversation" type="button">+ Nouvelle discussion</button>
+      <section aria-labelledby="historyTitle"><h2 class="nav-title" id="historyTitle">Discussions</h2><label for="historySearch">Rechercher dans les discussions</label><input class="history-search" id="historySearch" type="search" autocomplete="off" maxlength="200"><p class="history-status" id="historyStatus" role="status"></p><div id="conversations"></div></section>
+      <details class="music" id="musicPanel"><summary>YouTube Music Desktop</summary>
+        <p id="musicStatus" role="status">Actualisez pour voir la lecture.</p>
+        <p>Activez les demandes d’autorisation dans les réglages du serveur compagnon, puis comparez le code dans la fenêtre du lecteur. Le jeton sera enregistré dans le coffre du système si disponible.</p>
+        <div class="music-controls"><button type="button" id="musicPairStart">Associer</button><button type="button" id="musicPairConfirm" hidden>Ouvrir la confirmation</button></div><p id="musicPairStatus" role="status"></p>
+        <div class="music-controls"><button type="button" id="musicRefresh">Actualiser</button><button type="button" data-music-command="previous">Précédent</button><button type="button" data-music-command="playPause">Lecture / pause</button><button type="button" data-music-command="next">Suivant</button></div>
+      </details>
+      <details class="music"><summary>Créer de la musique</summary>
+        <form id="musicGenForm"><label for="musicPrompt">Description</label><textarea id="musicPrompt" maxlength="1000" required></textarea>
+          <label for="musicModel">Modèle</label><select id="musicModel"><option value="facebook/musicgen-small">MusicGen Small</option><option value="facebook/musicgen-medium">MusicGen Medium</option><option value="facebook/musicgen-stereo-small">MusicGen Stereo Small</option></select>
+          <label for="musicDuration">Durée en secondes</label><input id="musicDuration" type="number" min="1" max="30" value="5" required>
+          <button type="submit">Générer</button><p id="musicGenStatus" role="status"></p><audio id="musicGenAudio" controls hidden></audio>
+        </form>
+      </details>
+      <details class="music"><summary>Analyser un fichier audio</summary>
+        <form id="audioAnalysisForm"><label for="audioFile">Fichier WAV PCM 16 bits</label><input id="audioFile" type="file" accept="audio/wav,.wav" required aria-describedby="audioHint"><p id="audioHint">Mono ou stéréo, 16 Mo maximum. Le fichier est analysé localement.</p><button type="submit">Analyser</button><p id="audioStatus" role="status"></p><div id="audioResult" hidden><p id="audioDetails"></p><p id="audioLevels"></p></div></form>
+      </details>
+      <nav class="links" aria-label="Autres espaces"><a class="link" href="/voice">Voix et compagnon</a><a class="link" href="/wallpaper">Fond d’écran</a></nav>
+    </aside>
+    <main>
+      <header><h1 id="conversationTitle">Nouvelle discussion</h1><div class="header-actions"><button id="pinConversation" type="button" aria-pressed="false" hidden>Épingler</button><button id="renameConversation" type="button" hidden>Renommer</button><button id="deleteConversation" type="button" hidden>Supprimer</button></div></header>
+      <form id="renameForm" hidden><label for="renameInput">Titre de la discussion</label><input id="renameInput" maxlength="120" required><button type="submit">Enregistrer</button><button id="renameCancel" type="button">Annuler</button><p id="renameStatus" role="status"></p></form>
+      <div class="content" id="content">
+        <section id="zeroStateSection"><h2>Bonjour.</h2><p>Posez une question, explorez une idée ou reprenez une discussion.</p></section>
+        <section id="threadSection" aria-label="Messages" aria-live="polite"></section>
+      </div>
+      <form id="promptForm" method="post" action="/api/app/conversations" novalidate>
+        <div class="composer"><label for="prompt">Votre message</label><textarea id="prompt" name="content" required aria-describedby="status" placeholder="Écrivez ici…"></textarea>
+          <div class="files"><label for="attachments">Images ou PDF</label><input id="attachments" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" multiple aria-describedby="fileHint"><p id="fileHint">3 fichiers et 4 Mo au total. Ils seront envoyés à Gemini et conservés dans la discussion.</p></div>
+          <div class="actions"><div class="model"><label for="model">Modèle Gemini</label><input id="model" name="model" value="gemini-3.8-flash" spellcheck="false"></div><button class="send" id="send" type="submit">Envoyer</button></div>
+        </div><p class="hint">Entrée pour envoyer · Maj + Entrée pour aller à la ligne</p><p id="status" role="status" aria-live="polite"></p>
+      </form>
+    </main>
+  </div>
+  <script type="module" src="/workspace.js"></script>
+</body>
+</html>

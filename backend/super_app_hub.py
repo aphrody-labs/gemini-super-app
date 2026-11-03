@@ -210,22 +210,8 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(asdict(manifest), indent=2))
         return 0
 
-    wav_bytes = synthesize_harmonic_wav_bytes(
-        prompt=args.prompt,
-        duration_sec=min(args.duration, 2.0),
-        sample_rate_hz=args.sample_rate,
-    )
-    payload: dict[str, Any] = {
-        "status": "ok",
-        "mode": args.mode,
-        "model": args.model,
-        "engine": args.engine,
-        "prompt": args.prompt,
-        "wav_byte_length": len(wav_bytes),
-        "sample_rate_hz": args.sample_rate,
-    }
-    print(json.dumps(payload))
-    return 0
+    print(json.dumps({"status": "error", "message": "Use the MusicGen job API for model generation; this hub does not generate music."}))
+    return 2
 
 
 if __name__ == "__main__":

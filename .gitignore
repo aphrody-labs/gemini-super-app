@@ -34,6 +34,7 @@ apps/gemini_voice_app/pubspec.lock
 # OS / Editor
 .DS_Store
 Thumbs.db
+gemini-super-app.sqlite*
 *.log
 *.tmp
 .idea/

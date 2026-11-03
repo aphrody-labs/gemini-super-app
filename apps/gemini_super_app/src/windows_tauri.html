@@ -848,6 +848,7 @@
               }),
             });
             const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Réponse vocale indisponible.");
             if (data.orb_spectrum && Array.isArray(data.orb_spectrum.bands)) {
               spectrumBands = data.orb_spectrum.bands;
             }
@@ -862,7 +863,7 @@
               `Gemini (${voice}) : ${transcriptOut}`,
             );
             document.getElementById("audio-telemetry-info").textContent =
-              `Chunks 24kHz : ${data.audio_chunks_count} • PCM : ${data.pcm24k_bytes_len} octets • RMS : ${(data.orb_spectrum?.rms || 0.25).toFixed(3)}`;
+              `Chunks 24kHz : ${data.audio_chunks_count} • PCM : ${data.pcm24k_bytes_len} octets • RMS : ${data.orb_spectrum ? data.orb_spectrum.rms.toFixed(3) : "DSP indisponible"}`;
 
             if (data.wav_base64) {
               await playWavBase64(data.wav_base64);

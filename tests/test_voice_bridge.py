@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+from types import SimpleNamespace
+
 import pytest
 from aiohttp.test_utils import TestClient, TestServer
 
@@ -10,6 +13,23 @@ from backend.voice_bridge_server import (
     VoiceSessionConfig,
     create_app,
 )
+
+
+@pytest.mark.asyncio
+async def test_voice_telemetry_preserves_pilot_queue() -> None:
+    _, hub = create_app()
+    command = {"command": "show", "timestamp": 123}
+    hub.pending_pilot_commands.append(command)
+    response = await hub.handle_voice_telemetry(SimpleNamespace())
+    assert response.status == 200
+    assert json.loads(response.text)["is_live_active"] is False
+    assert hub.pending_pilot_commands == [command]
+    status = await hub.handle_status(SimpleNamespace())
+    assert json.loads(status.text)["pending_pilot_count"] == 1
+    assert hub.pending_pilot_commands == [command]
+    taken = await hub.handle_take_pilot_commands(SimpleNamespace())
+    assert json.loads(taken.text)["commands"] == [command]
+    assert hub.pending_pilot_commands == []
 
 
 def test_live_connect_config_structure() -> None:

@@ -55,12 +55,16 @@ pub fn probe_windows_gpu_accelerator() -> WindowsGpuTelemetry {
             let line = String::from_utf8_lossy(&out.stdout);
             let first = line.lines().next().unwrap_or("").trim();
             let parts: Vec<&str> = first.split(',').map(|s| s.trim()).collect();
-            if parts.len() >= 6 {
+            if parts.len() >= 6
+                && parts[2].parse::<u64>().is_ok()
+                && parts[3].parse::<u64>().is_ok()
+                && parts[4].parse::<u32>().is_ok()
+            {
                 let name = parts[0].to_string();
                 let driver = parts[1].to_string();
-                let total_mib = parts[2].parse::<u64>().unwrap_or(12282);
-                let free_mib = parts[3].parse::<u64>().unwrap_or(10800);
-                let util_pct = parts[4].parse::<u32>().unwrap_or(10);
+                let total_mib = parts[2].parse::<u64>().unwrap_or(0);
+                let free_mib = parts[3].parse::<u64>().unwrap_or(0);
+                let util_pct = parts[4].parse::<u32>().unwrap_or(0);
                 let cc = parts[5].to_string();
                 let arch = if cc.starts_with("8.9") {
                     "NVIDIA Ada Lovelace (RTX 40-Series Tensor + RT Cores)".to_string()
@@ -79,33 +83,24 @@ pub fn probe_windows_gpu_accelerator() -> WindowsGpuTelemetry {
                     vram_total_mib: total_mib,
                     vram_free_mib: free_mib,
                     utilization_gpu_pct: util_pct,
-                    wgpu_backend: "DirectX 12 Ultimate + Vulkan 1.3 (Shader Model 6.7)".to_string(),
-                    ml_execution_providers: vec![
-                        "CUDAExecutionProvider (fp16 / bf16 / int8_float16)".to_string(),
-                        "TensorRTExecutionProvider (Ada FP8/FP16)".to_string(),
-                        "DirectMLExecutionProvider (DX12 MetaCommands)".to_string(),
-                        "wgpu WGSL Compute Pipeline (32-band FFT + 3D GLB Extrusion)".to_string(),
-                    ],
+                    wgpu_backend: String::new(),
+                    ml_execution_providers: vec![],
                 };
             }
         }
     }
 
     WindowsGpuTelemetry {
-        gpu_detected: true,
-        name: "NVIDIA GeForce RTX 4070".to_string(),
-        architecture: "NVIDIA Ada Lovelace (Compute 8.9)".to_string(),
-        compute_capability: "8.9".to_string(),
-        driver_version: "617.42".to_string(),
-        vram_total_mib: 12282,
-        vram_free_mib: 10880,
-        utilization_gpu_pct: 8,
-        wgpu_backend: "DirectX 12 Ultimate".to_string(),
-        ml_execution_providers: vec![
-            "CUDAExecutionProvider (fp16 / int8_float16)".to_string(),
-            "DirectMLExecutionProvider".to_string(),
-            "wgpu WGSL Compute Pipeline".to_string(),
-        ],
+        gpu_detected: false,
+        name: String::new(),
+        architecture: String::new(),
+        compute_capability: String::new(),
+        driver_version: String::new(),
+        vram_total_mib: 0,
+        vram_free_mib: 0,
+        utilization_gpu_pct: 0,
+        wgpu_backend: String::new(),
+        ml_execution_providers: vec![],
     }
 }
 
