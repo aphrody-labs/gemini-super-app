@@ -1,6 +1,8 @@
-//! Voice DSP: Audio processing, RMS, and 32-band spectral magnitude simulation
+//! Voice DSP: PCM RMS and 32-band frequency analysis.
 
+use rustfft::{Fft, FftPlanner, num_complex::Complex};
 use serde::{Deserialize, Serialize};
+use std::sync::{Arc, OnceLock};
 
 pub const FFT_BANDS: usize = 32;
 
@@ -63,23 +65,35 @@ pub fn compute_rms(samples: &[i16]) -> f32 {
     (sum_sq / (samples.len() as f64)).sqrt() as f32
 }
 
-/// Generates normalized 32-band frequency bins for the animated Gemini SVG orb
-pub fn compute_spectrum_bands(rms: f32, phase: f32) -> [f32; FFT_BANDS] {
-    let mut bands = [0.0f32; FFT_BANDS];
-    for (i, item) in bands.iter_mut().enumerate() {
-        let f_idx = i as f32;
-        let wave = (phase * 1.5 + f_idx * 0.3).sin().abs()
-            * (phase * 0.8 - f_idx * 0.15).cos().powi(2);
-        let val = (rms * 1.8 + 0.08 * wave) * (1.0 - f_idx / 40.0);
-        *item = val.clamp(0.02, 1.0);
-    }
-    bands
-}
-
-/// Computes a 32-band [`SpectrumFrame`] from 16-bit PCM samples.
+/// Analyze the most recent 1024 samples with a Hann-windowed FFT. Bands are
+/// linearly spaced from DC to just below Nyquist and use peak bin amplitude.
 pub fn compute_spectrum_32(samples: &[i16], sample_rate_hz: u32) -> SpectrumFrame {
+    const FFT_SIZE: usize = 1024;
+    static FFT: OnceLock<Arc<dyn Fft<f32>>> = OnceLock::new();
     let rms = compute_rms(samples);
-    let bands = compute_spectrum_bands(rms, 1.0).to_vec();
+    let recent = &samples[samples.len().saturating_sub(FFT_SIZE)..];
+    let mut buffer = vec![Complex::new(0.0, 0.0); FFT_SIZE];
+    let mut window_sum = 0.0;
+    for (i, sample) in recent.iter().enumerate() {
+        let window = if recent.len() > 2 {
+            0.5 - 0.5 * (2.0 * std::f32::consts::PI * i as f32 / (recent.len() - 1) as f32).cos()
+        } else {
+            1.0
+        };
+        buffer[i].re = f32::from(*sample) / 32768.0 * window;
+        window_sum += window;
+    }
+    let mut bands = vec![0.0f32; FFT_BANDS];
+    if window_sum > 0.0 {
+        FFT.get_or_init(|| FftPlanner::<f32>::new().plan_fft_forward(FFT_SIZE))
+            .process(&mut buffer);
+        for (bin, value) in buffer.iter().enumerate().take(FFT_SIZE / 2) {
+            let scale = if bin == 0 { 1.0 } else { 2.0 };
+            let amplitude = (value.norm() * scale / window_sum).clamp(0.0, 1.0);
+            let band = bin * FFT_BANDS / (FFT_SIZE / 2);
+            bands[band] = bands[band].max(amplitude);
+        }
+    }
     SpectrumFrame {
         bands,
         rms,
@@ -105,14 +119,28 @@ mod tests {
     }
 
     #[test]
-    fn test_spectrum_bands_range() {
-        let bands = compute_spectrum_bands(0.2, 1.0);
-        assert_eq!(bands.len(), FFT_BANDS);
-        for &b in &bands {
-            assert!((0.0..=1.0).contains(&b));
+    fn spectrum_tracks_frequency_and_silence() {
+        let silence = compute_spectrum_32(&[0; 1024], 16_000);
+        assert!(silence.bands.iter().all(|&value| value == 0.0));
+        assert!(!silence.is_speech);
+        for (frequency, expected_band) in [(500.0, 2), (2000.0, 8)] {
+            let samples: Vec<i16> = (0..1024)
+                .map(|i| {
+                    (16000.0 * (2.0 * std::f32::consts::PI * frequency * i as f32 / 16000.0).sin())
+                        as i16
+                })
+                .collect();
+            let frame = compute_spectrum_32(&samples, 16_000);
+            let peak = frame
+                .bands
+                .iter()
+                .enumerate()
+                .max_by(|a, b| a.1.total_cmp(b.1))
+                .unwrap()
+                .0;
+            assert_eq!(peak, expected_band);
+            assert!(frame.bands[peak] > 0.45);
+            assert!(frame.is_speech);
         }
-        let frame = compute_spectrum_32(&[4000i16; 320], 16_000);
-        assert_eq!(frame.bands.len(), 32);
-        assert!(frame.is_speech);
     }
 }

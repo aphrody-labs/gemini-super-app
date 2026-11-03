@@ -1,0 +1,21 @@
+import { chmodSync, mkdirSync } from "node:fs";
+import { join, resolve } from "node:path";
+
+const root = resolve(import.meta.dir, "..");
+const release = Bun.env.VOICE_DSP_PROFILE === "release";
+const metadata = Bun.spawn(["cargo", "metadata", "--format-version", "1", "--no-deps", "--locked"], { cwd: root, stdout: "pipe", stderr: "inherit" });
+const metadataText = await new Response(metadata.stdout).text();
+if (await metadata.exited !== 0) throw new Error("Impossible de déterminer le dossier Cargo.");
+const target = (JSON.parse(metadataText) as { target_directory: string }).target_directory;
+const args = ["cargo", "build", "-p", "voice_dsp", "--bin", "voice-dsp", "--locked", "-j", "1"];
+if (release) args.push("--release");
+const build = Bun.spawn(args, { cwd: root, stdout: "inherit", stderr: "inherit" });
+if (await build.exited !== 0) throw new Error("Compilation du DSP impossible.");
+const name = `voice-dsp${process.platform === "win32" ? ".exe" : ""}`;
+const input = join(target, release ? "release" : "debug", name);
+const outputDir = join(root, "dist", "bin");
+const output = join(outputDir, name);
+mkdirSync(outputDir, { recursive: true });
+await Bun.write(output, Bun.file(input));
+if (process.platform !== "win32") chmodSync(output, 0o755);
+console.log(`DSP disponible : ${output}`);
