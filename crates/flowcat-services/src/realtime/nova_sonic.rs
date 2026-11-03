@@ -297,7 +297,7 @@ fn le_bytes_to_pcm(bytes: &[u8]) -> Vec<i16> {
 /// - `audioOutput.content` (base64 PCM) → `AudioOut`
 /// - `textOutput{role,content}` → `BotText` (ASSISTANT) / `UserText` (USER)
 /// - `toolUse{toolName,toolUseId,content}` → `ToolCall`
-/// - `completionEnd` → `Closed`
+/// - `completionEnd` marks a response turn, not the lifetime of the stream
 ///
 /// Fixture-tested now; the live Bedrock bidi transport that calls it from
 /// `next_event` is the follow-up (hence `allow(dead_code)` in this skeleton).
@@ -355,10 +355,6 @@ pub(crate) fn decode_server_event(value: &Value, out_rate: u32) -> Vec<RealtimeE
             .or_else(|| tool.get("content").cloned())
             .unwrap_or(Value::Null);
         out.push(RealtimeEvent::ToolCall { name, args, id });
-    }
-
-    if event.get("completionEnd").is_some() {
-        out.push(RealtimeEvent::Closed);
     }
 
     out
@@ -500,12 +496,9 @@ mod tests {
     }
 
     #[test]
-    fn decode_completion_end_is_closed() {
-        let frame = json!({ "event": { "completionEnd": {} } });
-        assert!(matches!(
-            decode_server_event(&frame, 24_000)[0],
-            RealtimeEvent::Closed
-        ));
+    fn completion_end_does_not_close_a_multiturn_session() {
+        let frame = json!({ "event": { "completionEnd": { "stopReason": "END_TURN" } } });
+        assert!(decode_server_event(&frame, 24_000).is_empty());
     }
 
     #[test]
