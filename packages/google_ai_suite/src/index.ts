@@ -247,23 +247,24 @@ export class AphrodyAuthManager {
  * Search, Voice/STS, TTS, STT, ML/Reasoning/Embeddings/Agents, YouTube Data v3, Lyria Music & Flow Video
  */
 export class AphrodyGoogleAIClient {
-  readonly ai: GoogleGenAI;
+  private aiClient?: GoogleGenAI;
+  private readonly apiKey: string;
   readonly auth: AphrodyAuthManager;
   private readonly youtubeApiKey: string;
 
   constructor(apiKey?: string) {
-    const resolvedKey =
-      apiKey ||
-      process.env.GEMINI_API_KEY ||
-      process.env.GOOGLE_API_KEY ||
-      "MOCK_KEY_FOR_TESTS";
-    this.ai = new GoogleGenAI({ apiKey: resolvedKey, vertexai: false });
+    this.apiKey = apiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
     this.auth = new AphrodyAuthManager();
     this.youtubeApiKey =
       process.env.YOUTUBE_API_KEY ||
       process.env.GOOGLE_API_KEY ||
       process.env.GEMINI_API_KEY ||
       "";
+  }
+
+  get ai(): GoogleGenAI {
+    if (!this.apiKey.trim()) throw new Error("Clé Gemini absente : configurez GEMINI_API_KEY ou GOOGLE_API_KEY.");
+    return this.aiClient ??= new GoogleGenAI({ apiKey: this.apiKey, vertexai: false });
   }
 
   // ==========================================================================

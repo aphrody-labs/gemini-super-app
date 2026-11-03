@@ -7,6 +7,22 @@ import {
 } from "../src/index";
 
 describe("@gemini-live/google-ai-suite", () => {
+  test("reports missing Gemini credentials only when the Gemini client is used", () => {
+    const gemini = Bun.env.GEMINI_API_KEY;
+    const google = Bun.env.GOOGLE_API_KEY;
+    try {
+      delete Bun.env.GEMINI_API_KEY;
+      delete Bun.env.GOOGLE_API_KEY;
+      const client = new AphrodyGoogleAIClient();
+      expect(client.buildFlowPromptWithTags({ prompt: "test" })).toBe("test");
+      expect(() => client.ai).toThrow("Clé Gemini absente");
+      const configured = new AphrodyGoogleAIClient("test-key");
+      expect(configured.ai).toBe(configured.ai);
+    } finally {
+      if (gemini === undefined) delete Bun.env.GEMINI_API_KEY; else Bun.env.GEMINI_API_KEY = gemini;
+      if (google === undefined) delete Bun.env.GOOGLE_API_KEY; else Bun.env.GOOGLE_API_KEY = google;
+    }
+  });
   test("verifies Aphrody GCP project, Service Accounts, and OAuth Client IDs", () => {
     const auth = new AphrodyAuthManager();
     const status = auth.getStatusSummary();
