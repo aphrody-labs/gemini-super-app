@@ -147,7 +147,10 @@ function setConversation(conversation) {
 }
 
 async function openConversation(id) {
+  if (busy) return;
   const version = ++requestVersion;
+  setBusy(true);
+  status.textContent = 'Chargement de la discussion…';
   try {
     const data = await api(`/api/app/conversations/${encodeURIComponent(id)}`);
     if (version !== requestVersion) return;
@@ -156,7 +159,8 @@ async function openConversation(id) {
     status.textContent = '';
     showMessages(data.messages, historySearch.value);
     await refreshList();
-  } catch (error) { status.textContent = error.message; }
+  } catch (error) { if (version === requestVersion) status.textContent = error.message; }
+  finally { if (version === requestVersion) setBusy(false); }
 }
 
 document.querySelector('#newConversation').addEventListener('click', () => {
