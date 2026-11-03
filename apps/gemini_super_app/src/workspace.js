@@ -259,16 +259,17 @@ form.addEventListener('submit', async event => {
     if (!currentId) {
       const data = await api('/api/app/conversations', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title: content.slice(0, 80), model_id: modelId }) });
       setConversation(data.conversation);
-      await refreshList();
     }
     const data = await api(`/api/app/conversations/${encodeURIComponent(currentId)}/messages`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content, model: modelId, attachments: encodedFiles }) });
     showMessages(data.messages);
     prompt.value = '';
     attachments.value = '';
     status.textContent = '';
-    await refreshList();
   } catch (error) { status.textContent = error.message; }
-  finally { setBusy(false); }
+  finally {
+    setBusy(false);
+    refreshList().catch(error => { historyStatus.textContent = error.message; });
+  }
 });
 
 refreshList().catch(error => { status.textContent = error.message; });
