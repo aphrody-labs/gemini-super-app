@@ -113,11 +113,11 @@ impl RealtimeLlmService for NovaSonicRealtime {
         // The event *envelopes* for the open sequence are built + validated here
         // (so the encoders are exercised), but the AWS Bedrock bidi transport is
         // a follow-up — surface a clear, non-panicking error.
-        let _open_sequence = [
+        let _open_sequence = (
             encode_session_start(),
             encode_prompt_start(&self.prompt_name, &setup.tools),
-            encode_text_content(&self.prompt_name, "SYSTEM", &setup.system_prompt),
-        ];
+            encode_text_content(&self.prompt_name, "system-content", "SYSTEM", &setup.system_prompt),
+        );
         Err(FlowcatError::Realtime(
             "nova-sonic: Bedrock bidirectional-stream transport not wired yet (SigV4 + AWS \
              event-stream is the follow-up); encoders/decoders are usable + fixture-tested"
@@ -143,7 +143,7 @@ impl RealtimeLlmService for NovaSonicRealtime {
             return Err(FlowcatError::Realtime("nova-sonic: not connected".into()));
         }
         // A SYSTEM text content block carries an updated instruction.
-        let _event = encode_text_content(&self.prompt_name, "SYSTEM", &prompt);
+        let _event = encode_text_content(&self.prompt_name, "system-update", "SYSTEM", &prompt);
         Ok(())
     }
 
@@ -215,19 +215,21 @@ fn encode_tool_spec(tool: &ToolDecl) -> Value {
     })
 }
 
-/// A text content block (`contentStart` text + `textInput` + `contentEnd`)
-/// collapsed into a single representative envelope for the skeleton. The role is
-/// `SYSTEM`/`USER`/`ASSISTANT`.
-fn encode_text_content(prompt_name: &str, role: &str, text: &str) -> Value {
-    json!({
-        "event": {
-            "textInput": {
-                "promptName": prompt_name,
-                "role": role,
-                "content": text
-            }
-        }
-    })
+/// A complete text block: start, input, and end share the same content name.
+fn encode_text_content(prompt_name: &str, content_name: &str, role: &str, text: &str) -> [Value; 3] {
+    [
+        json!({ "event": { "contentStart": {
+            "promptName": prompt_name, "contentName": content_name,
+            "type": "TEXT", "interactive": true, "role": role,
+            "textInputConfiguration": { "mediaType": "text/plain" }
+        } } }),
+        json!({ "event": { "textInput": {
+            "promptName": prompt_name, "contentName": content_name, "content": text
+        } } }),
+        json!({ "event": { "contentEnd": {
+            "promptName": prompt_name, "contentName": content_name
+        } } }),
+    ]
 }
 
 /// `{"event":{"audioInput":{promptName, contentName, content:<base64 PCM>}}}`.
@@ -418,10 +420,16 @@ mod tests {
 
     #[test]
     fn text_content_carries_role_and_text() {
-        let v = encode_text_content("p1", "SYSTEM", "You are helpful.");
-        let ti = &v["event"]["textInput"];
-        assert_eq!(ti["role"], "SYSTEM");
+        let v = encode_text_content("p1", "c1", "SYSTEM", "You are helpful.");
+        let start = &v[0]["event"]["contentStart"];
+        assert_eq!(start["role"], "SYSTEM");
+        assert_eq!(start["textInputConfiguration"]["mediaType"], "text/plain");
+        let ti = &v[1]["event"]["textInput"];
         assert_eq!(ti["content"], "You are helpful.");
+        for event in [&v[0]["event"]["contentStart"], ti, &v[2]["event"]["contentEnd"]] {
+            assert_eq!(event["promptName"], "p1");
+            assert_eq!(event["contentName"], "c1");
+        }
     }
 
     #[test]
