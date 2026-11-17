@@ -1,0 +1,8 @@
+# Naming declaration of this repository (scheme: aphrody-labs/.github naming/NAMING.md). Names come from here, never from another repository.
+id = "gemini-super-app"
+kind = "research"
+org = "aphrody-labs"
+
+[legacy]
+# Variables read from the environment under other prefixes, accepted only as aliases of this repository's own names.
+env = ["APHRODY_"]
