@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "flowcat-telephony"
 description = "Flowcat carrier WebSocket FrameSerializers (Twilio/Telnyx/Plivo/Exotel/Vonage/Genesys/Asterisk/Cloudonix/Vobiz) + DTMF (RFC2833 + in-band Goertzel)."
 version.workspace = true

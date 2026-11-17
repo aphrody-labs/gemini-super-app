@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "flowcat-transports"
 description = "Flowcat media transports: str0m WebRTC + Opus, WebSocket, Daily/LiveKit, local mic/speaker, and avatar transports — each behind a per-transport feature."
 version.workspace = true

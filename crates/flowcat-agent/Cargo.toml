@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "flowcat-agent"
 description = "Declarative, graph-based conversation agent (a config-driven AgentBrain) for the Flowcat voice runtime."
 version.workspace = true

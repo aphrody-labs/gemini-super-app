@@ -735,7 +735,7 @@ wheels = [
 ]
 
 [[package]]
-name = "gemini-live-voice-super-app"
+name = "gemini-super-app"
 version = "2026.11.0"
 source = { editable = "." }
 dependencies = [

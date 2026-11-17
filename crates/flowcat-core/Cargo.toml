@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "flowcat-core"
 description = "Self-hosted native-Rust real-time voice-agent runtime — one binary, no Python or softswitch: transports, serializers, codec, and a speech-to-speech (Gemini Live) pipeline."
 version.workspace = true

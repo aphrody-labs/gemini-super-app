@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "bun-video-native"
 description = "Consolidated native Rust video/audio streaming & FFV1/RGBA/PNG media engine from vendor/bun-video/native"
 version.workspace = true

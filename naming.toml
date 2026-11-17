@@ -6,3 +6,6 @@ org = "aphrody-labs"
 [legacy]
 # Variables read from the environment under other prefixes, accepted only as aliases of this repository's own names.
 env = ["APHRODY_"]
+
+[exceptions]
+I002 = "vendor/* are gitlink-pinned forks and mirrors kept as read-only research references; no manifest, workspace or workflow of this repository builds or reads them"

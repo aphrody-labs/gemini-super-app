@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "polaris-audio"
 description = "Consolidated Polaris audio library indexer, Symphonia lossless metadata/stream inspector, and Gemini Music DJ queue engine"
 version.workspace = true

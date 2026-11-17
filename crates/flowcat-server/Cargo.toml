@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "flowcat-server"
 description = "Config-driven single-agent server for the Flowcat voice runtime — run an agent from a YAML/JSON config with no control plane."
 version.workspace = true

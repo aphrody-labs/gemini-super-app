@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "flowcat-services"
 description = "Flowcat speech/LLM service providers: realtime S2S (Gemini sibling realtime providers), STT, TTS, LLM, and network observability exporters — each behind a per-provider feature."
 version.workspace = true

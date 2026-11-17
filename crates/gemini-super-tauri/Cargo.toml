@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "gemini-super-tauri"
 description = "Unified Tauri v3 Alpha (3.0.0-alpha.5) native desktop & mobile shell crate for the One Big Gemini Super App & migrated Gemini Windows App"
 version.workspace = true

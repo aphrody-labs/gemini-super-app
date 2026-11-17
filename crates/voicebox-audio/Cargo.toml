@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "voicebox-audio"
 description = "Consolidated Voicebox Studio audio capture, multi-device playback router, linear resampler, WAV encoder, and voice cloning profile engine"
 version.workspace = true

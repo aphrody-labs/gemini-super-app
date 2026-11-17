@@ -3,7 +3,7 @@ requires = ["hatchling>=1.26.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gemini-live-voice-super-app"
+name = "gemini-super-app"
 version = "2026.11.0"
 description = "Unified November 2026 Gemini Live 3.8 Voice, Audio, Music & Google Super App (uv workspace consolidating Voicebox, Locally-Uncensored, Jan ADK, AudioCraft & Faster-Whisper)"
 readme = "README.md"

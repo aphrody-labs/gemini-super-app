@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "awesome-rust-audio"
 description = "Curated Rust Audio, Music, DSP, and Google Gemini ecosystem catalog parser consolidated from vendor/awesome-rust#audio-and-music"
 version.workspace = true

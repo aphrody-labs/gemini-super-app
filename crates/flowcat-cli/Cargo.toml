@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "flowcat-cli"
 description = "Flowcat developer CLI — local-mic / WebSocket demo harness."
 version.workspace = true
